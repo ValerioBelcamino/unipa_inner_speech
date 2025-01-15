@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'inner_speech'
+package_name = 'explainability'
 
 setup(
     name=package_name,
@@ -14,14 +14,15 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='belca',
-    maintainer_email='valeriobelcamino@gmail.com',
+    maintainer_email='belca@todo.todo',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'user_input = inner_speech.user_input:main',
-        'llm_intent_recognition = inner_speech.llm_intent_recognition:main',        
+        'explainability_listener = explainability.explainability_listener:main',
+        'llm_query_explaination = explainability.llm_query_explaination:main',
+        'llm_clingo_explaination = explainability.llm_clingo_explaination:main',        
         ],
     },
 )

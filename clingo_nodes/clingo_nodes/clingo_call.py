@@ -24,6 +24,8 @@ def clingo_call():
 
     program = program_data + program_logic
 
+    print(program)
+
     # subprocess.run(['/usr/bin/clingo', os.path.join(source_dir, 'diet_data.pl'), os.path.join(source_dir, 'clingo.pl')])
 
     # exit()

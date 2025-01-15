@@ -16,6 +16,8 @@ from neo4j import GraphDatabase
 from export_query_results import generate_pl_file, generate_csv_file
 
 os.environ["GROQ_API_KEY"]
+ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
+source_dir = os.path.join(ws_dir, 'src', 'neo4j_nodes', 'neo4j_nodes')
 
 
 def main():
@@ -34,13 +36,15 @@ def main():
 
     examples = []
 
-    with open('/home/belca/Desktop/Palermo/neo4j_test/FewShot_query.json', 'r') as f:
-            examples=json.load(f)["examples"]
+    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_query.json'), 'r') as f:
+        examples=json.load(f)["examples"]
 
-    print(examples)
+    # print(examples)
     try:
         graph = Neo4jGraph(uri, username, password)
         schema=graph.schema
+
+        print(schema)
     
 
         
@@ -63,7 +67,7 @@ def main():
             input_variables=["question", "schema"],
         )
 
-        print(prompt)
+        # print(prompt)
 
         cypher_response = (
         llm.bind(stop=["\nCypherResult:"])

@@ -8,16 +8,16 @@ import os
 
 # Assuming your workspace structure is standard
 ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
-source_dir = os.path.join(ws_dir, 'src', 'inner_speech', 'inner_speech')
+source_dir = os.path.join(ws_dir, 'src', 'explainability', 'explainability')
 
 
-class InnerSpeech_Listener(Node):
+class Explainability_Listener(Node):
 
     def __init__(self):
-        super().__init__('Inner_Speech')
+        super().__init__('Explainability_Listener')
         self.subscription_queries = self.create_subscription(
             String,
-            '/IS_queries',
+            '/EX_queries',
             self.queries_callback,
             10
         )
@@ -25,7 +25,7 @@ class InnerSpeech_Listener(Node):
 
         self.subscription_clingo = self.create_subscription(
             String,
-            '/IS_clingo',
+            '/EX_clingo',
             self.clingo_callback,
             10
         )
@@ -57,12 +57,12 @@ class InnerSpeech_Listener(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    innerspeech_listener = InnerSpeech_Listener()
+    explainability_listener = Explainability_Listener()
 
-    rclpy.spin(innerspeech_listener)
+    rclpy.spin(explainability_listener)
 
     # Shutdown
-    innerspeech_listener.destroy_node()
+    explainability_listener.destroy_node()
     rclpy.shutdown()
 
 

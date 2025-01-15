@@ -1,0 +1,40 @@
+{
+    "examples": [
+
+        {
+            "question": "Ciao, sono Valerio. Vorrei essere inserito nel sistema",
+            "parameters": "{{'nome_utente': 'Valerio','calorie': '','proteine': '','carboidrati': '','grassi': '','intolleranze': ''}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Valerio', '', '', '', '', '')"
+        },
+    
+        {
+            "question": "Ciao, sono Luca. Vorrei essere inserito nel sistema con 2000 calorie, 70g di proteine, 250g di carboidrati e 50g di grassi. Non ho intolleranze.",
+            "parameters": "{{'nome_utente': 'Luca','calorie': '2000','proteine': '70','carboidrati': '250','grassi': '50','intolleranze': ''}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Luca', '2000', '70', '250', '50', '')"
+        },
+        
+        {
+            "question": "Ciao, sono Anna. Vorrei essere inserita nel sistema con 1800 calorie, 50g di proteine, 200g di carboidrati e 40g di grassi. Sono intollerante al glutine e al lattosio.",
+            "parameters": "{{'nome_utente': 'Anna','calorie': '1800','proteine': '50','carboidrati': '200','grassi': '40','intolleranze': 'glutine, lattosio'}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Anna', '1800', '50', '200', '40', 'glutine, lattosio')"
+        },
+        
+        {
+            "question": "Ciao, sono Marco. Inseriscimi nel sistema con 2500 calorie, 100g di proteine, 300g di carboidrati e 70g di grassi. Non ho intolleranze.",
+            "parameters": "{{'nome_utente': 'Marco','calorie': '2500','proteine': '100','carboidrati': '300','grassi': '70','intolleranze': ''}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Marco', '2500', '100', '300', '70', '')"
+        },
+        
+        {
+            "question": "Ciao, sono Giulia. Vorrei essere inserita nel sistema con 1500 calorie, 60g di proteine, 180g di carboidrati e 30g di grassi. Sono intollerante alle noci.",
+            "parameters": "{{'nome_utente': 'Giulia','calorie': '1500','proteine': '60','carboidrati': '180','grassi': '30','intolleranze': 'noci'}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Giulia', '1500', '60', '180', '30', 'noci')"
+        },
+        
+        {
+            "question": "Ciao, sono Serena. Aggiungimi al sistema con 2200 calorie, 80g di proteine, 260g di carboidrati e 60g di grassi. Ho intolleranze al glutine, lattosio e soia.",
+            "parameters": "{{'nome_utente': 'Serena','calorie': '2200','proteine': '80','carboidrati': '260','grassi': '60','intolleranze': 'glutine, lattosio, soia'}}",
+            "query": "INSERT INTO utenti (nome_utente, calorie, proteine, carboidrati, grassi, intolleranze) VALUES ('Serena', '2200', '80', '260', '60', 'glutine, lattosio, soia')"
+        }        
+    ]
+}

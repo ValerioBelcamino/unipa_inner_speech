@@ -8,7 +8,7 @@ source_dir = os.path.join(ws_dir, 'src', 'clingo_nodes', 'clingo_nodes')
 
 def generate_pl_file(fabbisogno_records, recipe_records):
     # File path for the output .pl file
-    output_file = os.path.join(ws_dir, "diet_data.pl")
+    output_file = os.path.join(source_dir, "diet_data.pl")
     fabbisogno_record = fabbisogno_records[0]
 
     with open(output_file, "w") as f:
@@ -39,7 +39,7 @@ def generate_pl_file(fabbisogno_records, recipe_records):
 
 def generate_csv_file(fabbisogno_records, recipe_records):
     # Write CSV file
-    output_file = os.path.join(ws_dir, "diet_data.csv")
+    output_file = os.path.join(source_dir, "diet_data.csv")
     with open(output_file, mode="w", newline="") as csvfile:
         fieldnames = ["dish", "type", "calories", "proteins", "carbs", "fats"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

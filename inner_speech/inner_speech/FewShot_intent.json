@@ -1,0 +1,51 @@
+{
+    "examples": [
+        {
+            "question": "Ciao, mi chiamo Mario, potresti aggiungermi al sistema?",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di aggiungere un nuovo utente di nome Mario al sistema. È una richiesta pertinente alla funzioni che sono in grado di svolgere, in particolare riguarda l'azione numero 1. L'utente però non ha fornito né il suo fabbisogno nutrizionale, né le sue intolleranze alimentari. \n#1\n#{{'nome_utente':'Mario', 'calorie': '', 'proteine': '', 'carboidrati': '', 'grassi': '', 'intolleranze': ''}}"
+        },
+        {
+            "question": "Ciao! Potresti dirmi qualcosa sulla carbonara? Mi chiamo Luca.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di fornire informazioni sulla carbonara, e il nome dell'utente, Luca, è stato fornito per cui sono in grado di determinare le esigenze nutrizionali dell'utente. È una richiesta pertinente alle funzioni che sono in grado di svolgere. Verificherò quali informazioni ho sulla Carbonara e sull'utente nella mia base di conoscenza e risponderò di conseguenza. Questa richiesta corrisponde all'azione numero 2. \n#2\n#{{'nome_utente':'Luca', 'nome_piatto':'carbonara'}}"
+        },
+        {
+            "question": "Vorrei sapere cosa posso mangiare oggi. Sono Maria.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di proporre un pasto, e il nome dell'utente, Maria, è stato fornito. È una richiesta pertinente. Verificherò nella base di conoscenza le esigenze alimentari di Maria per formulare una proposta personalizzata. Questa richiesta corrisponde all'azione numero 3. \n#3\n#{{'nome_utente':'Maria'}}"
+        },
+        {
+            "question": "Che mi consigli per pranzo?",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di proporre un pasto, ma non è stato fornito il nome dell'utente. Senza questa informazione, non posso completare la richiesta. Chiederò gentilmente all'utente di fornirmi il proprio nome. Questa richiesta corrisponde a un'azione incompleta, quindi azione 0. \n#0"
+        },
+        {
+            "question": "Puoi registrare un nuovo utente? Mi chiamo Anna.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di registrare un nuovo utente, e il nome Anna è stato fornito. È una richiesta pertinente. Mi chiedo però se Anna abbia delle esigenze o preferenze alimentari che potrebbero essere utili in futuro. Chiederò gentilmente di fornire queste informazioni, se disponibili. Questa richiesta corrisponde all'azione numero 1. \n#1\n#{{'nome_utente':'Anna', 'calorie':'', 'proteine':'', 'carboidrati':'', 'grassi':'', 'intolleranze':''}}"
+        },
+        {
+            "question": "Vorrei sapere se posso mangiare qualcosa di senza glutine. Mi chiamo Federico.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di proporre un pasto adatto a esigenze alimentari specifiche, e il nome dell'utente, Federico, è stato fornito. Questa è una richiesta pertinente. Verificherò se nella mia base di conoscenza ci sono piatti senza glutine adatti a Federico. Questa richiesta corrisponde all'azione numero 3. \n#3\n#{{'nome_utente':'Federico'}}"
+        },
+        {
+            "question": "Puoi aggiungere un piatto chiamato pasta al pesto alla mia lista preferita? Mi chiamo Sara.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di aggiungere un piatto specifico alla lista preferita di un utente, ma al momento non ho un'azione specifica per gestire liste di piatti preferiti. Risponderò educatamente che non posso soddisfare questa richiesta, poiché non è prevista tra le mie funzionalità. Azione 0. \n#0"
+        },
+        {
+            "question": "Ciao, sono Giovanni. Stasera non ho voglia di mangiare carne, puoi suggerirmi qualcosa di vegetariano per cena?",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di proporre un pasto vegetariano, e il nome dell'utente, Giovanni, è stato fornito. Questa è una richiesta pertinente. Verificherò nella base di conoscenza le altre esigenze alimentari di Giovanni e identificherò un pasto adatto alle sue preferenze. Questa richiesta corrisponde all'azione numero 3. \n#3\n#{{'nome_utente':'Giovanni'}}"
+        },
+        {
+            "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa e seguo una dieta vegetariana.",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di aggiungere un nuovo utente, Elisa, al sistema. Inoltre, Elisa ha specificato che segue una dieta vegetariana, un'informazione molto utile per personalizzare le future proposte. Questa è una richiesta pertinente che corrisponde all'azione numero 1. \n#1\n#{{'nome_utente':'Elisa', 'calorie':'', 'proteine':'', 'carboidrati':'', 'grassi':'', 'intolleranze':'vegetariana'}}"
+        },
+        {
+            "question": "Ciao, sono Laura. Vorrei conoscere i valori nutrizionali del risotto alla milanese. Puoi fornirmeli?",
+            "risposta": "Sto analizzando la richiesta. Mi è stato chiesto di fornire informazioni sul risotto alla milanese, e il nome dell'utente, Laura, è stato fornito. Questa è una richiesta pertinente. Controllerò nella mia base di conoscenza le informazioni su questo piatto e le sue caratteristiche nutrizionali, anche in base alle esigenze di Laura. Questa richiesta corrisponde all'azione numero 2. \n#2\n#{{'nome_utente':'Laura', 'nome_piatto':'risotto alla milanese'}}"
+        },
+        {
+            "question": "Ciao, come va?",
+            "risposta": "Mi sembra che la domanda dell'utente non sia pertinente rispetto al compito che devo svolgere, risponderò in maniera educata che non posso aiutarlo. Azione 0. \n#0"
+        }
+    ]
+    
+    
+  }
+  

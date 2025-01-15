@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 # Assuming your workspace structure is standard
 ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
-source_dir = os.path.join(ws_dir, 'src', 'inner_speech', 'inner_speech')
+source_dir = os.path.join(ws_dir, 'src', 'explainability', 'explainability')
 
 def main(data):
     os.environ["GROQ_API_KEY"]
@@ -17,7 +17,7 @@ def main(data):
 
     # Few-shot examples for generating explanations
     examples = []
-    with open(os.path.join(source_dir, 'FewShot_queries_explaination.json'), 'r') as f:
+    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_queries_explaination.json'), 'r') as f:
         examples=json.load(f)["examples"]
 
 
