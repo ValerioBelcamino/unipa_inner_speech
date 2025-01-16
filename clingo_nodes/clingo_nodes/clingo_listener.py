@@ -20,7 +20,7 @@ class Clingo_Listener(Node):
             10
         )
         self.subscription  # Prevent unused variable warning
-        self.publisher_ = self.create_publisher(String, '/IS_clingo', 10)
+        self.publisher_ = self.create_publisher(String, '/EX_clingo', 10)
 
         print("Started Listening!!!")
 

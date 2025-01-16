@@ -119,12 +119,15 @@ def main():
         finally:
             driver.close()
 
+        print(query_results)
+
         # Initialize an empty dictionary to hold extracted data
         result = {}
 
         # Extract recipe information
         recipe_node = query_results[0]['r']  # The Recipe node
-        allergens = query_results[0]['allergens']  # List of Allergen nodes
+        recipe_allergens = query_results[0]['recipe_allergens']  # List of Allergen nodes
+        user_allergies = query_results[0]['user_allergies']  # List of Allergen nodes
 
         # Extract recipe details
         recipe_name = recipe_node['name']
@@ -135,7 +138,8 @@ def main():
         recipe_type = recipe_node['type']
 
         # Extract allergens (if any)
-        allergen_names = [allergen['name'] for allergen in allergens] if allergens else []
+        recipe_allergens_names = [allergen for allergen in recipe_allergens] if recipe_allergens else []
+        user_allergies_names = [allergen for allergen in user_allergies] if user_allergies else []
 
         # Format user string
         user_string = f'''user_request: {input_data["question"]}.
@@ -145,7 +149,8 @@ calories: {recipe_calories},
 proteins: {recipe_proteins},
 carbs: {recipe_carbs},
 fats: {recipe_fats},
-allergens: {', '.join(allergen_names) if allergen_names else ''}'''
+recipe_allergens: [{', '.join(recipe_allergens_names) if recipe_allergens_names else ''}],
+user_allergies: [{', '.join(user_allergies_names) if user_allergies_names else ''}]'''
 
         # Populate the result dictionary
         result['user_input'] = user_string

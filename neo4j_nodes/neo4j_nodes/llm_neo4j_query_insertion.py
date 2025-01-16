@@ -116,6 +116,23 @@ def main():
         finally:
             driver.close()
 
+
+        result = {}
+        # Populate the result dictionary
+        result['user_input'] = input_data["question"]
+
+        # For demonstration, include the raw Cypher query used (optional)
+        result['queries'] = cypher_query
+
+        result_string = json.dumps(result)
+        
+        try:
+            # Write data to shared memory
+            shm.buf[:len(result_string)] = result_string.encode("utf-8")
+        except Exception as e:
+            print(f"Subprocess error: {e}", file=sys.stderr)
+        finally:
+            shm.close()
         
     finally:
         # Chiudi esplicitamente il driver alla fine

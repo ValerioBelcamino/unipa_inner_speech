@@ -1,38 +1,36 @@
 import rclpy
-from rclpy.node import Node
-import json
-from std_msgs.msg import Bool, String
-from multiprocessing.shared_memory import SharedMemory
-import subprocess
 import sys
-import os
+import json
+import time
+from multiprocessing.shared_memory import SharedMemory
+from rclpy.node import Node
+import subprocess
+from std_msgs.msg import Bool, String
+import os 
 
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
 source_dir = os.path.join(ws_dir, 'src', 'neo4j_nodes', 'neo4j_nodes')
 
 
-class User_Insertion_Listener(Node):
-
+class Meal_Prep_Listener(Node):
 
     def __init__(self):
-        super().__init__('User_Insertion_Listener')
+        super().__init__('Meal_Prep_Listener')
 
         self.listener = self.create_subscription(
             String,
-            '/user_insertion',
-            self.insertion_listener_callback,
+            '/meal_prep',
+            self.meal_prep_listener_callback,
             10
         )
-        print('Started Listening to /user_insertion !!!')
+        print('Started Listening to /meal_prep !!!')
 
+        self.publisher_clingo_start = self.create_publisher(Bool, '/Clingo_start', 10)
         self.publisher_explainability_queries = self.create_publisher(String, '/EX_queries', 10)
 
 
-
-    def insertion_listener_callback(self, msg):
+    def meal_prep_listener_callback(self, msg):
         # Parse the JSON data from the message
         print("Message received.")
 
@@ -45,7 +43,7 @@ class User_Insertion_Listener(Node):
             shm.buf[:len(msg.data)] = msg.data.encode("utf-8")
             # Start the subprocess and pass the shared memory name
             res = subprocess.run(
-                ["/home/belca/miniconda3/bin/python", os.path.join(source_dir, "llm_neo4j_query_insertion.py"), shared_memory_name],
+                ["/home/belca/miniconda3/bin/python", os.path.join(source_dir, "llm_neo4j_query_meal_prep.py"), shared_memory_name],
                 check=True
             )
 
@@ -58,27 +56,39 @@ class User_Insertion_Listener(Node):
         finally:
             # Cleanup shared memory
             shm.close()
-            shm.unlink()    
-
+            shm.unlink()        
+     
         print("Subprocess finito")
+        self.send_msg_clingo()
         self.send_msg_explainability(data)
+
+    def send_msg_clingo(self):
+        msg = Bool()
+        msg.data = True
+        self.publisher_clingo_start.publish(msg)
+        self.get_logger().info('Publishing: "%s"' % msg.data)
 
     def send_msg_explainability(self, res):
         msg = String()
         msg.data = res
         self.publisher_explainability_queries.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)   
-
+        self.get_logger().info('Publishing: "%s"' % msg.data)
 
 
 def main(args=None):
     rclpy.init(args=args)
-    ui_listener = User_Insertion_Listener()
 
-    rclpy.spin(ui_listener)
 
-    # Shutdown
-    ui_listener.destroy_node()
+
+
+    mp_listener = Meal_Prep_Listener()
+
+    rclpy.spin(mp_listener)
+
+    # Destroy the node explicitly
+    # (optional - otherwise it will be done automatically
+    # when the garbage collector destroys the node object)
+    mp_listener.destroy_node()
     rclpy.shutdown()
 
 

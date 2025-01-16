@@ -24,8 +24,8 @@ rimanenti(Nutriente, Resto) :-
     Resto = Fabbisogno - Totale.
 
 
-:- rimanenti(Nutriente, Resto), fabbisogno(Nutriente, Fabbisogno), Resto > (Fabbisogno * 20 / 100).
-:- rimanenti(Nutriente, Resto), fabbisogno(Nutriente, Fabbisogno), Resto < (-Fabbisogno * 20 / 100).
+:- rimanenti(Nutriente, Resto), fabbisogno(Nutriente, Fabbisogno), Resto > (Fabbisogno * 10 / 100).
+:- rimanenti(Nutriente, Resto), fabbisogno(Nutriente, Fabbisogno), Resto < (-Fabbisogno * 10 / 100).
 
 % Minimizzazione del valore assoluto dei nutrienti rimanenti
 #minimize { |Resto| : rimanenti(Nutriente, Resto) }.

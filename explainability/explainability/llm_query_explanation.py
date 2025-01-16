@@ -17,7 +17,7 @@ def main(data):
 
     # Few-shot examples for generating explanations
     examples = []
-    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_queries_explaination.json'), 'r') as f:
+    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_queries_explanation.json'), 'r') as f:
         examples=json.load(f)["examples"]
 
 
@@ -26,7 +26,7 @@ def main(data):
         """
     User Input: {user_input}
     Queries: {queries}
-    Explaination: {explaination}
+    explanation: {explanation}
         """
     )
 

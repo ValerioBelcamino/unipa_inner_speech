@@ -3,27 +3,39 @@
         {
             "user_input": "user_request:Ciao, sono Marco, cosa posso mangiare oggi?.\nname:Marco,\ncalories:1800,\nproteins:60,\ncarbs:200,\nfats:50,\nallergies: eggs, shellfish", 
             "queries": "MATCH (u:User {{name: 'Marco'}})-[:HAS_FABBISOGNO]->(f:Fabbisogno) OPTIONAL MATCH (u)-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN u.name AS name, f.calories AS daily_calories, f.proteins AS daily_proteins, f.carbs AS daily_carbs, f.fats AS daily_fats, COLLECT(a.name) AS allergies;,\nMATCH (u:User {{name: 'Marco'}}) MATCH (r:Recipe) WHERE NOT EXISTS {{ MATCH (r)-[:HAS_ALLERGEN]->(a:Allergen) MATCH (u)-[:IS_ALLERGIC_TO]->(a) }} RETURN r.name AS dish, r.type AS type, r.calories AS calories, r.proteins AS proteins, r.carbs AS carbs, r.fats AS fats ORDER BY r.type;",
-            "explaination": "Ciao Marco, ho escluso gli alimenti contenenti uova e crostacei per proporti un menu adatto."
+            "explanation": "Ciao Marco, ho escluso gli alimenti contenenti uova e crostacei per proporti un menu adatto."
         },
         {
             "user_input": "user_request:Ciao, sono Sara, cosa posso mangiare oggi?.\nname:Sara,\ncalories:1500,\nproteins:50,\ncarbs:180,\nfats:40,\nallergies: dairy", 
             "queries": "MATCH (u:User {{name: 'Sara'}})-[:HAS_FABBISOGNO]->(f:Fabbisogno) OPTIONAL MATCH (u)-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN u.name AS name, f.calories AS daily_calories, f.proteins AS daily_proteins, f.carbs AS daily_carbs, f.fats AS daily_fats, COLLECT(a.name) AS allergies;,\nMATCH (u:User {{name: 'Sara'}}) MATCH (r:Recipe) WHERE NOT EXISTS {{ MATCH (r)-[:HAS_ALLERGEN]->(a:Allergen) MATCH (u)-[:IS_ALLERGIC_TO]->(a) }} RETURN r.name AS dish, r.type AS type, r.calories AS calories, r.proteins AS proteins, r.carbs AS carbs, r.fats AS fats ORDER BY r.type;",
-            "explaination": "Ciao Sara, ho rimosso tutte le ricette contenenti latticini per rispettare la tua allergia."
+            "explanation": "Ciao Sara, ho rimosso tutte le ricette contenenti latticini per rispettare la tua allergia."
         },
         {
             "user_input": "user_request:Ciao, sono Lorenzo, cosa posso mangiare oggi?.\nname:Lorenzo,\ncalories:2200,\nproteins:80,\ncarbs:300,\nfats:70,\nallergies: soy", 
             "queries": "MATCH (u:User {{name: 'Lorenzo'}})-[:HAS_FABBISOGNO]->(f:Fabbisogno) OPTIONAL MATCH (u)-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN u.name AS name, f.calories AS daily_calories, f.proteins AS daily_proteins, f.carbs AS daily_carbs, f.fats AS daily_fats, COLLECT(a.name) AS allergies;,\nMATCH (u:User {{name: 'Lorenzo'}}) MATCH (r:Recipe) WHERE NOT EXISTS {{ MATCH (r)-[:HAS_ALLERGEN]->(a:Allergen) MATCH (u)-[:IS_ALLERGIC_TO]->(a) }} RETURN r.name AS dish, r.type AS type, r.calories AS calories, r.proteins AS proteins, r.carbs AS carbs, r.fats AS fats ORDER BY r.type;",
-            "explaination": "Ciao Lorenzo, ho escluso tutte le ricette contenenti soia per rispettare le tue esigenze alimentari."
+            "explanation": "Ciao Lorenzo, ho escluso tutte le ricette contenenti soia per rispettare le tue esigenze alimentari."
         },
         {
             "user_input": "user_request:Ciao, sono Andrea, cosa posso mangiare oggi?.\nname:Andrea,\ncalories:2500,\nproteins:100,\ncarbs:300,\nfats:80,\nallergies: shellfish", 
             "queries": "MATCH (u:User {{name: 'Andrea'}})-[:HAS_FABBISOGNO]->(f:Fabbisogno) OPTIONAL MATCH (u)-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN u.name AS name, f.calories AS daily_calories, f.proteins AS daily_proteins, f.carbs AS daily_carbs, f.fats AS daily_fats, COLLECT(a.name) AS allergies;,\nMATCH (u:User {{name: 'Andrea'}}) MATCH (r:Recipe) WHERE NOT EXISTS {{ MATCH (r)-[:HAS_ALLERGEN]->(a:Allergen) MATCH (u)-[:IS_ALLERGIC_TO]->(a) }} RETURN r.name AS dish, r.type AS type, r.calories AS calories, r.proteins AS proteins, r.carbs AS carbs, r.fats AS fats ORDER BY r.type;",
-            "explaination": "Ciao Andrea, ho escluso le ricette contenenti crostacei dal tuo menu."
+            "explanation": "Ciao Andrea, ho escluso le ricette contenenti crostacei dal tuo menu."
         },
         {
             "user_input": "user_request:Ciao, sono Giulia, cosa posso mangiare oggi?.\nname:Giulia,\ncalories:1800,\nproteins:60,\ncarbs:200,\nfats:50,\nallergies: peanuts, sesame", 
             "queries": "MATCH (u:User {{name: 'Giulia'}})-[:HAS_FABBISOGNO]->(f:Fabbisogno) OPTIONAL MATCH (u)-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN u.name AS name, f.calories AS daily_calories, f.proteins AS daily_proteins, f.carbs AS daily_carbs, f.fats AS daily_fats, COLLECT(a.name) AS allergies;,\nMATCH (u:User {{name: 'Giulia'}}) MATCH (r:Recipe) WHERE NOT EXISTS {{ MATCH (r)-[:HAS_ALLERGEN]->(a:Allergen) MATCH (u)-[:IS_ALLERGIC_TO]->(a) }} RETURN r.name AS dish, r.type AS type, r.calories AS calories, r.proteins AS proteins, r.carbs AS carbs, r.fats AS fats ORDER BY r.type;",
-            "explaination": "Ciao Giulia, ho filtrato le ricette per escludere quelle contenenti arachidi e sesamo."
+            "explanation": "Ciao Giulia, ho filtrato le ricette per escludere quelle contenenti arachidi e sesamo."
+        },
+        {
+            "user_input": "user_request: Ciao, sono Emma, posso mangiare il risotto ai funghi?.\nrecipe_name: risotto ai funghi,\ntype: primo,\ncalories: 450,\nproteins: 15,\ncarbs: 60,\nfats: 15,\nallergens: dairy",
+            "queries": "MATCH (r:Recipe {{name: 'risotto ai funghi'}}) OPTIONAL MATCH (u:User {{name: 'Emma'}})-[:IS_ALLERGIC_TO]->(a:Allergen)<-[:HAS_ALLERGEN]-(r) RETURN r, collect(a) AS allergens",
+            "explanation": "Ciao Emma, il risotto ai funghi contiene latticini. Dato che sei allergica, ti consiglio di scegliere un piatto alternativo. Fammi sapere se hai bisogno di suggerimenti!"
+        },
+        {
+            "user_input": "user_request: Ciao, sono Luca, posso mangiare il pollo al curry?.\nrecipe_name: pollo al curry,\ntype: secondo,\ncalories: 600,\nproteins: 45,\ncarbs: 20,\nfats: 30,\nallergens: soy",
+            "queries": "MATCH (r:Recipe {{name: 'pollo al curry'}}) OPTIONAL MATCH (u:User {{name: 'Luca'}})-[:IS_ALLERGIC_TO]->(a:Allergen)<-[:HAS_ALLERGEN]-(r) RETURN r, collect(a) AS allergens",
+            "explanation": "Ciao Luca, il pollo al curry contiene soia, che potrebbe non essere adatto a te se sei allergico. Posso proporti delle alternative che rispettano le tue necessità?"
         }
+        
+        
     ]
 }

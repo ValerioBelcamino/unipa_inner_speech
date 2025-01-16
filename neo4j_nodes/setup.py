@@ -21,12 +21,14 @@ setup(
     entry_points={
         'console_scripts': [
         'export_query_results = neo4j_nodes.export_query_results:main',
-        'llm_neo4j_query = neo4j_nodes.llm_neo4j_query:main',        
-        'llm_neo4j_query_listener = neo4j_nodes.llm_neo4j_query_listener:main',        
         'populate_database = neo4j_nodes.populate_database:main',        
         'clingo_publisher = neo4j_nodes.clingo_publisher:main',
         'listener_user_insertion = neo4j_nodes.listener_user_insertion:main',  
         'listener_dish_info = neo4j_nodes.listener_dish_info:main',
+        'listener_meal_prep = neo4j_nodes.listener_meal_prep:main',
+        'llm_neo4j_query_insertion = neo4j_nodes.llm_neo4j_query_insertion:main',        
+        'llm_neo4j_query_dish_info = neo4j_nodes.llm_neo4j_query_dish_info:main',        
+        'llm_neo4j_query_meal_prep = neo4j_nodes.llm_neo4j_query_meal_prep:main',        
         ],
     },
 )

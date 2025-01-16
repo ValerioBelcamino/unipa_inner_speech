@@ -10,6 +10,7 @@ ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Repl
 source_dir = os.path.join(ws_dir, 'src', 'explainability', 'explainability')
 
 def main(data):
+    print("Clingo Explanation")
     os.environ["GROQ_API_KEY"]
 
     # Initialize the LLM
@@ -17,7 +18,7 @@ def main(data):
 
     # Few-shot examples for generating explanations
     examples = []
-    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_clingo_explaination.json'), 'r') as f:
+    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_clingo_explanation.json'), 'r') as f:
         examples=json.load(f)["examples"]
 
 
@@ -25,7 +26,7 @@ def main(data):
     example_prompt = PromptTemplate.from_template(
         """
     Results: {results}
-    Explaination: {explaination}
+    explanation: {explanation}
         """
     )
 

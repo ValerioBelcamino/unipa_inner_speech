@@ -30,6 +30,8 @@ class Explainability_Listener(Node):
             10
         )
         self.subscription_clingo  # Prevent unused variable warning
+        print('Started Listening to /EX_queries !!!')
+
         
 
     def queries_callback(self, msg):
@@ -41,7 +43,7 @@ class Explainability_Listener(Node):
             self.get_logger().info('Received data!\n')
 
             # Call the external Python file and pass the JSON string
-            subprocess.run(['/home/belca/miniconda3/bin/python', os.path.join(source_dir, 'llm_query_explaination.py'), json.dumps(data)], check=True)
+            subprocess.run(['/home/belca/miniconda3/bin/python', os.path.join(source_dir, 'llm_query_explanation.py'), json.dumps(data)], check=True)
         except json.JSONDecodeError as e:
             self.get_logger().error(f"Failed to decode JSON: {e}")
         except subprocess.CalledProcessError as e:
@@ -51,7 +53,7 @@ class Explainability_Listener(Node):
         self.get_logger().info('Received data!\n')
 
         # Call the external Python file and pass the JSON string
-        subprocess.run(['/home/belca/miniconda3/bin/python', os.path.join(source_dir, 'llm_clingo_explaination.py'), msg.data], check=True)
+        subprocess.run(['/home/belca/miniconda3/bin/python', os.path.join(source_dir, 'llm_clingo_explanation.py'), msg.data], check=True)
 
 
 

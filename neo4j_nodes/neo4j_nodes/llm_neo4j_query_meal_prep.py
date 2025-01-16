@@ -29,6 +29,15 @@ def main():
     shared_memory_name = sys.argv[1]
     shm = SharedMemory(name=shared_memory_name)
 
+    input_data = bytes(shm.buf[:]).decode("utf-8").strip("\x00")  # Remove null bytes
+    input_data = json.loads(input_data)
+    print("Input data:")
+    print(input_data)
+    print('\n\n')
+
+    # Clear the shared memory buffer by overwriting it with null bytes
+    shm.buf[:] = b'\x00' * len(shm.buf)  # Set the entire buffer to null bytes
+
 
     uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
     username = "neo4j"             # Replace with your username
@@ -36,7 +45,7 @@ def main():
 
     examples = []
 
-    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_query.json'), 'r') as f:
+    with open(os.path.join(source_dir, 'fewshot_examples', 'FewShot_query_meal_prep.json'), 'r') as f:
         examples=json.load(f)["examples"]
 
     # print(examples)
@@ -51,7 +60,7 @@ def main():
         llm = ChatGroq(model="llama3-70b-8192",temperature=0)#llama3-70b-8192
 
         example_prompt = PromptTemplate.from_template(
-            """Question: {question}\nQuery1: {query1}\nQuery2: {query2}"""
+            """Question: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
         )
 
 
@@ -63,8 +72,8 @@ def main():
     Sotto trovi un numero di esempi di domande e le corrispettive query Cypher. Rispondi in italiano.''',
 
             suffix='''Ritornami esclusivamente le query e non aggiungere altro testo. Rispondi in italiano.
-    Question: {question},\nQuery1: ''',
-            input_variables=["question", "schema"],
+    Question: {question},\nParameters: {parameters},\nQuery1: ''',
+            input_variables=["question", "schema", "parameters"],
         )
 
         # print(prompt)
@@ -74,17 +83,8 @@ def main():
         | StrOutputParser()
         )
 
-
-        # Input to feed into the LLM
-        input_data = {
-            "question": "Ciao, mi chiamo Charlie, che cosa posso mangiare oggi? Non mi va di mangiare carne.",
-        }
-
-        # USER INPUT
-        user_input = input("\033[32mVuoi chiedere qualcosa??\n\033[0m")
-        input_data["question"] = user_input
-
-        formatted_prompt = prompt.format(question = input_data["question"], schema = schema)
+        print(input_data["parameters"])
+        formatted_prompt = prompt.format(question = input_data["question"], parameters =  json.dumps(input_data["parameters"]), schema = schema)
         print(formatted_prompt)
         print(type(formatted_prompt))
 
@@ -98,7 +98,7 @@ def main():
 
         print(type(cypher))
 
-        queries = [s.strip() for s in cypher.split('\n')]
+        queries = [':'.join(s.split(':')[1:]).strip() for s in cypher.split('\n')]
         print(queries)
         if len(queries) != 2:
             print("erroreeeeeee")
@@ -140,7 +140,7 @@ def main():
         print(recipes)
         print(f'N Recipes: {len(recipes)}')
 
-        user_string = f'''user_request:{user_input}.
+        user_string = f'''user_request:{input_data["question"]}.
 name:{user_results[0]['name']},
 calories:{user_results[0]['daily_calories']},
 proteins:{user_results[0]['daily_proteins']},
