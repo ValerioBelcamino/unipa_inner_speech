@@ -1,0 +1,34 @@
+{
+    "examples": [
+        {
+            "question": "Ciao, sono Valerio. Vorrei essere inserito nel sistema",
+            "parameters": "{{'nome_utente': 'Valerio','calorie': '','proteine': '','carboidrati': '','grassi': '','intolleranze': ''}}",
+            "query": "CREATE (u:User {{name: 'Valerio'}}) CREATE (f:Fabbisogno {{calories: null, proteins: null, carbs: null, fats: null}}) CREATE (u)-[:HAS_FABBISOGNO]->(f);"
+        },
+        {
+            "question": "Ciao, sono Luca. Vorrei essere inserito nel sistema con 2000 calorie, 70g di proteine, 250g di carboidrati e 50g di grassi. Non ho intolleranze.",
+            "parameters": "{{'nome_utente': 'Luca','calorie': '2000','proteine': '70','carboidrati': '250','grassi': '50','intolleranze': ''}}",
+            "query": "CREATE (u:User {{name: 'Luca'}}) CREATE (f:Fabbisogno {{calories: 2000, proteins: 70, carbs: 250, fats: 50}}) CREATE (u)-[:HAS_FABBISOGNO]->(f);"
+        },
+        {
+            "question": "Ciao, sono Anna. Vorrei essere inserita nel sistema con 1800 calorie, 50g di proteine, 200g di carboidrati e 40g di grassi. Sono intollerante al glutine e al lattosio.",
+            "parameters": "{{'nome_utente': 'Anna','calorie': '1800','proteine': '50','carboidrati': '200','grassi': '40','intolleranze': 'glutine, lattosio'}}",
+            "query": "CREATE (u:User {{name: 'Anna'}}) CREATE (f:Fabbisogno {{calories: 1800, proteins: 50, carbs: 200, fats: 40}}) CREATE (u)-[:HAS_FABBISOGNO]->(f) CREATE (a1:Allergen {{name: 'glutine'}}) CREATE (a2:Allergen {{name: 'lattosio'}}) CREATE (u)-[:IS_ALLERGIC_TO]->(a1) CREATE (u)-[:IS_ALLERGIC_TO]->(a2);"
+        },
+        {
+            "question": "Ciao, sono Marco. Inseriscimi nel sistema con 2500 calorie, 100g di proteine, 300g di carboidrati e 70g di grassi. Non ho intolleranze.",
+            "parameters": "{{'nome_utente': 'Marco','calorie': '2500','proteine': '100','carboidrati': '300','grassi': '70','intolleranze': ''}}",
+            "query": "CREATE (u:User {{name: 'Marco'}}) CREATE (f:Fabbisogno {{calories: 2500, proteins: 100, carbs: 300, fats: 70}}) CREATE (u)-[:HAS_FABBISOGNO]->(f);"
+        },
+        {
+            "question": "Ciao, sono Giulia. Vorrei essere inserita nel sistema con 1500 calorie, 60g di proteine, 180g di carboidrati e 30g di grassi. Sono intollerante alle noci.",
+            "parameters": "{{'nome_utente': 'Giulia','calorie': '1500','proteine': '60','carboidrati': '180','grassi': '30','intolleranze': 'noci'}}",
+            "query": "CREATE (u:User {{name: 'Giulia'}}) CREATE (f:Fabbisogno {{calories: 1500, proteins: 60, carbs: 180, fats: 30}}) CREATE (u)-[:HAS_FABBISOGNO]->(f) CREATE (a:Allergen {{name: 'noci'}}) CREATE (u)-[:IS_ALLERGIC_TO]->(a);"
+        },
+        {
+            "question": "Ciao, sono Serena. Aggiungimi al sistema con 2200 calorie, 80g di proteine, 260g di carboidrati e 60g di grassi. Ho intolleranze al glutine, lattosio e soia.",
+            "parameters": "{{'nome_utente': 'Serena','calorie': '2200','proteine': '80','carboidrati': '260','grassi': '60','intolleranze': 'glutine, lattosio, soia'}}",
+            "query": "CREATE (u:User {{name: 'Serena'}}) CREATE (f:Fabbisogno {{calories: 2200, proteins: 80, carbs: 260, fats: 60}}) CREATE (u)-[:HAS_FABBISOGNO]->(f) CREATE (a1:Allergen {{name: 'glutine'}}) CREATE (a2:Allergen {{name: 'lattosio'}}) CREATE (a3:Allergen {{name: 'soia'}}) CREATE (u)-[:IS_ALLERGIC_TO]->(a1) CREATE (u)-[:IS_ALLERGIC_TO]->(a2) CREATE (u)-[:IS_ALLERGIC_TO]->(a3);"
+        }
+    ]
+}

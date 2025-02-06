@@ -1,0 +1,40 @@
+{
+    "examples": [
+        {
+            "question": "Ciao, mi chiamo Mario, potresti aggiungermi al sistema?",
+            "action_id": "1",
+            "parameters": "{{'nome_utente!': 'Mario', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}",
+            "answer": "{{'reason':'Mario desidera essere registrato nel sistema, il che corrisponde all\\'azione 1. Tuttavia, il parametro \\'calorie!\\' è obbligatorio ma non è stato fornito. Non posso completare l\\'azione senza tutte le informazioni necessarie.', 'completed':'false', 'response': 'Certo, Mario! Tuttavia, per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
+        },
+        {
+            "question": "Ciao! Potresti dirmi qualcosa sulla carbonara? Mi chiamo Luca.",
+            "action_id": "2",
+            "parameters": "{{'nome_utente': 'Luca', 'nome_piatto!': 'carbonara'}}",
+            "answer": "{{'reason':'Luca chiede informazioni sulla carbonara. Poiché il nome del piatto è presente, posso procedere con l\\'azione 2 e fornire i dettagli richiesti. Recupererò le informazioni dal database.', 'completed':'true', 'response': ''}}"
+        },
+        {
+            "question": "Vorrei sapere cosa posso mangiare oggi. Sono Maria.",
+            "action_id": "3",
+            "parameters": "{{'nome_utente!': 'Maria', 'allergeni': ''}}",
+            "answer": "{{'reason':'Maria chiede un suggerimento per un pasto in base alle sue esigenze alimentari. L\\'azione 3 è corretta e posso procedere con l\\'elaborazione della proposta, tenendo conto di eventuali allergeni specificati.', 'completed':'true', 'response': ''}}"
+        },
+        {
+            "question": "Che mi consigli per pranzo?",
+            "action_id": "3",
+            "parameters": "{{'nome_utente!': '', 'allergeni': ''}}",
+            "answer": "{{'reason':'Non posso completare questa richiesta perché manca il parametro obbligatorio \\'nome_utente!\\' Per suggerire un pasto personalizzato, è necessario sapere a chi sto rispondendo.', 'completed':'false', 'response': 'Mi dispiace, ma per poterti consigliare un pasto personalizzato, ho bisogno di sapere chi sei. Per favore, forniscimi il tuo nome.'}}"
+        },
+        {
+            "question": "Puoi registrare un nuovo utente? Mi chiamo Anna.",
+            "action_id": "1",
+            "parameters": "{{'nome_utente!': 'Anna', 'calorie!': '2000', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}",
+            "answer": "{{'reason':'Anna desidera essere registrata nel sistema. Ha fornito il parametro \\'calorie!\\' che è obbligatorio, ma mancano i fabbisogni di proteine, carboidrati e grassi, anch\\'essi necessari. Non posso completare l\\'azione senza questa informazione.', 'completed':'false', 'response': 'Certo, Anna! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
+        },
+        {
+            "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 150 grammi.",
+            "action_id": "1",
+            "parameters": "{{'nome_utente!': 'Elisa', 'calorie!': '', 'proteine!': '150', 'carboidrati!': '', 'grassi!': '', 'intolleranze': 'glutine'}}",
+            "answer": "{{'reason':'Elisa desidera essere registrata con l\\'informazione che segue una dieta priva di glutine ed un fabbisogno di 150 grammi di proteine. Tuttavia, i parametri \\'calorie!\\', \\'grassi!\\' e \\'carboidrati!\\' sono obbligatori e mancanti. Non posso completare la registrazione senza tutte le informazioni richieste.', 'completed':'false', 'response': 'Certo, Elisa! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, carboidrati e grassi che desideri consumare.'}}"
+        }
+    ]
+}
