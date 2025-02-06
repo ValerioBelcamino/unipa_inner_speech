@@ -15,17 +15,21 @@ class Inner_Speech(Node):
     def __init__(self):
         super().__init__('inner_speech_node')
         self.in_topic = '/user_intent'
+        self.out_topic = '/user_input_activation'
+
         self.subscription = self.create_subscription(
             String,
             self.in_topic,
             self.listener_callback,
             10)
         
-        self.action_dict = {0: '/out_of_scope', 1: '/user_insertion', 2: '/dish_info', 3: '/meal_prep'}
-
-        self.get_logger().info('Inner Speech Node has been started')
-
         self.publisher_user_input = self.create_publisher(String, '/user_input_activation', 10)
+
+        print("\033[34mInner Speech Node started!!!\033[0m")
+        print("\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
+        print("\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
+
+        self.action_dict = {0: '/out_of_scope', 1: '/user_insertion', 2: '/dish_info', 3: '/meal_prep'}
 
         self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
         self.username = "neo4j"             # Replace with your username
@@ -72,10 +76,12 @@ class Inner_Speech(Node):
             | self.extract_answer
         )
 
+
     def extract_answer(self, llm_output: str) -> str:
         if "Answer:" in llm_output:
             return llm_output.split("Answer:", 1)[1].strip()
         return llm_output.strip()
+
 
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"' % msg.data)
@@ -121,6 +127,7 @@ class Inner_Speech(Node):
             publisher_action_dispatch = self.create_publisher(String, self.action_dict[int(action_id)], 10)
             publisher_action_dispatch.publish(msg)
             self.get_logger().info(f'Publishing {msg.data} on topic {self.action_dict[int(action_id)]}')
+
 
 def main(args=None):
     rclpy.init(args=args)

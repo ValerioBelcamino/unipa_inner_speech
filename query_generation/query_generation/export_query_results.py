@@ -1,10 +1,10 @@
-from neo4j import Record
 import csv
 import os
 
 # Assuming your workspace structure is standard
-ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
+ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
 source_dir = os.path.join(ws_dir, 'src', 'clingo_nodes', 'clingo_nodes')
+
 
 def generate_pl_file(fabbisogno_records, recipe_records):
     # File path for the output .pl file

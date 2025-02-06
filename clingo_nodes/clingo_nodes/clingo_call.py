@@ -6,7 +6,7 @@ import json
 def clingo_call():
 
     # Assuming your workspace structure is standard
-    ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_foxy_ws")  # Replace with your workspace path if needed
+    ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
     source_dir = os.path.join(ws_dir, 'src', 'clingo_nodes', 'clingo_nodes')
 
     # Definisci il programma ASP
@@ -27,8 +27,6 @@ def clingo_call():
 
     # subprocess.run(['/usr/bin/clingo', os.path.join(source_dir, 'diet_data.pl'), os.path.join(source_dir, 'clingo.pl')])
 
-    # exit()
-
     # Crea il solver
     ctl = Control()
     ctl.add("base", [], program)
@@ -44,12 +42,13 @@ def clingo_call():
                 print("\033[1;33mCosto ottimale:\033[0m", model.cost)
                 print(type(model.symbols(shown=True)))
                 answer_list.append(str(model.symbols(shown=True)))
-        print("\033[1;32mRisoluzione completata.\033[0m")
+        print("\033[1;34mRisoluzione completata.\033[0m")
 
-    print(f'Found {len(answer_list)} solutions.')
+    print(f'\033[1;32mFound {len(answer_list)} solutions.\033[0m')
 
     answer_json = {'results': ','.join(answer_list)}
     answer_json = json.dumps(answer_json)
 
-    print(answer_json)
+    print(f'\033[1;32mFound {answer_json} solutions.\033[0m')
+
     return answer_json

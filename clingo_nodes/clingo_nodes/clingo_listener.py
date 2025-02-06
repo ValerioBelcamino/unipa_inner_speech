@@ -10,17 +10,23 @@ from clingo_call import clingo_call
 class Clingo_Listener(Node):
 
     def __init__(self):
-        super().__init__('Clingo_listener')
+        super().__init__('clingo_listener')
+        self.clingo_start_topic = '/clingo_start'
+        self.clingo_explanation_topic = '/ex_clingo'
+
         self.subscription = self.create_subscription(
             Bool,
-            '/Clingo_start',
+            self.clingo_start_topic,
             self.listener_callback,
             10
         )
         self.subscription  # Prevent unused variable warning
-        self.publisher_ = self.create_publisher(String, '/EX_clingo', 10)
+        self.publisher_ = self.create_publisher(String, self.clingo_explanation_topic, 10)
 
-        print("Started Listening!!!")
+        print("\033[34mClingo Listener Node started!!!\033[0m")
+        print("\033[34mInitialized publishers to {self.clingo_explanation_topic}!!!\033[0m")
+        print("\033[34mStarted Listening to {self.clingo_start_topic}!!!\033[0m")
+
 
     def listener_callback(self, msg):
         # Parse the JSON data from the message

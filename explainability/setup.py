@@ -20,9 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'explainability_listener = explainability.explainability_listener:main',
-        'llm_query_explanation = explainability.llm_query_explanation:main',
-        'llm_clingo_explanation = explainability.llm_clingo_explanation:main',    
+        'explainability = explainability.explainability:main',
         ],
     },
 )

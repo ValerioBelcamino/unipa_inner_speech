@@ -25,11 +25,25 @@ def generate_launch_description():
             output='screen',
             prefix='gnome-terminal --title="Intent Recognition" -- '
         ),
-                Node(
+        Node(
             package='inner_speech',
             executable='inner_speech',
             name='inner_speech',
             output='screen',
             prefix='gnome-terminal --title="Inner Speech" -- '
+        ),
+        Node(
+            package='explainability',
+            executable='explainability',
+            name='explainability',
+            output='screen',
+            prefix='gnome-terminal --title="Explainability" -- '
+        ),
+        Node(
+            package='clingo_nodes',
+            executable='clingo_listener',
+            name='clingo_listener',
+            output='screen',
+            prefix='gnome-terminal --title="Clingo Solver" -- '
         ),
     ])

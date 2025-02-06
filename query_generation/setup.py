@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'query_generation = query_generation.query_generation:main',
+            'export_query_results = query_generation.export_query_results:main',
         ],
     },
 )

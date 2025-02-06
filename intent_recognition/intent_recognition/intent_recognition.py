@@ -17,17 +17,19 @@ class Inner_Speech(Node):
     def __init__(self):
         super().__init__('intent_recognition_node')
         self.in_topic = '/user_input'
+        self.out_topic = '/user_intent'
+
         self.subscription = self.create_subscription(
             String,
             self.in_topic,
             self.listener_callback,
             10)
 
-        self.get_logger().info('Inner Speech Node has been started')
-        self.get_logger().info('Publishing: "%s"' % self.in_topic)
+        self.publisher = self.create_publisher(String, self.out_topic, 10)
 
-        self.publisher = self.create_publisher(String, '/user_intent', 10)
-        self.subscription  # prevent unused variable warning
+        print("\033[34mIntent Recognition Node started!!!\033[0m")
+        print("\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
+        print("\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
         self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
         self.username = "neo4j"             # Replace with your username

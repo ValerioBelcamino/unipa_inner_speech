@@ -20,7 +20,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'clingo_call = clingo_nodes.clingo_call:main',
             'clingo_listener = clingo_nodes.clingo_listener:main',
         ],
     },
