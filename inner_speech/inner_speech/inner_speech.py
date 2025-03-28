@@ -84,7 +84,7 @@ class Inner_Speech(Node):
 
 
     def listener_callback(self, msg):
-        self.get_logger().info('Received: "%s"' % msg.data)
+        # self.get_logger().info('Received: "%s"\n' % msg.data)
         msg_json = json.loads(msg.data)
         user_input = msg_json['question']
         json_data = ast.literal_eval(msg_json['answer'])
@@ -99,6 +99,9 @@ class Inner_Speech(Node):
         input_data = {"question": user_input, "action_id": action_id, "parameters": parameters}
         formatted_prompt = self.prompt.format(question=input_data["question"], action_id=input_data["action_id"], parameters=input_data["parameters"], schema=self.schema)
         llm_response = self.llm_response.invoke(formatted_prompt)
+
+        with open(os.path.join(self.ws_dir, 'src', 'inner_speech', 'inners.json'), 'a+') as f:
+            f.write(json.dumps({"question": user_input, "action_id": action_id, "parameters": parameters, "answer": llm_response}) + ',\n')
 
         result = {}
         result['question'] = user_input

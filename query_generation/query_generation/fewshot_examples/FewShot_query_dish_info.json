@@ -2,52 +2,52 @@
     "examples": [
         {
             "question": "Ciao, sono Luca. Posso mangiare la lasagna?",
-            "parameters": "{{'nome_utente': 'Luca','nome_piatto': 'lasagna'}}",
+            "parameters": "{{'nome_utente': 'Luca','nome_piatto!': 'lasagna'}}",
             "query": "MATCH (r:Recipe {{name: 'lasagna'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Luca'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Vorrei sapere se posso mangiare il tiramisù. Mi chiamo Giulia.",
-            "parameters": "{{'nome_utente': 'Giulia','nome_piatto': 'tiramisù'}}",
+            "parameters": "{{'nome_utente': 'Giulia','nome_piatto!': 'tiramisù'}}",
             "query": "MATCH (r:Recipe {{name: 'tiramisù'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Giulia'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Che valori nutrizionali ha la pizza margherita? Sono Serena.",
-            "parameters": "{{'nome_utente': 'Serena','nome_piatto': 'pizza margherita'}}",
+            "parameters": "{{'nome_utente': 'Serena','nome_piatto!': 'pizza margherita'}}",
             "query": "MATCH (r:Recipe {{name: 'pizza margherita'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Serena'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Ciao, potresti dirmi che allergeni ci sono negli spaghetti alla carbonara? Mi chiamo Marco.",
-            "parameters": "{{'nome_utente': 'Marco','nome_piatto': 'spaghetti alla carbonara'}}",
+            "parameters": "{{'nome_utente': 'Marco','nome_piatto!': 'spaghetti alla carbonara'}}",
             "query": "MATCH (r:Recipe {{name: 'spaghetti alla carbonara'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Marco'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Ciao, il couscous contiene glutine?",
-            "parameters": "{{'nome_utente': '','nome_piatto': 'couscous'}}",
+            "parameters": "{{'nome_utente': '','nome_piatto!': 'couscous'}}",
             "query": "MATCH (r:Recipe {{name: 'couscous'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies"
         },
         {
             "question": "Che valori nutrizionali ha il pollo al curry?",
-            "parameters": "{{'nome_utente': '','nome_piatto': 'pollo al curry'}}",
+            "parameters": "{{'nome_utente': '','nome_piatto!': 'pollo al curry'}}",
             "query": "MATCH (r:Recipe {{name: 'pollo al curry'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies"
         },
         {
             "question": "Sono Anna, potresti dirmi che allergeni ci sono nel risotto allo zafferano?",
-            "parameters": "{{'nome_utente': 'Anna','nome_piatto': 'risotto allo zafferano'}}",
+            "parameters": "{{'nome_utente': 'Anna','nome_piatto!': 'risotto allo zafferano'}}",
             "query": "MATCH (r:Recipe {{name: 'risotto allo zafferano'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Anna'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Ciao, puoi darmi informazioni sui valori nutrizionali della lasagna?",
-            "parameters": "{{'nome_utente': '','nome_piatto': 'lasagna'}}",
+            "parameters": "{{'nome_utente': '','nome_piatto!': 'lasagna'}}",
             "query": "MATCH (r:Recipe {{name: 'lasagna'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies"
         },
         {
             "question": "Mi chiamo Valerio, vorrei sapere se posso mangiare il tiramisù.",
-            "parameters": "{{'nome_utente': 'Valerio','nome_piatto': 'tiramisù'}}",
+            "parameters": "{{'nome_utente': 'Valerio','nome_piatto!': 'tiramisù'}}",
             "query": "MATCH (r:Recipe {{name: 'tiramisù'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Valerio'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         },
         {
             "question": "Vorrei sapere di più sugli allergeni presenti nella pizza margherita. Sono Sara.",
-            "parameters": "{{'nome_utente': 'Sara','nome_piatto': 'pizza margherita'}}",
+            "parameters": "{{'nome_utente': 'Sara','nome_piatto!': 'pizza margherita'}}",
             "query": "MATCH (r:Recipe {{name: 'pizza margherita'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) OPTIONAL MATCH (u:User {{name: 'Sara'}})-[:IS_ALLERGIC_TO]->(ua:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, COLLECT(ua.name) AS user_allergies"
         }
     ]

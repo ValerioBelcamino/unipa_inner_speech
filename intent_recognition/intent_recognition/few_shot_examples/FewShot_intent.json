@@ -9,6 +9,10 @@
             "answer": "{{'action_id': '2','nome_utente': 'Luca', 'nome_piatto!': 'carbonara'}}"
         },
         {
+            "question": "Vorrei conoscere i valori nutrizionali del tiramisu.",
+            "answer": "{{'action_id': '2','nome_utente': '', 'nome_piatto!': 'tiramisu'}}"
+        },
+        {
             "question": "Vorrei sapere cosa posso mangiare oggi. Sono Maria.",
             "answer": "{{'action_id': '3','nome_utente!': 'Maria', 'allergeni': ''}}"
         },
@@ -41,12 +45,12 @@
             "answer": "{{'action_id': '1','nome_utente!': 'Elisa', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': 'glutine'}}"
         },
         {
-            "question": "Ciao, sono Laura. Vorrei conoscere i valori nutrizionali del risotto alla milanese. Puoi fornirmeli?",
-            "answer": "{{'action_id': '2','nome_utente': 'Laura', 'nome_piatto!': 'risotto alla milanese'}}"
-        },
-        {
             "question": "Ciao, come va?",
             "answer": "{{'action_id': '0'}}"
+        },
+        {
+            "question": "Ciao, sono Laura. Vorrei conoscere i valori nutrizionali del risotto alla milanese. Puoi fornirmeli?",
+            "answer": "{{'action_id': '2','nome_utente': 'Laura', 'nome_piatto!': 'risotto alla milanese'}}"
         },
         {
             "question": "Che tempo fa domani?",

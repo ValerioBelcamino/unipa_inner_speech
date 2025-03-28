@@ -29,7 +29,7 @@ def generate_pl_file(fabbisogno_records, recipe_records):
             f.write(f"% {dish_type.capitalize()} Dishes\n")
             for dish in dish_list:
                 f.write(
-                    f"ricetta({dish['dish']}, {dish['type']}, {dish['calories']}, {dish['proteins']}, "
+                    f"ricetta({dish['dish'].replace(' ', '_')}, {dish['type']}, {dish['calories']}, {dish['proteins']}, "
                     f"{dish['carbs']}, {dish['fats']}).\n"
                 )
             f.write("\n")

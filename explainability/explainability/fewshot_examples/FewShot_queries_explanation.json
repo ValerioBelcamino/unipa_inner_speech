@@ -34,8 +34,12 @@
             "user_input": "user_request: Ciao, sono Luca, posso mangiare il pollo al curry?.\nrecipe_name: pollo al curry,\ntype: secondo,\ncalories: 600,\nproteins: 45,\ncarbs: 20,\nfats: 30,\nallergens: soy",
             "queries": "MATCH (r:Recipe {{name: 'pollo al curry'}}) OPTIONAL MATCH (u:User {{name: 'Luca'}})-[:IS_ALLERGIC_TO]->(a:Allergen)<-[:HAS_ALLERGEN]-(r) RETURN r, collect(a) AS allergens",
             "explanation": "Ciao Luca, il pollo al curry contiene soia, che potrebbe non essere adatto a te se sei allergico. Posso proporti delle alternative che rispettano le tue necessità?"
+        },
+        {
+            "user_input": "user_request: Ma la panna cotta contiene glutine?.\nrecipe_name: panna cotta,\ntype: dolce,\ncalories: 400,\nproteins: 25,\ncarbs: 35,\nfats: 6,\nallergens: lactose",
+            "queries": "MATCH (r:Recipe {{name: 'panna cotta'}}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies",
+            "explanation": "La panna cotta non contiene glutine. Tuttavia, se sei intollerante al lattosio, ti consiglio di evitare questo dolce. Inoltre ha circa 400kcal, 25g di proteine, 35g di carboidrati e 6g di grassi."
         }
-        
         
     ]
 }

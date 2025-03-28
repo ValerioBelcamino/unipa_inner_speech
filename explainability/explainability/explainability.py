@@ -16,7 +16,7 @@ class Explainability(Node):
         super().__init__('explainability_node')
         self.query_explanation_topic = '/ex_queries'
         self.clingo_explanation_topic = '/ex_clingo'
-        self.robot_dialogue_topic = '/robot_dialogue_publisher'
+        self.robot_dialogue_topic = '/speak'
 
         self.listener_query_explanation = self.create_subscription(
             String,
@@ -53,7 +53,7 @@ class Explainability(Node):
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0)
+        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0.25)
 
         self.llm_response = (
             self.llm.bind()
@@ -69,7 +69,7 @@ class Explainability(Node):
 
 
     def query_explanation_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ query_explanation_callback' % msg.data)
+        self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
         example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nexplanation: {explanation}")
@@ -77,7 +77,7 @@ class Explainability(Node):
         prompt = FewShotPromptTemplate(
             examples=self.examples['queries'],
             example_prompt=example_prompt,
-            prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. Dato un utente, la sua richiesta e le cypher query generate per interrogare il knowledge graph, produci una spiegazione del processo decisionale.",
+            prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. Data una richiesta e le cypher query generate per interrogare il knowledge graph, produci una spiegazione del processo decisionale.",
             suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nExplanation:",
             input_variables=["user_input", "queries"],
         )
@@ -92,7 +92,7 @@ class Explainability(Node):
 
 
     def clingo_explanation_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ clingo_explanation_callback' % msg.data)
+        self.get_logger().info('Received: "%s" __ clingo_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
         example_prompt = PromptTemplate.from_template("Results: {results}\nExplanation: {explanation}")

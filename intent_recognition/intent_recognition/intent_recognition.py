@@ -83,15 +83,15 @@ class Inner_Speech(Node):
         return llm_output.strip()
 
     def listener_callback(self, msg):
-        self.get_logger().info('Received: "%s"' % msg.data)
+        self.get_logger().info('Received: "%s"\n' % msg.data)
         user_input = msg.data
         input_data = {"question": user_input}
         formatted_prompt = self.prompt.format(question=input_data["question"], schema=self.schema)
         llm_response = self.llm_response.invoke(formatted_prompt)
 
         result = {}
-        print(llm_response)
-        print(result.keys())
+        # print(llm_response)
+        # print(result.keys())
         result['question'] = user_input
         result['answer'] = llm_response
         result_string = json.dumps(result)

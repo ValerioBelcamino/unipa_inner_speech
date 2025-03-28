@@ -3,7 +3,7 @@ from neo4j import GraphDatabase
 # Connection details
 uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
 username = "neo4j"             # Replace with your username
-password = "12341234"     # Replace with your password
+password = "12341234"          # Replace with your password
 
 # Data to populate the database
 USERS = [
@@ -46,8 +46,53 @@ RECIPES = [
     {"name": "zuppa_di_fagioli", "type": "primo", "calories": 350, "proteins": 15, "carbs": 50, "fats": 10, "allergens": []},
 ]
 
+# Sample diet plan for each user.
+# Each key is a user name; its value is a list of days.
+# For each day, a dictionary defines a 'day' (e.g., Monday) and a dictionary of meals.
+DIET_PLANS = {
+    "Alice": [
+        {
+            "day": "Monday",
+            "meals": {
+                "Breakfast": ["panna cotta", "frutta fresca"],
+                "Lunch": ["pasta al pesto", "insalata greca"],
+                "Dinner": ["branzino al forno", "zucchine grigliate"]
+            }
+        },
+        {
+            "day": "Tuesday",
+            "meals": {
+                "Breakfast": ["sorbetto al limone"],
+                "Lunch": ["risotto ai funghi", "minestrone di verdure"],
+                "Dinner": ["pollo alla griglia", "insalata di riso"]
+            }
+        }
+    ],
+    "Bob": [
+        {
+            "day": "Monday",
+            "meals": {
+                "Breakfast": ["pane con burro"],
+                "Lunch": ["carbonara", "insalata greca"],
+                "Dinner": ["filetto di manzo", "zucchine grigliate"]
+            }
+        },
+        {
+            "day": "Wednesday",
+            "meals": {
+                "Breakfast": ["tiramisu"],
+                "Lunch": ["lasagna classica"],
+                "Dinner": ["bistecca alla fiorentina", "crostini vegetali"]
+            }
+        }
+    ]
+    # You can add plans for other users as needed.
+}
 
-# Function to populate Neo4j
+
+from neo4j import GraphDatabase
+import uuid
+
 def populate_neo4j(uri, username, password):
     driver = GraphDatabase.driver(uri, auth=(username, password))
 
@@ -56,40 +101,61 @@ def populate_neo4j(uri, username, password):
         session.run("MATCH (n) DETACH DELETE n")
         print("Database cleared.")
 
-        # Create users and their fabbisogno
+        days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
         for user in USERS:
+            user_name = user["name"]
+            weekly_plan_name = f"{user_name} Weekly Plan"
+
             session.run("""
                 CREATE (u:User {name: $name, age: $age, gender: $gender})
                 CREATE (f:Fabbisogno {calories: $calories, proteins: $proteins, carbs: $carbs, fats: $fats})
+                CREATE (wp:WeeklyPlan {name: $weekly_plan_name})
                 CREATE (u)-[:HAS_FABBISOGNO]->(f)
+                CREATE (u)-[:HAS_WEEKLY_PLAN]->(wp)
             """, {
-                "name": user["name"],
+                "name": user_name,
                 "age": user["age"],
                 "gender": user["gender"],
                 "calories": user["fabbisogno"]["calories"],
                 "proteins": user["fabbisogno"]["proteins"],
                 "carbs": user["fabbisogno"]["carbs"],
-                "fats": user["fabbisogno"]["fats"]
+                "fats": user["fabbisogno"]["fats"],
+                "weekly_plan_name": weekly_plan_name
             })
 
             # Create relationships for allergies
             for allergen in user["allergies"]:
                 session.run("""
-                   MERGE (a:Allergen {name: $allergen})
+                    MERGE (a:Allergen {name: $allergen})
                     WITH a
                     MATCH (u:User {name: $name})
                     CREATE (u)-[:IS_ALLERGIC_TO]->(a)
-                """, {"allergen": allergen, "name": user["name"]})
+                """, {"allergen": allergen, "name": user_name})
 
-        print("Users and fabbisogno populated.")
+            # Create 7 Daily Plans for this user
+            for day in days_of_week:
+                daily_plan_name = f"{day} {user_name}"
+                session.run("""
+                    MATCH (wp:WeeklyPlan {name: $weekly_plan_name})
+                    CREATE (dp:DailyPlan {name: $daily_plan_name, day: $day})
+                    CREATE (wp)-[:HAS_DAILY_PLAN]->(dp)
+                """, {
+                    "weekly_plan_name": weekly_plan_name,
+                    "daily_plan_name": daily_plan_name,
+                    "day": day
+                })
+
+        print("Users, dietary needs, and plans populated.")
 
         # Create recipes
         for recipe in RECIPES:
-            recipe["name"] = recipe["name"].replace("_", " ")
+            recipe_name = recipe["name"].replace("_", " ")
+
             session.run("""
                 CREATE (r:Recipe {name: $name, type: $type, calories: $calories, proteins: $proteins, carbs: $carbs, fats: $fats})
             """, {
-                "name": recipe["name"],
+                "name": recipe_name,
                 "type": recipe["type"],
                 "calories": recipe["calories"],
                 "proteins": recipe["proteins"],
@@ -103,13 +169,58 @@ def populate_neo4j(uri, username, password):
                     MERGE (a:Allergen {name: $allergen})
                     WITH a
                     MATCH (r:Recipe {name: $name})
-                    CREATE (r)-[:HAS_ALLERGEN]->(a)
-                """, {"allergen": allergen, "name": recipe["name"]})
+                    CREATE (r)-[:CONTAINS_ALLERGEN]->(a)
+                """, {"allergen": allergen, "name": recipe_name})
 
         print("Recipes and allergens populated.")
 
-    driver.close()
-    print("Database population completed.")
 
-# Run the function
+        # Fill the daily plans with meals from DIET_PLANS
+        for user_name, user_plans in DIET_PLANS.items():
+            for plan in user_plans:
+                day = plan["day"]
+                meals = plan["meals"]
+
+                # print(user_name)
+                # print(day)
+                # print((meals))
+                # print('\n')
+
+                # Fetch the Daily Plan for the specific user and day
+                daily_plan_name = f"{day} {user_name}"
+
+                # Add relationships for each meal
+                for meal_type, meal_recipes in meals.items():
+                    # Create a unique identifier for the meal node, using both the meal type and the day
+                    meal_node_name = f"{meal_type} {day} {user_name}"
+
+                    # Create a Meal node for this meal type (Breakfast, Lunch, Dinner)
+                    session.run("""
+                        MATCH (dp:DailyPlan {name: $daily_plan_name})
+                        CREATE (m:Meal {name: $meal_node_name, type: $meal_type})
+                        CREATE (dp)-[:HAS_MEAL]->(m)
+                    """, {
+                        "daily_plan_name": daily_plan_name,
+                        "meal_node_name": meal_node_name,
+                        "meal_type": meal_type
+                    })
+
+                    # For each recipe in this meal, create the relationship
+                    for recipe_name in meal_recipes:
+                        session.run("""
+                            MATCH (m:Meal {name: $meal_node_name})
+                            MATCH (r:Recipe {name: $recipe_name})
+                            CREATE (m)-[:CONTAINS]->(r)
+                        """, {
+                            "meal_node_name": meal_node_name,
+                            "recipe_name": recipe_name
+                        })
+
+        print("Daily plans filled with meals and recipes.")
+
+     
+
+    driver.close()
+
+# Run the script
 populate_neo4j(uri, username, password)

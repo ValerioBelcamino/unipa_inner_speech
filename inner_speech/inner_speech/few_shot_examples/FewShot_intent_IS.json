@@ -4,19 +4,31 @@
             "question": "Ciao, mi chiamo Mario, potresti aggiungermi al sistema?",
             "action_id": "1",
             "parameters": "{{'nome_utente!': 'Mario', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}",
-            "answer": "{{'reason':'Mario desidera essere registrato nel sistema, il che corrisponde all\\'azione 1. Tuttavia, il parametro \\'calorie!\\' è obbligatorio ma non è stato fornito. Non posso completare l\\'azione senza tutte le informazioni necessarie.', 'completed':'false', 'response': 'Certo, Mario! Tuttavia, per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
+            "answer": "{{'reason':'Mario desidera essere registrato nel sistema, il che corrisponde all\\'azione 1. Tuttavia, i parametri \\'calorie!\\', \\'proteine!\\', \\'carboidrati!\\'e  \\'grassi!\\', che sono obbligatori, non sono stati forniti. Non posso completare l\\'azione senza tutte le informazioni necessarie.', 'completed':'false', 'response': 'Certo, Mario! Tuttavia, per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
         },
         {
             "question": "Ciao! Potresti dirmi qualcosa sulla carbonara? Mi chiamo Luca.",
             "action_id": "2",
             "parameters": "{{'nome_utente': 'Luca', 'nome_piatto!': 'carbonara'}}",
-            "answer": "{{'reason':'Luca chiede informazioni sulla carbonara. Poiché il nome del piatto è presente, posso procedere con l\\'azione 2 e fornire i dettagli richiesti. Recupererò le informazioni dal database.', 'completed':'true', 'response': ''}}"
+            "answer": "{{'reason':'L'utente dice di chiamarsi Luca e chiede informazioni sulla carbonara. Poiché il nome del piatto è presente, posso procedere con l\\'azione 2 e fornire i dettagli richiesti. Recupererò le informazioni dal database.', 'completed':'true', 'response': ''}}"
+        },
+        {
+            "question": "Vorrei avere delle informazioni sul tiramisu.",
+            "action_id": "2",
+            "parameters": "{{'nome_utente': '', 'nome_piatto!': 'tiramisu'}}",
+            "answer": "{{'reason':'Un utente chiede informazioni sul tiramisu. Mi è stato fornito il nome del piatto, ma non ho alcuna informazione sull'utente. Recupererò dal database le informazioni sul piatto ma non potrò dare consigli specifici in base alle esigenze dell'utente.', 'completed':'true', 'response': ''}}"
+        },
+        {
+            "question": "Ciao, cosa sai dirmi della parmigiana di melanzane?",
+            "action_id": "2",
+            "parameters": "{{'nome_utente': '', 'nome_piatto!': 'parmigiana di melanzane'}}",
+            "answer": "{{'reason':'Un utente chiede informazioni sul tiramisu. Mi è stato fornito il nome del piatto, ma non ho informazioni sull'utente. Recupererò dal database le informazioni sul piatto ma non potrò dare consigli specifici in base alle esigenze dell'utente.', 'completed':'true', 'response': ''}}"
         },
         {
             "question": "Vorrei sapere cosa posso mangiare oggi. Sono Maria.",
             "action_id": "3",
             "parameters": "{{'nome_utente!': 'Maria', 'allergeni': ''}}",
-            "answer": "{{'reason':'Maria chiede un suggerimento per un pasto in base alle sue esigenze alimentari. L\\'azione 3 è corretta e posso procedere con l\\'elaborazione della proposta, tenendo conto di eventuali allergeni specificati.', 'completed':'true', 'response': ''}}"
+            "answer": "{{'reason':'Maria chiede un suggerimento per un pasto in base alle sue esigenze alimentari. L\\'azione 3 è corretta e posso procedere con l\\'elaborazione della domanda. Maria non ha inserito preferenze aggiuntive per questo pasto.', 'completed':'true', 'response': ''}}"
         },
         {
             "question": "Che mi consigli per pranzo?",
@@ -28,13 +40,25 @@
             "question": "Puoi registrare un nuovo utente? Mi chiamo Anna.",
             "action_id": "1",
             "parameters": "{{'nome_utente!': 'Anna', 'calorie!': '2000', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}",
-            "answer": "{{'reason':'Anna desidera essere registrata nel sistema. Ha fornito il parametro \\'calorie!\\' che è obbligatorio, ma mancano i fabbisogni di proteine, carboidrati e grassi, anch\\'essi necessari. Non posso completare l\\'azione senza questa informazione.', 'completed':'false', 'response': 'Certo, Anna! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
+            "answer": "{{'reason':'Anna desidera essere registrata nel sistema. Ha detto di voler assumere 200 calorie, ma mancano i fabbisogni di proteine, carboidrati e grassi, che sono obbligatori. Non posso completare l\\'azione senza queste informazioni.', 'completed':'false', 'response': 'Certo, Anna! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di proteine, carboidrati e grassi che desideri consumare. Se hai intolleranze alimentari, ti prego di specificarle.'}}"
         },
         {
             "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 150 grammi.",
             "action_id": "1",
             "parameters": "{{'nome_utente!': 'Elisa', 'calorie!': '', 'proteine!': '150', 'carboidrati!': '', 'grassi!': '', 'intolleranze': 'glutine'}}",
             "answer": "{{'reason':'Elisa desidera essere registrata con l\\'informazione che segue una dieta priva di glutine ed un fabbisogno di 150 grammi di proteine. Tuttavia, i parametri \\'calorie!\\', \\'grassi!\\' e \\'carboidrati!\\' sono obbligatori e mancanti. Non posso completare la registrazione senza tutte le informazioni richieste.', 'completed':'false', 'response': 'Certo, Elisa! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, carboidrati e grassi che desideri consumare.'}}"
+        },
+        {
+            "question": "Ehi! Sono Pippo, seguo una dieta priva di glutine e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+            "action_id": "1",
+            "parameters": "{{'nome_utente!': 'Elisa', 'calorie!': '', 'proteine!': '150', 'carboidrati!': '', 'grassi!': '', 'intolleranze': 'glutine'}}",
+            "answer": "{{'reason':'Pippo desidera essere registrato con l\\'informazione che segue una dieta priva di glutine ed un fabbisogno di 2800kcal. Inoltre mi ha fornito i valori dei macronutrienti: 180 grammi di carboidrati, 150 di proteine e 80 di grassi. Posso procedere alla registrazione.', 'completed':'false', 'response': 'Certo, Elisa! Per poterti aggiungere al sistema, ho bisogno di alcune informazioni aggiuntive. Per favore, forniscimi il numero di calorie, carboidrati e grassi che desideri consumare.'}}"
+        },
+        {
+            "question": "Ehi! Che tempo fa domani?",
+            "action_id": "1",
+            "parameters": "",
+            "answer": "{{'reason':'La domanda riguarda le previsioni meteo e non riguarda i consigli alimentari, quindi non posso rispondere.', 'completed':'true', 'response': ''}}"
         }
     ]
 }

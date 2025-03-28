@@ -1,6 +1,3 @@
-
-
-
 % Scelta delle ricette: seleziona fino a 4 piatti
 0 { selezionata(Ricetta, Tipo) : ricetta(Ricetta, Tipo, _, _, _, _) } N :-
     N = #count { Tipo : ricetta(_, Tipo, _, _, _, _) }.

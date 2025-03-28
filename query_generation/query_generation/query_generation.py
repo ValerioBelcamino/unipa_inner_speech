@@ -85,7 +85,7 @@ class Query_Generation(Node):
         return llm_output.strip()
     
     def prepare_few_shot_prompt(self, action_id, _example_prompt):
-        print(self.example_filenames[action_id-1])
+        # print(self.example_filenames[action_id-1])
         if action_id == 0 or action_id == 1:
             _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
         else:
@@ -99,7 +99,7 @@ class Query_Generation(Node):
         )
     
     def user_insertion_listener_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ user_insertion_listener_callback' % msg.data)
+        self.get_logger().info('Received: "%s" __ user_insertion_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
         example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\n{query}")
@@ -156,10 +156,12 @@ class Query_Generation(Node):
 
 
     def dish_info_listener_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ dish_info_listener_callback' % msg.data)
+        self.get_logger().info('Received: "%s" __ dish_info_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
         example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\n{query}")
+        print(json.loads(msg_dict['parameters']))
+        print(type(json.loads(msg_dict['parameters'])))
 
         few_shot_prompt = self.prepare_few_shot_prompt(2, example_prompt)
         self.get_logger().info('Prepared Few Shot Prompt for Action ID: 2')
@@ -212,7 +214,7 @@ user_allergies: [{', '.join(user_allergies_names) if user_allergies_names else '
 
 
     def meal_prep_listener_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ meal_prep_listener_callback' % msg.data)
+        self.get_logger().info('Received: "%s" __ meal_prep_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
         example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}")
@@ -246,7 +248,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
 
     def llm_query_generation(self, few_shot_prompt, question, parameters):
-        print(few_shot_prompt)
+        # print(few_shot_prompt)
         print("\033[34m" + f'{question=},\n {parameters=}' + "\033[0m")
 
         input_data = {"question": question, "parameters": parameters}
