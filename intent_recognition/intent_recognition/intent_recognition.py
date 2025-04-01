@@ -2,16 +2,17 @@ import os
 import json
 from langchain_neo4j import Neo4jGraph
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from dotenv import load_dotenv
 
-os.environ["GROQ_API_KEY"]
-
-
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 class Inner_Speech(Node):
     def __init__(self):
@@ -31,12 +32,12 @@ class Inner_Speech(Node):
         print("\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print("\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
-        self.username = "neo4j"             # Replace with your username
-        self.password = "12341234"          # Replace with your password
+        self.uri = os.getenv("NEO4J_URI")
+        self.username = os.getenv("NEO4J_USERNAME")
+        self.password = os.getenv("NEO4J_PASSWORD")
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'src', 'intent_recognition', 'intent_recognition')
+        self.ws_dir = os.getenv("ROS2_WORKSPACE")
+        self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
 
         self.examples = []
         with open(os.path.join(self.source_dir, 'few_shot_examples/FewShot_intent.json'), 'r') as f:
@@ -45,7 +46,7 @@ class Inner_Speech(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0)
+        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
 
         self.example_prompt = PromptTemplate.from_template(
             """question: {question}\nanswer: {answer}\n"""
@@ -54,16 +55,17 @@ class Inner_Speech(Node):
         self.prompt = FewShotPromptTemplate(
             examples=self.examples,
             example_prompt=self.example_prompt,
-            prefix='''Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
-    Data una richiesta dell'utente, devo capire se è pertinente all'argomento e devo capire che funzione desidera utilizzare. 
-    Le azioni che sono in grado di effettuare sono le seguenti:
-    0) Azione non pertinente.
-    1) Aggiungere un nuovo utente alla base di conoscenza. Parametri [nome_utente!, calorie!, proteine!, carboidrati!, grassi!, intolleranze].
-    2) Dare informazioni a un utente riguardo uno specifico piatto. Parametri [nome_utente, nome_piatto!].
-    3) Proporre un pasto all'utente basandomi sulle sue esigenze alimentari. Un pasto è inteso come una combinazione di piatti. Parametri [nome_utente!, allergeni].
-    I parametri seguiti da un punto esclamativo sono obbligatori.
-    
-    ''',
+            prefix="""Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
+        Data una richiesta dell'utente, devo capire se è pertinente all'argomento e determinare quale funzione desidera utilizzare.
+        Le azioni che sono in grado di effettuare sono le seguenti:
+        0. Azione non pertinente.
+        1. Aggiungere un nuovo utente alla base di conoscenza.
+            Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
+        2. Dare informazioni a un utente riguardo uno specifico piatto.
+            Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
+        3. Proporre un pasto all'utente basandomi sulle sue esigenze alimentari.
+            Parametri: nome_utente (obbligatorio), allergeni (facoltativo).
+        I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
     question: {question},\n''',
             input_variables=["question", "schema"],

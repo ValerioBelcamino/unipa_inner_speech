@@ -1,7 +1,6 @@
 import os
 import json
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
@@ -9,7 +8,12 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 import ast
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 class Inner_Speech(Node):
     def __init__(self):
@@ -31,12 +35,12 @@ class Inner_Speech(Node):
 
         self.action_dict = {0: '/out_of_scope', 1: '/user_insertion', 2: '/dish_info', 3: '/meal_prep'}
 
-        self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
-        self.username = "neo4j"             # Replace with your username
-        self.password = "12341234"          # Replace with your password
+        self.uri = os.getenv("NEO4J_URI")
+        self.username = os.getenv("NEO4J_USERNAME")
+        self.password = os.getenv("NEO4J_PASSWORD")
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'src', 'inner_speech', 'inner_speech')
+        self.ws_dir = os.getenv("ROS2_WORKSPACE")  # Replace with your workspace path if needed
+        self.source_dir = os.path.join(self.ws_dir, 'inner_speech', 'inner_speech')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
@@ -46,7 +50,7 @@ class Inner_Speech(Node):
             self.examples = json.load(f)["examples"]
 
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0)
+        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
 
         self.example_prompt = PromptTemplate.from_template(
             """Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\nAnswer: {answer}\n"""
@@ -55,16 +59,17 @@ class Inner_Speech(Node):
         self.prompt = FewShotPromptTemplate(
             examples=self.examples,
             example_prompt=self.example_prompt,
-            prefix='''Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
-    Data una richiesta dell'utente, devo capire se è pertinente all'argomento e devo capire che funzione desidera utilizzare. 
-    Le azioni che sono in grado di effettuare sono le seguenti:
-    0) Azione non pertinente.
-    1) Aggiungere un nuovo utente alla base di conoscenza. Parametri [nome_utente!, calorie!, proteine!, carboidrati!, grassi!, intolleranze].
-    2) Dare informazioni a un utente riguardo uno specifico piatto. Parametri [nome_utente, nome_piatto!].
-    3) Proporre un pasto all'utente basandomi sulle sue esigenze alimentari. Un pasto è inteso come una combinazione di piatti. Parametri [nome_utente!, allergeni].
-    I parametri seguiti da un punto esclamativo sono obbligatori.
-    Avendo a disposizione l'output del modulo di intent recognition, devo capire se i parametri estratti sono corretti e la domanda è stata formulata in modo corretto. La mia risposta deve essere in linguaggio naturale in lingua italiana e deve rappresentare il ragionamento che ho seguito per giungere alla conclusione. Devo rispondere in prima persona e srotolare il mio ragoinamento con uno stile conciso e chiaro.
-    ''',
+            prefix="""Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
+        Data una richiesta dell'utente, devo capire se è pertinente all'argomento e determinare quale funzione desidera utilizzare.
+        Le azioni che sono in grado di effettuare sono le seguenti:
+        0. Azione non pertinente.
+        1. Aggiungere un nuovo utente alla base di conoscenza.
+            Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
+        2. Dare informazioni a un utente riguardo uno specifico piatto.
+            Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
+        3. Proporre un pasto all'utente basandomi sulle sue esigenze alimentari.
+            Parametri: nome_utente (obbligatorio), allergeni (facoltativo).
+        I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
     Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\n''',
             input_variables=["question", "action_id", "parameters", "schema"],
@@ -100,7 +105,7 @@ class Inner_Speech(Node):
         formatted_prompt = self.prompt.format(question=input_data["question"], action_id=input_data["action_id"], parameters=input_data["parameters"], schema=self.schema)
         llm_response = self.llm_response.invoke(formatted_prompt)
 
-        with open(os.path.join(self.ws_dir, 'src', 'inner_speech', 'inners.json'), 'a+') as f:
+        with open(os.path.join(self.ws_dir, 'inner_speech', 'inners.json'), 'a+') as f:
             f.write(json.dumps({"question": user_input, "action_id": action_id, "parameters": parameters, "answer": llm_response}) + ',\n')
 
         result = {}

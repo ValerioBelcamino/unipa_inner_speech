@@ -2,7 +2,6 @@ import os
 import json
 from .export_query_results import generate_pl_file, generate_csv_file
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
@@ -10,7 +9,12 @@ from neo4j import GraphDatabase
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
-import ast
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 
 class Query_Generation(Node):
@@ -54,12 +58,12 @@ class Query_Generation(Node):
         print("\033[34mStarted Listening to {self.in_dish_info_topic}!!!\033[0m")
         print("\033[34mStarted Listening to {self.in_meal_prep_topic}!!!\033[0m")
 
-        self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
-        self.username = "neo4j"             # Replace with your username
-        self.password = "12341234"          # Replace with your password
+        self.uri = os.getenv("NEO4J_URI")
+        self.username = os.getenv("NEO4J_USERNAME")
+        self.password = os.getenv("NEO4J_PASSWORD")
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'src', 'query_generation', 'query_generation')
+        self.ws_dir = os.getenv("ROS2_WORKSPACE")
+        self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
@@ -70,7 +74,7 @@ class Query_Generation(Node):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
 
-        self.llm = ChatGroq(model="llama3-70b-8192",temperature=0)#llama3-70b-8192
+        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY")) #llama3-70b-8192
 
         self.llm_response = (
             self.llm.bind()
@@ -93,7 +97,7 @@ class Query_Generation(Node):
         return FewShotPromptTemplate(
             examples=self.examples[action_id-1],
             example_prompt=_example_prompt,
-            prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea due query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher.''',
+            prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea due query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.''',
             suffix=_suffix,
             input_variables=["question", "schema", "parameters"],
         )

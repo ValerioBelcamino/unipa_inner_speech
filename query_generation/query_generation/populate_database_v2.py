@@ -1,9 +1,15 @@
 from neo4j import GraphDatabase
+from dotenv import load_dotenv
+import os
 
-# Connection details
-uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
-username = "neo4j"             # Replace with your username
-password = "12341234"          # Replace with your password
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
+
+uri = os.getenv("NEO4J_URI")
+username = os.getenv("NEO4J_USERNAME")
+password = os.getenv("NEO4J_PASSWORD")
 
 # Data to populate the database
 USERS = [
