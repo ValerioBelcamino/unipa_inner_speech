@@ -2,12 +2,18 @@ from clingo import Control
 import os 
 from ament_index_python.packages import get_package_share_directory
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 def clingo_call():
 
     # Assuming your workspace structure is standard
-    ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-    source_dir = os.path.join(ws_dir, 'src', 'clingo_nodes', 'clingo_nodes')
+    ws_dir = os.getenv("ROS2_WORKSPACE")
+    source_dir = os.path.join(ws_dir, 'clingo_nodes', 'clingo_nodes')
 
     # Definisci il programma ASP
     program_data = ''

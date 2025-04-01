@@ -1,14 +1,18 @@
 import os
 import json
 from langchain_groq import ChatGroq
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-import ast
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 
 class Explainability(Node):
@@ -37,12 +41,12 @@ class Explainability(Node):
         print("\033[34mStarted Listening to {self.query_explanation_topic}!!!\033[0m")
         print("\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
 
-        self.uri = "bolt://localhost:7689"  # Replace with your URI if not localhost
-        self.username = "neo4j"             # Replace with your username
-        self.password = "12341234"          # Replace with your password
+        self.uri = os.getenv("NEO4J_URI")
+        self.username = os.getenv("NEO4J_USERNAME")
+        self.password = os.getenv("NEO4J_PASSWORD")
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'src', 'explainability', 'explainability')
+        self.ws_dir = os.getenv("ROS2_WORKSPACE")
+        self.source_dir = os.path.join(self.ws_dir, 'explainability', 'explainability')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
@@ -53,7 +57,7 @@ class Explainability(Node):
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0.25)
+        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0.25, api_key=os.getenv("GROQ_API_KEY"))
 
         self.llm_response = (
             self.llm.bind()

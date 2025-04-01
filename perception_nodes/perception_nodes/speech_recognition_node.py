@@ -1,4 +1,3 @@
-import argparse
 import os
 import numpy as np
 import speech_recognition as sr
@@ -12,7 +11,12 @@ from datetime import datetime, timedelta
 from queue import Queue
 from time import sleep
 import json
-import threading
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 class SpeechRecognitionNode(Node):
     def __init__(self, model, phrase_timeout, hallucinations):
@@ -90,8 +94,8 @@ def main():
     
     path = os.path.dirname(os.path.realpath(__file__))
     # Assuming your workspace structure is standard
-    ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-    path = os.path.join(ws_dir, 'src', 'perception_nodes', 'perception_nodes')
+    ws_dir = os.getenv("ROS2_WORKSPACE") 
+    path = os.path.join(ws_dir, 'perception_nodes', 'perception_nodes')
 
     hallucinations = json.load(open(os.path.join(path, 'hallucinations.json')))['it']
     

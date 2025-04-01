@@ -1,9 +1,15 @@
 import csv
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 
 # Assuming your workspace structure is standard
-ws_dir = os.getenv("ROS2_WORKSPACE", "/home/belca/Desktop/ros2_humble_ws")  # Replace with your workspace path if needed
-source_dir = os.path.join(ws_dir, 'src', 'clingo_nodes', 'clingo_nodes')
+ws_dir = os.getenv("ROS2_WORKSPACE") 
+source_dir = os.path.join(ws_dir, 'clingo_nodes', 'clingo_nodes')
 
 
 def generate_pl_file(fabbisogno_records, recipe_records):
