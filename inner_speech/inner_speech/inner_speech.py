@@ -11,7 +11,7 @@ import ast
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
@@ -67,8 +67,8 @@ class Inner_Speech(Node):
             Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
         2. Dare informazioni a un utente riguardo uno specifico piatto.
             Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
-        3. Proporre un pasto all'utente basandomi sulle sue esigenze alimentari.
-            Parametri: nome_utente (obbligatorio), allergeni (facoltativo).
+        3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
+            Parametri: nome_utente (obbligatorio), allergeni (facoltativo), giorno (facoltativo), pasto (facoltativo).
         I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
     Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\n''',

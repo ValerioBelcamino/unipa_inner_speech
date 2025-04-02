@@ -8,9 +8,12 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
+import ast
+
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
@@ -25,6 +28,26 @@ class Inner_Speech(Node):
             self.in_topic,
             self.listener_callback,
             10)
+        
+        self.days_of_the_week = {
+            0: "monday",
+            1: "tuesday",
+            2: "wednesday",
+            3: "thursday",
+            4: "friday",
+            5: "saturday",
+            6: "sunday",
+        }
+
+        self.days_translation = {
+            'lunedì':'monday',
+            'martedì':'tuesday',
+            'mercoledì':'wednesday',
+            'giovedì':'thursday',
+            'venerdì':'friday',
+            'sabato':'saturday',
+            'domenica':'sunday',
+        }
 
         self.publisher = self.create_publisher(String, self.out_topic, 10)
 
@@ -63,8 +86,8 @@ class Inner_Speech(Node):
             Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
         2. Dare informazioni a un utente riguardo uno specifico piatto.
             Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
-        3. Proporre un pasto all'utente basandomi sulle sue esigenze alimentari.
-            Parametri: nome_utente (obbligatorio), allergeni (facoltativo).
+        3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
+            Parametri: nome_utente (obbligatorio), allergeni (facoltativo), giorno (facoltativo), pasto (facoltativo).
         I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
     question: {question},\n''',
@@ -75,9 +98,38 @@ class Inner_Speech(Node):
             self.llm.bind()
             | StrOutputParser()
             | self.extract_answer
+            | self.get_day_of_the_week
         )
 
+    def get_day_of_the_week(self, llm_output: str) -> str:
+        print('aaaaaaa')
+        # json_output = json.loads(llm_output)
+        json_output = ast.literal_eval(llm_output)
+        print(f'{json_output}')
+
+        if json_output['action_id'] == '3':
+            if json_output['giorno'] == 'oggi':
+                json_output['giorno'] = self.days_of_the_week[datetime.today().weekday()]
+
+            elif json_output['giorno'] == 'domani':
+                domani = datetime.today() + timedelta(days=1)
+                json_output['giorno'] = self.days_of_the_week[domani.weekday()]
+
+            elif json_output['giorno'] == 'ieri':
+                ieri = datetime.today() + timedelta(days=-1)
+                json_output['giorno'] = self.days_of_the_week[ieri.weekday()]
+
+        if json_output['giorno'] in self.days_translation:
+            json_output['giorno'] = self.days_translation[json_output['giorno']]
+
+        print(json_output)
+
+        return json.dumps(json_output)
+
+
     def extract_answer(self, llm_output: str) -> str:
+        print('bbbbbbb')
+
         if "Answer:" in llm_output:
             return llm_output.split("Answer:", 1)[1].strip()
         if "answer:" in llm_output:
@@ -90,6 +142,9 @@ class Inner_Speech(Node):
         input_data = {"question": user_input}
         formatted_prompt = self.prompt.format(question=input_data["question"], schema=self.schema)
         llm_response = self.llm_response.invoke(formatted_prompt)
+
+        # llm_response = self.extract_answer(llm_response)
+        # llm_response = self.get_day_of_the_week(llm_response)
 
         result = {}
         # print(llm_response)

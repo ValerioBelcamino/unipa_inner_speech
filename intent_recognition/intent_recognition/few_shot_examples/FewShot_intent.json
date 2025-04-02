@@ -1,60 +1,20 @@
 {
     "examples": [
         {
-            "question": "Ciao, mi chiamo Mario, potresti aggiungermi al sistema?",
-            "answer": "{{'action_id': '1','nome_utente!': 'Mario', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}"
+            "question": "Puoi suggerirmi un pasto sostitutivo per la cena? Sono allergico al glutine.",
+            "answer": "{{'action_id': '3', 'nome_utente': '', 'allergeni': 'glutine', 'giorno': '', 'pasto': 'cena'}}"
         },
         {
-            "question": "Ciao! Potresti dirmi qualcosa sulla carbonara? Mi chiamo Luca.",
-            "answer": "{{'action_id': '2','nome_utente': 'Luca', 'nome_piatto!': 'carbonara'}}"
+            "question": "Vorrei un pasto alternativo per il pranzo di domani. Non posso mangiare latticini.",
+            "answer": "{{'action_id': '3', 'nome_utente': '', 'allergeni': 'latticini', 'giorno': 'domani', 'pasto': 'pranzo'}}"
         },
         {
-            "question": "Vorrei conoscere i valori nutrizionali del tiramisu.",
-            "answer": "{{'action_id': '2','nome_utente': '', 'nome_piatto!': 'tiramisu'}}"
+            "question": "Mi serve una colazione alternativa senza uova per venerdì.",
+            "answer": "{{'action_id': '3', 'nome_utente': '', 'allergeni': 'uova', 'giorno': 'venerdì', 'pasto': 'colazione'}}"
         },
         {
-            "question": "Vorrei sapere cosa posso mangiare oggi. Sono Maria.",
-            "answer": "{{'action_id': '3','nome_utente!': 'Maria', 'allergeni': ''}}"
-        },
-        {
-            "question": "Sono Maria, cosa posso mangiare oggi?",
-            "answer": "{{'action_id': '3','nome_utente!': 'Maria', 'allergeni': ''}}"
-        },
-        {
-            "question": "Che mi consigli per pranzo?",
-            "answer": "{{'action_id': '3','nome_utente!': '', 'allergeni': ''}}"
-        },
-        {
-            "question": "Puoi registrare un nuovo utente? Mi chiamo Anna.",
-            "answer": "{{'action_id': '1','nome_utente!': 'Anna', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': ''}}"
-        },
-        {
-            "question": "Vorrei sapere se posso mangiare qualcosa di senza glutine. Mi chiamo Federico.",
-            "answer": "{{'action_id': '3','nome_utente!': 'Federico', 'allergeni': 'glutine'}}"
-        },
-        {
-            "question": "Puoi aggiungere un piatto chiamato pasta al pesto alla mia lista preferita? Mi chiamo Sara.",
-            "answer": "{{'action_id': '0'}}"
-        },
-        {
-            "question": "Ciao, sono Giovanni. Stasera non ho voglia di mangiare carne, puoi suggerirmi qualcosa di vegetariano per cena?",
-            "answer": "{{'action_id': '3','nome_utente!': 'Giovanni', 'allergeni': 'carne'}}"
-        },
-        {
-            "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa e seguo una dieta priva di glutine.",
-            "answer": "{{'action_id': '1','nome_utente!': 'Elisa', 'calorie!': '', 'proteine!': '', 'carboidrati!': '', 'grassi!': '', 'intolleranze': 'glutine'}}"
-        },
-        {
-            "question": "Ciao, come va?",
-            "answer": "{{'action_id': '0'}}"
-        },
-        {
-            "question": "Ciao, sono Laura. Vorrei conoscere i valori nutrizionali del risotto alla milanese. Puoi fornirmeli?",
-            "answer": "{{'action_id': '2','nome_utente': 'Laura', 'nome_piatto!': 'risotto alla milanese'}}"
-        },
-        {
-            "question": "Che tempo fa domani?",
-            "answer": "{{'action_id': '0'}}"
+            "question": "Sono Maria, puoi consigliarmi una cena senza frutta secca?",
+            "answer": "{{'action_id': '3', 'nome_utente': 'Maria', 'allergeni': 'frutta secca', 'giorno': '', 'pasto': 'cena'}}"
         }
     ]
 }

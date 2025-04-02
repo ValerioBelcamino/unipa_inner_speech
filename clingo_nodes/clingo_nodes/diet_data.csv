@@ -1,2 +1,21 @@
 dish,type,calories,proteins,carbs,fats
+crostini vegetali,antipasto,250,5,40,8
+zucchine grigliate,contorno,120,2,10,5
+frutta fresca,dessert,120,1,30,0
+sorbetto al limone,dolce,150,1,35,0
+torta alle mele,dolce,300,4,60,10
+quinoa con verdure,piatto_unico,400,15,70,10
+pasta al pesto,primo,450,12,85,5
+risotto ai funghi,primo,380,8,70,4
+minestrone di verdure,primo,300,10,60,5
+vellutata di zucca,primo,200,4,40,6
+crema di zuppa di pomodoro,primo,200,3,25,5
+insalata di riso,primo,320,10,60,5
+zuppa di fagioli,primo,350,15,50,10
+branzino al forno,secondo,250,30,0,8
+frittata di zucchine,secondo,280,15,5,12
+pollo alla griglia,secondo,320,35,0,8
+bistecca alla fiorentina,secondo,600,50,0,30
+filetto di manzo,secondo,400,45,0,15
 pollo al curry,secondo,450,40,5,15
+spezzatino con patate,secondo,500,35,30,20

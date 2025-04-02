@@ -12,7 +12,7 @@ from std_msgs.msg import String, Bool
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
@@ -65,6 +65,8 @@ class Query_Generation(Node):
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
+        print(f'{self.username}, {self.password}')
+
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
@@ -90,14 +92,20 @@ class Query_Generation(Node):
     
     def prepare_few_shot_prompt(self, action_id, _example_prompt):
         # print(self.example_filenames[action_id-1])
-        if action_id == 0 or action_id == 1:
+        if action_id == 1 or action_id == 2:
             _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
+
+            _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea una query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
+
         else:
-            _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
+            _suffix='''Ritornami esclusivamente le tre query Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
+
+            _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea tre query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
+
         return FewShotPromptTemplate(
             examples=self.examples[action_id-1],
             example_prompt=_example_prompt,
-            prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea due query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.''',
+            prefix=_prefix,
             suffix=_suffix,
             input_variables=["question", "schema", "parameters"],
         )
@@ -221,13 +229,13 @@ user_allergies: [{', '.join(user_allergies_names) if user_allergies_names else '
         self.get_logger().info('Received: "%s" __ meal_prep_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
-        example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}")
+        example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}\nQuery3: {query3}")
 
         few_shot_prompt = self.prepare_few_shot_prompt(3, example_prompt)
         self.get_logger().info('Prepared Few Shot Prompt for Action ID: 3')
 
         cypher = self.llm_query_generation(few_shot_prompt, msg_dict['question'], msg_dict['parameters'])
-        queries, user_results, recipes = self.query_execution_meal_prep(cypher)
+        queries, user_results, recipes, current_meal = self.query_execution_meal_prep(cypher)
 
         user_string = f'''user_request:{msg_dict["question"]}.
 name:{user_results[0]['name']},
@@ -257,7 +265,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
         input_data = {"question": question, "parameters": parameters}
         formatted_prompt = few_shot_prompt.format(question=input_data["question"], parameters=input_data["parameters"], schema=self.schema)
-        llm_response = self.llm_response.invoke(formatted_prompt)
+        # llm_response = self.llm_response.invoke(formatted_prompt)
 
         cypher = self.llm_response.invoke(formatted_prompt)
         print("\033[1;32mCypher query\033[0m")
@@ -272,12 +280,13 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
             queries = [':'.join(s.split(':')[1:]).strip() for s in cypher.split('\n')]
         else:
             queries = [s.strip() for s in cypher.split('\n')]
-        queries = [q for q in queries if len(q) > 0]
+        queries = [q for q in queries if q.startswith('MATCH')]
         print(f'Found {len(queries)} queries')
 
         driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
 
         user_results = []
+        current_meal = []
         recipes = []
 
         try:
@@ -292,10 +301,14 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
                         if i == 0:
                             user_results.append(record)
                         if i == 1:
+                            current_meal.append(record)
+                        if i == 2:
                             recipes.append(record)
                     if i == 0:
                         print("\033[32m" + str(user_results) + "\033[0m")
                     if i == 1:
+                        print("\033[32m" + str(current_meal) + "\033[0m")
+                    if i == 2:
                         print("\033[32m" + str(recipes) + "\033[0m")
                 print('\n\n')
         except Exception as e:
@@ -303,7 +316,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
         finally:
             driver.close()
 
-        return  queries, user_results, recipes
+        return  queries, user_results, recipes, current_meal
 
 
     
