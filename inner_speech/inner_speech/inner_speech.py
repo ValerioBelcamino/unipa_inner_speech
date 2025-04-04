@@ -68,10 +68,10 @@ class Inner_Speech(Node):
         2. Dare informazioni a un utente riguardo uno specifico piatto.
             Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
         3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
-            Parametri: nome_utente (obbligatorio), allergeni (facoltativo), giorno (facoltativo), pasto (facoltativo).
+            Parametri: nome_utente (obbligatorio), ingredienti da rimuovere (facoltativo), ingredienti preferiti (facoltativo), sottoinsieme di ingredienti (facoltativo), giorno (facoltativo), pasto (obbligatorio).
         I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
-    Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\n''',
+    Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\nAnswer: ''',
             input_variables=["question", "action_id", "parameters", "schema"],
         )
 

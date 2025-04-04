@@ -30,23 +30,13 @@ class Inner_Speech(Node):
             10)
         
         self.days_of_the_week = {
-            0: "monday",
-            1: "tuesday",
-            2: "wednesday",
-            3: "thursday",
-            4: "friday",
-            5: "saturday",
-            6: "sunday",
-        }
-
-        self.days_translation = {
-            'lunedì':'monday',
-            'martedì':'tuesday',
-            'mercoledì':'wednesday',
-            'giovedì':'thursday',
-            'venerdì':'friday',
-            'sabato':'saturday',
-            'domenica':'sunday',
+            0: "lunedi",
+            1: "martedi",
+            2: "mercoledi",
+            3: "giovedi",
+            4: "venerdi",
+            5: "sabato",
+            6: "domenica",
         }
 
         self.publisher = self.create_publisher(String, self.out_topic, 10)
@@ -87,7 +77,7 @@ class Inner_Speech(Node):
         2. Dare informazioni a un utente riguardo uno specifico piatto.
             Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
         3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
-            Parametri: nome_utente (obbligatorio), allergeni (facoltativo), giorno (facoltativo), pasto (facoltativo).
+            Parametri: nome_utente (obbligatorio), ingredienti da rimuovere (facoltativo), ingredienti preferiti (facoltativo), sottoinsieme di ingredienti (facoltativo), giorno (facoltativo), pasto (facoltativo).
         I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
             suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
     question: {question},\n''',
@@ -99,6 +89,7 @@ class Inner_Speech(Node):
             | StrOutputParser()
             | self.extract_answer
             | self.get_day_of_the_week
+            | self.get_next_meal
         )
 
     def get_day_of_the_week(self, llm_output: str) -> str:
@@ -119,10 +110,29 @@ class Inner_Speech(Node):
                 ieri = datetime.today() + timedelta(days=-1)
                 json_output['giorno'] = self.days_of_the_week[ieri.weekday()]
 
-        if json_output['giorno'] in self.days_translation:
-            json_output['giorno'] = self.days_translation[json_output['giorno']]
-
         print(json_output)
+
+        return json.dumps(json_output)
+    
+    def get_next_meal(self, llm_output):
+        json_output = ast.literal_eval(llm_output)
+        print(f'{json_output}')
+
+        if json_output['action_id'] == '3':
+            print(json_output['pasto'])
+            if json_output['pasto'] == '':
+                current_time = datetime.now().time() #11:34:30.263342
+
+                colazione = datetime.strptime("11:00", "%H:%M").time()
+                pranzo = datetime.strptime("14:00", "%H:%M").time()
+                cena = datetime.strptime("22:00", "%H:%M").time()
+
+                if current_time < colazione:
+                    json_output['pasto'] = 'colazione'
+                elif current_time < pranzo:
+                    json_output['pasto'] = 'pranzo'
+                elif current_time < cena:
+                    json_output['pasto'] = 'cena'
 
         return json.dumps(json_output)
 

@@ -65,10 +65,12 @@ class Query_Generation(Node):
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
-        print(f'{self.username}, {self.password}')
+        # print(f'{self.username}, {self.password}')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
+
+        # print(self.schema)
 
         self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
         self.examples = {}
