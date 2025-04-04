@@ -50,6 +50,9 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
-examples.txt
+examples.txtù
+
+.env
+*.ipynb
 
 .env
