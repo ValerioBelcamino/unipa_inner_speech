@@ -53,3 +53,6 @@ CATKIN_IGNORE
 examples.txt
 
 .env
+*.ipynb
+
+.env
