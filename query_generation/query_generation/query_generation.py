@@ -95,14 +95,14 @@ class Query_Generation(Node):
     def prepare_few_shot_prompt(self, action_id, _example_prompt):
         # print(self.example_filenames[action_id-1])
         if action_id == 1 or action_id == 2:
-            _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
-
             _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea una query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
 
-        else:
-            _suffix='''Ritornami esclusivamente le tre query Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
+            _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
 
+        else:
             _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea tre query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
+
+            _suffix='''Ritornami esclusivamente le tre query Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
 
         return FewShotPromptTemplate(
             examples=self.examples[action_id-1],
