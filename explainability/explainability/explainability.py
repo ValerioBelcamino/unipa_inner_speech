@@ -76,13 +76,13 @@ class Explainability(Node):
         self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
-        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nexplanation: {explanation}")
+        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nExplanation: {explanation}")
 
         prompt = FewShotPromptTemplate(
             examples=self.examples['queries'],
             example_prompt=example_prompt,
             prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. Data una richiesta e le cypher query generate per interrogare il knowledge graph, produci una spiegazione del processo decisionale.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nExplanation:",
+            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nExplanation: ",
             input_variables=["user_input", "queries"],
         )
 
@@ -105,7 +105,7 @@ class Explainability(Node):
             examples=self.examples['clingo'],
             example_prompt=example_prompt,
             prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. A questo punto del processo abbiamo escluso già i piatti non adatti allo stile alimentare dell'utente e, in questo step, abbiamo generato diverse combinazioni di piatti in grado di soddisfare i vincoli di calorie e macronutrienti rimanenti. Data una una lista di combinazioni di piatti, il tuo compito è spiegare all'utente come sono stati scelti. Il numero di piatti in ogni risposta può essere 1, N, o 0 dipendentemente dai requisiti.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {results}\nExplanation:",
+            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {results}\nExplanation: ",
             input_variables=["results"],
         )
 
