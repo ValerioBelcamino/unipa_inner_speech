@@ -10,6 +10,56 @@ from std_msgs.msg import String
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import ast
+from pydantic import BaseModel, Field
+
+# Define Pydantic classes with tools
+class AddToDatabase(BaseModel):
+    """A new user asks you to add them to the database. 
+    Extract necessary information from the user message. 
+    Do not generate any new information, use only what user provided for you.
+    If you don't have some piece of information, leave the corresponding field blank."""
+
+    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    calorie: int = Field(description="How many calories user should eat per day")
+    proteine: int = Field(description="How many grams of protein user should eat per day")
+    carboidrati: int = Field(description="How many carbohydrates user should eat per day")
+    grassi: int = Field(description="How many fats user should eat per day")
+    intolleranze: str = Field(description="User's intollerances")
+
+class DishInfo(BaseModel):
+    """User asks you to give him information about a specific dish."""
+
+    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    nome_piatto: str = Field(description="The name of the dish in lowercase")
+
+class SubstituteDish(BaseModel):
+    """User asks you to propose an alternative dish based on their allergies and dietary plan.
+    Extract necessary information from the user message. 
+    Do not generate any new information, use only what user provided for you.
+    If you don't have some piece of information, leave the corresponding field blank."""
+
+    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    ingredienti_rimossi: list[str] = Field(description="Ingredients that the user wants to exclude")
+    ingredienti_preferiti: list[str] = Field(description="Ingredients that the user wants to include")
+    solo_questi_ingredienti: list[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty")
+    giorno: str = Field(description="Day of the week in italian when the user wants the dish", 
+                        examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'])
+    pasto: str = Field(description="Type of meal for which the user wants the dish",
+                       examples=['colazione', 'pranzo', 'cena'])
+    
+class OutOfScope(BaseModel):
+    """User asks you to do something that is not in your scope 
+    or in-scope action, but without enough information (not all necessary fields are filled).
+    
+    Use this instrument always when no other tool can be used."""
+
+    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    messaggio: str = Field(description="The message that user sent to you")
+    oos_type: str = Field(description="Type of out-of-scope", examples=['not_enough_information', 'wrong_skill'])
+    absent_required_fields: list[str] = Field(description="List of required fields that user did not specify to make other function applicable. Filled only if oos_type==not_enough_information")
+    failed_tool: str = Field(description="Name of the tool which semantically applies for the user query, but the user did not provide all the necessary information, so the tool cannot be used. Filled only if oos_type==not_enough_information")
+
+tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3', 'OutOfScope': '0'}
 
 
 # Load environment variables from .env file
@@ -29,21 +79,11 @@ class Inner_Speech(Node):
             self.listener_callback,
             10)
         
-        self.days_of_the_week = {
-            0: "lunedi",
-            1: "martedi",
-            2: "mercoledi",
-            3: "giovedi",
-            4: "venerdi",
-            5: "sabato",
-            6: "domenica",
-        }
-
         self.publisher = self.create_publisher(String, self.out_topic, 10)
 
-        print("\033[34mIntent Recognition Node started!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
+        print(f"\033[34mIntent Recognition Node started!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
@@ -52,115 +92,65 @@ class Inner_Speech(Node):
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
 
-        self.examples = []
-        with open(os.path.join(self.source_dir, 'few_shot_examples/FewShot_intent.json'), 'r') as f:
-            self.examples = json.load(f)["examples"]
-
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
         self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
+        self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish, OutOfScope])
 
-        self.example_prompt = PromptTemplate.from_template(
-            """question: {question}\nanswer: {answer}\n"""
-        )
-
-        self.prompt = FewShotPromptTemplate(
-            examples=self.examples,
-            example_prompt=self.example_prompt,
-            prefix="""Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
-        Data una richiesta dell'utente, devo capire se è pertinente all'argomento e determinare quale funzione desidera utilizzare.
-        Le azioni che sono in grado di effettuare sono le seguenti:
-        0. Azione non pertinente.
-        1. Aggiungere un nuovo utente alla base di conoscenza.
-            Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
-        2. Dare informazioni a un utente riguardo uno specifico piatto.
-            Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
-        3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
-            Parametri: nome_utente (obbligatorio), ingredienti da rimuovere (facoltativo), ingredienti preferiti (facoltativo), sottoinsieme di ingredienti (facoltativo), giorno (facoltativo), pasto (facoltativo).
-        I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
-            suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
-    question: {question},\n''',
-            input_variables=["question", "schema"],
-        )
-
-        self.llm_response = (
-            self.llm.bind()
-            | StrOutputParser()
-            | self.extract_answer
-            | self.get_day_of_the_week
-            | self.get_next_meal
-        )
 
     def get_day_of_the_week(self, llm_output: str) -> str:
-        print('aaaaaaa')
-        # json_output = json.loads(llm_output)
-        json_output = ast.literal_eval(llm_output)
-        print(f'{json_output}')
+        
+        if llm_output['giorno'] in ['oggi', '']:
+            llm_output['giorno'] = self.days_of_the_week[datetime.today().weekday()]
 
-        if json_output['action_id'] == '3':
-            if json_output['giorno'] == 'oggi':
-                json_output['giorno'] = self.days_of_the_week[datetime.today().weekday()]
+        elif llm_output['giorno'] == 'domani':
+            domani = datetime.today() + timedelta(days=1)
+            llm_output['giorno'] = self.days_of_the_week[domani.weekday()]
 
-            elif json_output['giorno'] == 'domani':
-                domani = datetime.today() + timedelta(days=1)
-                json_output['giorno'] = self.days_of_the_week[domani.weekday()]
+        elif llm_output['giorno'] == 'ieri':
+            ieri = datetime.today() + timedelta(days=-1)
+            llm_output['giorno'] = self.days_of_the_week[ieri.weekday()]
 
-            elif json_output['giorno'] == 'ieri':
-                ieri = datetime.today() + timedelta(days=-1)
-                json_output['giorno'] = self.days_of_the_week[ieri.weekday()]
-
-        print(json_output)
-
-        return json.dumps(json_output)
+        return llm_output
     
+
     def get_next_meal(self, llm_output):
-        json_output = ast.literal_eval(llm_output)
-        print(f'{json_output}')
+        print(f'{llm_output}')
 
-        if json_output['action_id'] == '3':
-            print(json_output['pasto'])
-            if json_output['pasto'] == '':
-                current_time = datetime.now().time() #11:34:30.263342
+        current_time = datetime.now().time() #11:34:30.263342
 
-                colazione = datetime.strptime("11:00", "%H:%M").time()
-                pranzo = datetime.strptime("14:00", "%H:%M").time()
-                cena = datetime.strptime("22:00", "%H:%M").time()
+        colazione = datetime.strptime("11:00", "%H:%M").time()
+        pranzo = datetime.strptime("14:00", "%H:%M").time()
+        cena = datetime.strptime("22:00", "%H:%M").time()
 
-                if current_time < colazione:
-                    json_output['pasto'] = 'colazione'
-                elif current_time < pranzo:
-                    json_output['pasto'] = 'pranzo'
-                elif current_time < cena:
-                    json_output['pasto'] = 'cena'
+        if current_time < colazione:
+            llm_output['pasto'] = 'colazione'
+        elif current_time < pranzo:
+            llm_output['pasto'] = 'pranzo'
+        elif current_time < cena:
+            llm_output['pasto'] = 'cena'
 
-        return json.dumps(json_output)
-
-
-    def extract_answer(self, llm_output: str) -> str:
-        print('bbbbbbb')
-
-        if "Answer:" in llm_output:
-            return llm_output.split("Answer:", 1)[1].strip()
-        if "answer:" in llm_output:
-            return llm_output.split("answer:", 1)[1].strip()
-        return llm_output.strip()
-
+        return llm_output
+    
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
         user_input = msg.data
-        input_data = {"question": user_input}
-        formatted_prompt = self.prompt.format(question=input_data["question"], schema=self.schema)
-        llm_response = self.llm_response.invoke(formatted_prompt)
+        llm_response = self.llm_with_tools.invoke(user_input)
+        tool_name = llm_response.tool_calls[0]['name']
+        tool_id = tool_name_2_id[tool_name]
+        tool_result = llm_response.tool_calls[0]['args']
+        tool_result['action_id'] = tool_id
 
-        # llm_response = self.extract_answer(llm_response)
-        # llm_response = self.get_day_of_the_week(llm_response)
+        tool_result = self.get_day_of_the_week(tool_result)
+
+        # fill 'pasto' field for action 3 if not already filled
+        if tool_result['action_id'] == '3' and tool_result['pasto'] == '':
+            tool_result = self.get_next_meal(tool_result)
 
         result = {}
-        # print(llm_response)
-        # print(result.keys())
         result['question'] = user_input
-        result['answer'] = llm_response
+        result['answer'] = str(tool_result)
         result_string = json.dumps(result)
 
         print("\033[32m"+result['answer']+"\033[0m")

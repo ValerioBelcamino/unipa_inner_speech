@@ -51,12 +51,12 @@ class Query_Generation(Node):
         
         self.get_logger().info('Inner Speech Node has been started')
 
-        print("\033[34mQuery Generation Node started!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.out_clingo_topic}!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.in_user_insertion_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.in_dish_info_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.in_meal_prep_topic}!!!\033[0m")
+        print(f"\033[34mQuery Generation Node started!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.out_clingo_topic}!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.in_user_insertion_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.in_dish_info_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.in_meal_prep_topic}!!!\033[0m")
 
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
@@ -263,7 +263,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
     def llm_query_generation(self, few_shot_prompt, question, parameters):
         # print(few_shot_prompt)
-        print("\033[34m" + f'{question=},\n {parameters=}' + "\033[0m")
+        print(f"\033[34m" + f'{question=},\n {parameters=}' + "\033[0m")
 
         input_data = {"question": question, "parameters": parameters}
         formatted_prompt = few_shot_prompt.format(question=input_data["question"], parameters=input_data["parameters"], schema=self.schema)
@@ -293,11 +293,11 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
         try:
             for i, q in enumerate(queries):
-                print("\033[34m" + f'Executing Query {i+1}: {q}\n' + "\033[0m")
+                print(f"\033[34m" + f'Executing Query {i+1}: {q}\n' + "\033[0m")
                 with driver.session() as session:
                     # Execute the query
                     result = session.run(q)
-                    print("\033[34mQuery results:\033[0m")
+                    print(f"\033[34mQuery results:\033[0m")
                     # print(result)
                     for record in result:
                         if i == 0:
@@ -330,7 +330,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
                 result = session.run(cypher)
                 records = list(result)  # Convert result into a list
 
-                print("\033[34mQuery results:\033[0m")
+                print(f"\033[34mQuery results:\033[0m")
                 for record in records:
                     print(f'\033[32m{record}\033[0m')  # Print each record
 

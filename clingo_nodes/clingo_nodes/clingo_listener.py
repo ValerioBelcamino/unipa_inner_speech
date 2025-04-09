@@ -23,9 +23,9 @@ class Clingo_Listener(Node):
         self.subscription  # Prevent unused variable warning
         self.publisher_ = self.create_publisher(String, self.clingo_explanation_topic, 10)
 
-        print("\033[34mClingo Listener Node started!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.clingo_explanation_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.clingo_start_topic}!!!\033[0m")
+        print(f"\033[34mClingo Listener Node started!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.clingo_explanation_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.clingo_start_topic}!!!\033[0m")
 
 
     def listener_callback(self, msg):

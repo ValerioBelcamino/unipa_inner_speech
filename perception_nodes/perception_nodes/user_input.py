@@ -29,7 +29,7 @@ class User_Input_Keyboard(Node):
 
     def send_msg(self, input_dialogue='Ciao, come posso aiutarti?\n', old_request=''):
         msg = String()
-        print("\033[34m" + f'{input_dialogue}' + "\033[0m", end='')
+        print(f"\033[34m" + f'{input_dialogue}' + "\033[0m", end='')
         msg_text = input()
         msg_text = old_request + msg_text
         msg.data = msg_text

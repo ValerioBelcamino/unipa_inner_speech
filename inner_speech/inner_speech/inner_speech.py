@@ -29,9 +29,9 @@ class Inner_Speech(Node):
         
         self.publisher_user_input = self.create_publisher(String, '/user_input_activation', 10)
 
-        print("\033[34mInner Speech Node started!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
+        print(f"\033[34mInner Speech Node started!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
         self.action_dict = {0: '/out_of_scope', 1: '/user_insertion', 2: '/dish_info', 3: '/meal_prep'}
 
@@ -89,7 +89,7 @@ class Inner_Speech(Node):
 
 
     def listener_callback(self, msg):
-        # self.get_logger().info('Received: "%s"\n' % msg.data)
+        self.get_logger().info('Received: "%s"\n' % msg.data)
         msg_json = json.loads(msg.data)
         user_input = msg_json['question']
         json_data = ast.literal_eval(msg_json['answer'])
@@ -99,7 +99,7 @@ class Inner_Speech(Node):
         parameters = json.dumps(json_data)
   
         # self.get_logger().info('Extracted -> \nQuestion: "%s", \nAction_ID: "%s", \nParameters: "%s"' % (user_input, action_id, parameters))
-        print("\033[34m" + f'{user_input},\n {action_id},\n {parameters}' + "\033[0m")
+        print(f"\033[34m" + f'{user_input},\n {action_id},\n {parameters}' + "\033[0m")
 
         input_data = {"question": user_input, "action_id": action_id, "parameters": parameters}
         formatted_prompt = self.prompt.format(question=input_data["question"], action_id=input_data["action_id"], parameters=input_data["parameters"], schema=self.schema)
@@ -119,14 +119,14 @@ class Inner_Speech(Node):
         complete = result['answer']['completed'].lower() == 'true'
 
         if not complete:
-            print("\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
+            print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
             response_dict = {'question':user_input, 'response':result['answer']['response']}
             response_string = json.dumps(response_dict)
             self.publisher_user_input.publish(String(data=response_string))
             self.get_logger().info('Published: "%s"' % result_string)
 
         else:
-            print("\033[34m" + "Complete answer, we can procede!" + "\033[0m")
+            print(f"\033[34m" + "Complete answer, we can procede!" + "\033[0m")
 
             msg = String()
             msg_json = {'question': user_input, 'parameters': parameters}
