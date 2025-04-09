@@ -1,4 +1,4 @@
-import os
+import os, re
 import json
 from langchain_neo4j import Neo4jGraph
 from langchain_groq import ChatGroq
@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import ast
 from pydantic import BaseModel, Field
+from groq import BadRequestError
 
 # Define Pydantic classes with tools
 class AddToDatabase(BaseModel):
@@ -46,24 +47,12 @@ class SubstituteDish(BaseModel):
                         examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'])
     pasto: str = Field(description="Type of meal for which the user wants the dish",
                        examples=['colazione', 'pranzo', 'cena'])
-    
-class OutOfScope(BaseModel):
-    """User asks you to do something that is not in your scope 
-    or in-scope action, but without enough information (not all necessary fields are filled).
-    
-    Use this instrument always when no other tool can be used."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
-    messaggio: str = Field(description="The message that user sent to you")
-    oos_type: str = Field(description="Type of out-of-scope", examples=['not_enough_information', 'wrong_skill'])
-    absent_required_fields: list[str] = Field(description="List of required fields that user did not specify to make other function applicable. Filled only if oos_type==not_enough_information")
-    failed_tool: str = Field(description="Name of the tool which semantically applies for the user query, but the user did not provide all the necessary information, so the tool cannot be used. Filled only if oos_type==not_enough_information")
-
-tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3', 'OutOfScope': '0'}
+tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
@@ -79,6 +68,16 @@ class Inner_Speech(Node):
             self.listener_callback,
             10)
         
+        self.days_of_the_week = {
+            0: "lunedi",
+            1: "martedi",
+            2: "mercoledi",
+            3: "giovedi",
+            4: "venerdi",
+            5: "sabato",
+            6: "domenica",
+        }
+
         self.publisher = self.create_publisher(String, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
@@ -96,7 +95,7 @@ class Inner_Speech(Node):
         self.schema = self.graph.schema
 
         self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
-        self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish, OutOfScope])
+        self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
 
     def get_day_of_the_week(self, llm_output: str) -> str:
@@ -136,17 +135,29 @@ class Inner_Speech(Node):
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
         user_input = msg.data
-        llm_response = self.llm_with_tools.invoke(user_input)
-        tool_name = llm_response.tool_calls[0]['name']
-        tool_id = tool_name_2_id[tool_name]
-        tool_result = llm_response.tool_calls[0]['args']
-        tool_result['action_id'] = tool_id
+        try:
+            llm_response = self.llm_with_tools.invoke(user_input)
+        except BadRequestError as e:
+            print(f"\033[31mError: {e}\033[0m")
+            llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
+            llm_response = ast.literal_eval(llm_response)
+            print(f"\033[31m{llm_response}\033[0m")
+            
+        if llm_response.tool_calls == []: # no tool called -> out of scope
+            tool_result = {'action_id': '0'}
+        else:
+            tool_name = llm_response.tool_calls[0]['name']
+            tool_id = tool_name_2_id[tool_name]
+            tool_result = llm_response.tool_calls[0]['args']
+            tool_result['action_id'] = tool_id
 
-        tool_result = self.get_day_of_the_week(tool_result)
-
-        # fill 'pasto' field for action 3 if not already filled
-        if tool_result['action_id'] == '3' and tool_result['pasto'] == '':
-            tool_result = self.get_next_meal(tool_result)
+            # change relative days to days of the week
+            if tool_result['action_id'] == '3':
+                tool_result = self.get_day_of_the_week(tool_result)
+                
+                # fill 'pasto' field for action 3 if not already filled
+                if tool_result['pasto'] == '':
+                    tool_result = self.get_next_meal(tool_result)
 
         result = {}
         result['question'] = user_input
@@ -156,7 +167,7 @@ class Inner_Speech(Node):
         print("\033[32m"+result['answer']+"\033[0m")
 
         self.publisher.publish(String(data=result_string))
-        self.get_logger().info('Published: "%s"' % result_string)
+        self.get_logger().info('Published: "%s"' % result)
 
 def main(args=None):
     rclpy.init(args=args)

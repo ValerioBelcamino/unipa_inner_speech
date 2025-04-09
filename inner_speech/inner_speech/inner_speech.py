@@ -9,11 +9,22 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import ast
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
+
+action_id_to_required_parameters = {'1': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
+                                    '2': ['nome_piatto'],
+                                    '3': ['nome_utente', 'giorno', 'pasto'],
+                                    '0': []}  # Out of scope doesn't require any parameters
+
+action_id_to_description = {'1': 'Aggiungere un nuovo utente alla base di conoscenza.',
+                            '2': 'Dare informazioni a un utente riguardo uno specifico piatto.',
+                            '3': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
+                            '0': 'Azione non pertinente.'} 
 
 class Inner_Speech(Node):
     def __init__(self):
@@ -45,47 +56,7 @@ class Inner_Speech(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
-        self.examples = []
-        with open(os.path.join(self.source_dir, 'few_shot_examples/FewShot_intent_IS.json'), 'r') as f:
-            self.examples = json.load(f)["examples"]
-
-
         self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
-
-        self.example_prompt = PromptTemplate.from_template(
-            """Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\nAnswer: {answer}\n"""
-        )
-
-        self.prompt = FewShotPromptTemplate(
-            examples=self.examples,
-            example_prompt=self.example_prompt,
-            prefix="""Sono un Robot di nome Pepper, esperto in Neo4j. Devo aiutare un utente a soddisfare le sue esigenze alimentari ed ho a disposizione una base di conoscenza con il seguente schema: {schema}.
-        Data una richiesta dell'utente, devo capire se è pertinente all'argomento e determinare quale funzione desidera utilizzare.
-        Le azioni che sono in grado di effettuare sono le seguenti:
-        0. Azione non pertinente.
-        1. Aggiungere un nuovo utente alla base di conoscenza.
-            Parametri: nome_utente (obbligatorio), calorie (obbligatorio), proteine (obbligatorio), carboidrati (obbligatorio), grassi (obbligatorio), intolleranze (facoltativo).
-        2. Dare informazioni a un utente riguardo uno specifico piatto.
-            Parametri: nome_utente (facoltativo), nome_piatto (obbligatorio).
-        3. Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.
-            Parametri: nome_utente (obbligatorio), ingredienti da rimuovere (facoltativo), ingredienti preferiti (facoltativo), sottoinsieme di ingredienti (facoltativo), giorno (facoltativo), pasto (obbligatorio).
-        I parametri indicati come "obbligatorio" devono sempre essere forniti per eseguire correttamente l'azione richiesta.""",
-            suffix='''Ritorna solamente la risposta in formato json senza alcun altro tipo di testo. La risposta deve essere schematica e deve rispettare il seguente formato:
-    Question: {question}\nAction_ID: {action_id}\nParameters: {parameters}\nAnswer: ''',
-            input_variables=["question", "action_id", "parameters", "schema"],
-        )
-
-        self.llm_response = (
-            self.llm.bind()
-            | StrOutputParser()
-            | self.extract_answer
-        )
-
-
-    def extract_answer(self, llm_output: str) -> str:
-        if "Answer:" in llm_output:
-            return llm_output.split("Answer:", 1)[1].strip()
-        return llm_output.strip()
 
 
     def listener_callback(self, msg):
@@ -97,30 +68,50 @@ class Inner_Speech(Node):
         action_id = str(json_data['action_id'])
         json_data.pop('action_id', None)
         parameters = json.dumps(json_data)
-  
-        # self.get_logger().info('Extracted -> \nQuestion: "%s", \nAction_ID: "%s", \nParameters: "%s"' % (user_input, action_id, parameters))
-        print(f"\033[34m" + f'{user_input},\n {action_id},\n {parameters}' + "\033[0m")
+        print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        input_data = {"question": user_input, "action_id": action_id, "parameters": parameters}
-        formatted_prompt = self.prompt.format(question=input_data["question"], action_id=input_data["action_id"], parameters=input_data["parameters"], schema=self.schema)
-        llm_response = self.llm_response.invoke(formatted_prompt)
+        required_parameters = action_id_to_required_parameters[action_id]
+        missing_parameters = [param for param in required_parameters if json_data[param] in [0, None, '']]
+        if missing_parameters:
+            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+            completed = False
+        else:
+            completed = True
 
-        with open(os.path.join(self.ws_dir, 'inner_speech', 'inners.json'), 'a+') as f:
-            f.write(json.dumps({"question": user_input, "action_id": action_id, "parameters": parameters, "answer": llm_response}) + ',\n')
+        prompt = f"""
+            Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
+            Non tralasciare alcun dettaglio.
+            
+            L'utente desidera eseguire l'azione {action_id}: {action_id_to_description[action_id]}.
+            La loro domanda è: {user_input}.
+            Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
+            L'azione può essere completata: {completed}.
+            Parametri mancanti: {missing_parameters}
+            
+            Il tuo discorso interiore in italiano:"""
+
+        llm_response = self.llm.invoke(prompt)
 
         result = {}
         result['question'] = user_input
-        result['answer'] = llm_response
+        result['inner_speech'] = llm_response.content
         result_string = json.dumps(result)
 
-        print("\033[32m"+result['answer']+"\033[0m")
+        print("\033[32m"+result_string+"\033[0m")
 
-        result['answer'] = ast.literal_eval(result['answer'])
-        complete = result['answer']['completed'].lower() == 'true'
-
-        if not complete:
+        if not completed:
             print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
-            response_dict = {'question':user_input, 'response':result['answer']['response']}
+            answer_prompt = f"""
+                Chiedi all'utente maggiori dettagli per completare l'azione {action_id}: {action_id_to_description[action_id]}.
+
+                La sua domanda è: {user_input}.
+                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
+                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
+                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
+
+                La tua risposta in italiano:"""
+            result['answer'] = self.llm.invoke(answer_prompt).content
+            response_dict = {'question':user_input, 'response':result['answer']}
             response_string = json.dumps(response_dict)
             self.publisher_user_input.publish(String(data=response_string))
             self.get_logger().info('Published: "%s"' % result_string)
