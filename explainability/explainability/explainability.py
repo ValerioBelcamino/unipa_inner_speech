@@ -36,10 +36,10 @@ class Explainability(Node):
         
         self.robot_dialogue_publisher = self.create_publisher(String, self.robot_dialogue_topic, 10)
 
-        print("\033[34mExplainability Node started!!!\033[0m")
-        print("\033[34mInitialized publishers to {self.robot_dialogue_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.query_explanation_topic}!!!\033[0m")
-        print("\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
+        print(f"\033[34mExplainability Node started!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.robot_dialogue_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.query_explanation_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
 
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
