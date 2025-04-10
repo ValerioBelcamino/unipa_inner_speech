@@ -1,8 +1,9 @@
 import os
 import json
 from .export_query_results import generate_pl_file, generate_csv_file
+from langchain.output_parsers import PydanticOutputParser
 from langchain_groq import ChatGroq
-from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
+from langchain.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
 from neo4j import GraphDatabase 
@@ -10,12 +11,26 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
+class DishInfoCypherQuery(BaseModel):
+    """A tool to convert user input into Cypher queries. 
+    This tool is specified for giving the user information about a specific dish, 
+    e.g. what nutrients or allergens it has, 
+    if the user can eat it or not (depending on their allergens), etc."""
+
+    query: str = Field(description="A valid cypher query generated from the user input")
+
+def escape_curly_braces(text):
+    """
+    Escape curly braces in the text by doubling them.
+    """
+    return text.replace("{", "{{").replace("}", "}}")
 
 class Query_Generation(Node):
     def __init__(self):
@@ -65,21 +80,47 @@ class Query_Generation(Node):
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
-        # print(f'{self.username}, {self.password}')
-
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
+        self.schema = escape_curly_braces(self.graph.schema)
 
-        # print(self.schema)
+        self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
+        and converts them to Cypher strictly following the instructions below:
+
+        1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
+        2. Do not use EXISTS, SIZE keywords in the query. Use an alias when using the WITH keyword.
+        3. Do not use the same variable names for different nodes and relationships.
+        4. Use only the nodes and relationships mentioned in the schema.
+        5. Always enclose the Cypher output inside three backticks.
+        6. Always perform case-insensitive and fuzzy searches for any property-based filtering. 
+        E.g., to search for a company name, use `toLower(c.name) contains 'neo4j'`.
+        7. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        8. Always use aliases to refer to nodes throughout the query.
+        9. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        10. You may generate multiple queries if required.
+        11. Every query must start with the MATCH keyword.
+
+        Schema:
+        {self.schema}"""
+
 
         self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
         self.examples = {}
         for i, file in enumerate(self.example_filenames):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
+        
+        with open(os.path.join(self.source_dir, 'fewshot_examples', 'dish_info.json'), 'r') as f:
+            self.examples[1] = json.load(f)
+            for example in self.examples[1]:
+                example['parameters'] = escape_curly_braces(example['parameters'])
+                example['query'] = escape_curly_braces(example['query'])
+                    
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY")) #llama3-70b-8192
+        self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher query: {query}"""
+        self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
 
+        self.llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, api_key=os.getenv("GROQ_API_KEY")) #llama-3.3-70b-versatile
+        self.llm_with_query = self.llm.with_structured_output(DishInfoCypherQuery)
         self.llm_response = (
             self.llm.bind()
             | StrOutputParser()
@@ -111,6 +152,20 @@ class Query_Generation(Node):
             suffix=_suffix,
             input_variables=["question", "schema", "parameters"],
         )
+
+    def prepare_few_shot_prompt_2(self, action_id):
+        few_shot_prompt = FewShotPromptTemplate(
+            input_variables=["question", "parameters"],
+            examples=self.examples[action_id],
+            example_prompt=PromptTemplate(
+                input_variables=["question", "parameters", "query"],
+                template=self.example_template
+            ),
+            prefix=self.instruction,
+            suffix=self.suffix
+            )
+        return few_shot_prompt
+
     
     def user_insertion_listener_callback(self, msg):
         self.get_logger().info('Received: "%s" __ user_insertion_listener_callback\n' % msg.data)
@@ -172,51 +227,24 @@ class Query_Generation(Node):
     def dish_info_listener_callback(self, msg):
         self.get_logger().info('Received: "%s" __ dish_info_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
+        user_message = msg_dict['question']
+        parameters = msg_dict['parameters']
 
-        example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\n{query}")
-        print(json.loads(msg_dict['parameters']))
-        print(type(json.loads(msg_dict['parameters'])))
+        few_shot_prompt = self.prepare_few_shot_prompt_2(1)
+        llm_cypher_chain = few_shot_prompt | self.llm_with_query
 
-        few_shot_prompt = self.prepare_few_shot_prompt(2, example_prompt)
         self.get_logger().info('Prepared Few Shot Prompt for Action ID: 2')
 
-        cypher = self.llm_query_generation(few_shot_prompt, msg_dict['question'], msg_dict['parameters'])
+        cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
+        print(cypher)
 
-        cypher, query_results = self.query_execution_dish_info(cypher)
+        cypher, query_results = self.query_execution_dish_info(cypher.query)
 
         # Initialize an empty dictionary to hold extracted data
         result = {}
 
-        # Extract recipe information
-        recipe_node = query_results[0]['r']  # The Recipe node
-        recipe_allergens = query_results[0]['recipe_allergens']  # List of Allergen nodes
-        user_allergies = query_results[0]['user_allergies']  # List of Allergen nodes
-
-        # Extract recipe details
-        recipe_name = recipe_node['name']
-        recipe_calories = recipe_node['calories']
-        recipe_proteins = recipe_node['proteins']
-        recipe_carbs = recipe_node['carbs']
-        recipe_fats = recipe_node['fats']
-        recipe_type = recipe_node['type']
-
-        # Extract allergens (if any)
-        recipe_allergens_names = [allergen for allergen in recipe_allergens] if recipe_allergens else []
-        user_allergies_names = [allergen for allergen in user_allergies] if user_allergies else []
-
-        # Format user string
-        user_string = f'''user_request: {msg_dict['question']}.
-recipe_name: {recipe_name},
-type: {recipe_type},
-calories: {recipe_calories},
-proteins: {recipe_proteins},
-carbs: {recipe_carbs},
-fats: {recipe_fats},
-recipe_allergens: [{', '.join(recipe_allergens_names) if recipe_allergens_names else ''}],
-user_allergies: [{', '.join(user_allergies_names) if user_allergies_names else ''}]'''
-
         # Populate the result dictionary
-        result['user_input'] = user_string
+        result['user_input'] = f"user request: {user_message}, query result: {query_results}"
 
         # For demonstration, include the raw Cypher query used (optional)
         result['queries'] = cypher
@@ -357,8 +385,17 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
                 # Execute the query
                 result = session.run(cypher)
                 print("Query results:")
+
                 for record in result:
-                    query_results.append(record)
+                    # query_results.append(record)
+                    recdict = {}
+                    for key, value in record.items():
+                        subdict = {}
+                        for label, prop in value.items():
+                            subdict[label] = prop
+                            print(f"{key}: {label} - {prop}")
+                        recdict[key] = subdict
+                    query_results.append(recdict)
                 print("\033[32m" + str(query_results) + "\033[0m")
 
         except Exception as e:

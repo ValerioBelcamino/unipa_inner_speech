@@ -20,18 +20,19 @@ class AddToDatabase(BaseModel):
     Do not generate any new information, use only what user provided for you.
     If you don't have some piece of information, leave the corresponding field blank."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
-    calorie: int = Field(description="How many calories user should eat per day")
-    proteine: int = Field(description="How many grams of protein user should eat per day")
-    carboidrati: int = Field(description="How many carbohydrates user should eat per day")
-    grassi: int = Field(description="How many fats user should eat per day")
-    intolleranze: str = Field(description="User's intollerances")
+    nome_utente: str = Field(description="The name of the user in lowercase")
+    calorie: int = Field(description="How many calories user should eat per day", default=0)
+    proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
+    carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
+    grassi: int = Field(description="How many fats user should eat per day", default=0)
+    intolleranze: str = Field(description="User's intollerances", default='')
 
 class DishInfo(BaseModel):
-    """User asks you to give him information about a specific dish."""
+    """User asks you to give him information about a specific dish.
+    For example, about its nurtients, allergens or if this dish is suitable for the user."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
-    nome_piatto: str = Field(description="The name of the dish in lowercase")
+    nome_utente: str = Field(description="The name of the user in lowercase", default='')
+    nome_piatto: str = Field(description="The name of the dish in snake_case")
 
 class SubstituteDish(BaseModel):
     """User asks you to propose an alternative dish based on their allergies and dietary plan.
@@ -39,14 +40,16 @@ class SubstituteDish(BaseModel):
     Do not generate any new information, use only what user provided for you.
     If you don't have some piece of information, leave the corresponding field blank."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
-    ingredienti_rimossi: list[str] = Field(description="Ingredients that the user wants to exclude")
-    ingredienti_preferiti: list[str] = Field(description="Ingredients that the user wants to include")
-    solo_questi_ingredienti: list[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty")
+    nome_utente: str = Field(description="The name of the user in lowercase")
+    ingredienti_rimossi: list[str] = Field(description="Ingredients that the user wants to exclude", default=[])
+    ingredienti_preferiti: list[str] = Field(description="Ingredients that the user wants to include", default=[])
+    solo_questi_ingredienti: list[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty", default=[])
     giorno: str = Field(description="Day of the week in italian when the user wants the dish", 
-                        examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'])
+                        examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'],
+                        default='')
     pasto: str = Field(description="Type of meal for which the user wants the dish",
-                       examples=['colazione', 'pranzo', 'cena'])
+                       examples=['colazione', 'pranzo', 'cena'],
+                       default='')
 
 tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
@@ -94,7 +97,7 @@ class Inner_Speech(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
+        self.llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
         self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
 
@@ -137,18 +140,20 @@ class Inner_Speech(Node):
         user_input = msg.data
         try:
             llm_response = self.llm_with_tools.invoke(user_input)
+            tool_calls = llm_response.tool_calls
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
-            print(f"\033[31m{llm_response}\033[0m")
+            tool_calls = llm_response['tool_calls']
+            print(f"\033[32m{llm_response}\033[0m")
             
-        if llm_response.tool_calls == []: # no tool called -> out of scope
+        if tool_calls == []: # no tool called -> out of scope
             tool_result = {'action_id': '0'}
         else:
-            tool_name = llm_response.tool_calls[0]['name']
+            tool_name = tool_calls[0]['name']
             tool_id = tool_name_2_id[tool_name]
-            tool_result = llm_response.tool_calls[0]['args']
+            tool_result = tool_calls[0]['args']
             tool_result['action_id'] = tool_id
 
             # change relative days to days of the week

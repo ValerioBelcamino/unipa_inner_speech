@@ -10,7 +10,7 @@ from std_msgs.msg import String
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 
@@ -57,7 +57,7 @@ class Explainability(Node):
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0.25, api_key=os.getenv("GROQ_API_KEY"))
+        self.llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.25, api_key=os.getenv("GROQ_API_KEY"))
 
         self.llm_response = (
             self.llm.bind()
