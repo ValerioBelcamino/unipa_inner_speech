@@ -48,7 +48,6 @@ class SubstituteDish(BaseModel):
     pasto: str = Field(description="Type of meal for which the user wants the dish",
                        examples=['colazione', 'pranzo', 'cena'])
 
-tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
 
 # Load environment variables from .env file
@@ -78,6 +77,8 @@ class Inner_Speech(Node):
             6: "domenica",
         }
 
+        self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
+        
         self.publisher = self.create_publisher(String, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
@@ -147,7 +148,7 @@ class Inner_Speech(Node):
             tool_result = {'action_id': '0'}
         else:
             tool_name = llm_response.tool_calls[0]['name']
-            tool_id = tool_name_2_id[tool_name]
+            tool_id = self.tool_name_2_id[tool_name]
             tool_result = llm_response.tool_calls[0]['args']
             tool_result['action_id'] = tool_id
 
