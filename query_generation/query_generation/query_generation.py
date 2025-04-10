@@ -1,7 +1,7 @@
 import os
 import json
 from .export_query_results import generate_pl_file, generate_csv_file
-from langchain_groq import ChatGroq
+from langchain.chat_models import init_chat_model
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
@@ -10,16 +10,19 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
 from dotenv import load_dotenv
+import ast 
 
 # Load environment variables from .env file
 BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
-
+dotconfig_path = os.path.join(BASE_DIR, ".config")
+load_dotenv(dotconfig_path)
 
 class Query_Generation(Node):
     def __init__(self):
-        super().__init__('query_generation_node')
+        self.node_name = 'query_generation'
+        super().__init__(f'{self.node_name}_node')
         self.in_user_insertion_topic = '/user_insertion'
         self.in_dish_info_topic = '/dish_info'
         self.in_meal_prep_topic = '/meal_prep'
@@ -62,6 +65,8 @@ class Query_Generation(Node):
         self.username = os.getenv("NEO4J_USERNAME")
         self.password = os.getenv("NEO4J_PASSWORD")
 
+        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
+
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
@@ -78,8 +83,13 @@ class Query_Generation(Node):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY")) #llama3-70b-8192
-
+        self.llm = init_chat_model(
+                                    model=self.llm_config['model_name'], 
+                                    model_provider=self.llm_config['model_provider'], 
+                                    temperature=self.llm_config['temperature'], 
+                                    api_key=os.getenv("GROQ_API_KEY")
+                                )
+        
         self.llm_response = (
             self.llm.bind()
             | StrOutputParser()

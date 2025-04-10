@@ -1,9 +1,7 @@
 import os, re
 import json
 from langchain_neo4j import Neo4jGraph
-from langchain_groq import ChatGroq
-from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
-from langchain_core.output_parsers.string import StrOutputParser
+from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -12,6 +10,7 @@ from datetime import datetime, timedelta
 import ast
 from pydantic import BaseModel, Field
 from groq import BadRequestError
+from unidecode import unidecode
 
 # Define Pydantic classes with tools
 class AddToDatabase(BaseModel):
@@ -20,7 +19,7 @@ class AddToDatabase(BaseModel):
     Do not generate any new information, use only what user provided for you.
     If you don't have some piece of information, leave the corresponding field blank."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    nome_utente: str = Field(description="The name of the user")
     calorie: int = Field(description="How many calories user should eat per day")
     proteine: int = Field(description="How many grams of protein user should eat per day")
     carboidrati: int = Field(description="How many carbohydrates user should eat per day")
@@ -30,7 +29,7 @@ class AddToDatabase(BaseModel):
 class DishInfo(BaseModel):
     """User asks you to give him information about a specific dish."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    nome_utente: str = Field(description="The name of the user")
     nome_piatto: str = Field(description="The name of the dish in lowercase")
 
 class SubstituteDish(BaseModel):
@@ -39,7 +38,7 @@ class SubstituteDish(BaseModel):
     Do not generate any new information, use only what user provided for you.
     If you don't have some piece of information, leave the corresponding field blank."""
 
-    nome_utente: str = Field(description="The name of the user in Pascal Case")
+    nome_utente: str = Field(description="The name of the user")
     ingredienti_rimossi: list[str] = Field(description="Ingredients that the user wants to exclude")
     ingredienti_preferiti: list[str] = Field(description="Ingredients that the user wants to include")
     solo_questi_ingredienti: list[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty")
@@ -51,13 +50,16 @@ class SubstituteDish(BaseModel):
 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
+dotconfig_path = os.path.join(BASE_DIR, ".config")
+load_dotenv(dotconfig_path)
 
-class Inner_Speech(Node):
+class Intent_Recognition(Node):
     def __init__(self):
-        super().__init__('intent_recognition_node')
+        self.node_name = 'intent_recognition'
+        super().__init__(f'{self.node_name}_node')
         self.in_topic = '/user_input'
         self.out_topic = '/user_intent'
 
@@ -78,7 +80,7 @@ class Inner_Speech(Node):
         }
 
         self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
-        
+
         self.publisher = self.create_publisher(String, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
@@ -89,13 +91,22 @@ class Inner_Speech(Node):
         self.username = os.getenv("NEO4J_USERNAME")
         self.password = os.getenv("NEO4J_PASSWORD")
 
+        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
+
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
+
         self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
+        self.llm = init_chat_model(
+                                    model=self.llm_config['model_name'], 
+                                    model_provider=self.llm_config['model_provider'], 
+                                    temperature=self.llm_config['temperature'], 
+                                    api_key=os.getenv("GROQ_API_KEY")
+                                )
+        
         self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
 
@@ -133,9 +144,28 @@ class Inner_Speech(Node):
 
         return llm_output
     
+
+    def tool_to_lower(self, tool_output):
+        '''Updates the parameters extracted by the tools to match our KG conventions'''
+        for k,v in tool_output.items():
+            # Remove accents from italian names of the week
+            if k == 'giorno':
+                v = unidecode(v)
+
+            if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
+                for i in range(len(v)):
+                    v[i] = v[i].lower()
+                    v[i] = v[i].replace(' ', '_')
+            else:
+                # Cast to lowercase
+                v = v.lower()
+                # Replace spaces with underscores
+                v = v.replace(' ', '_')
+            tool_output[k] = v
+    
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
-        user_input = msg.data
+        user_input = msg.data.strip()
         try:
             llm_response = self.llm_with_tools.invoke(user_input)
         except BadRequestError as e:
@@ -150,6 +180,7 @@ class Inner_Speech(Node):
             tool_name = llm_response.tool_calls[0]['name']
             tool_id = self.tool_name_2_id[tool_name]
             tool_result = llm_response.tool_calls[0]['args']
+            self.tool_to_lower(tool_result)
             tool_result['action_id'] = tool_id
 
             # change relative days to days of the week
@@ -172,9 +203,9 @@ class Inner_Speech(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    inner_speech = Inner_Speech()
-    rclpy.spin(inner_speech)
-    inner_speech.destroy_node()
+    intent_recognition = Intent_Recognition()
+    rclpy.spin(intent_recognition)
+    intent_recognition.destroy_node()
     rclpy.shutdown()
 
 if __name__ == "__main__":

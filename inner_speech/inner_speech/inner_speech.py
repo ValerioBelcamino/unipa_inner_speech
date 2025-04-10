@@ -1,6 +1,6 @@
 import os
 import json
-from langchain_groq import ChatGroq
+from langchain.chat_models import init_chat_model
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
@@ -12,14 +12,16 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
-
+dotconfig_path = os.path.join(BASE_DIR, ".config")
+load_dotenv(dotconfig_path)
 
 class Inner_Speech(Node):
     def __init__(self):
-        super().__init__('inner_speech_node')
+        self.node_name = 'inner_speech'
+        super().__init__(f'{self.node_name}_node')
         self.in_topic = '/user_intent'
         self.out_topic = '/user_input_activation'
 
@@ -41,14 +43,21 @@ class Inner_Speech(Node):
         self.username = os.getenv("NEO4J_USERNAME")
         self.password = os.getenv("NEO4J_PASSWORD")
 
+        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
+
         self.ws_dir = os.getenv("ROS2_WORKSPACE")  # Replace with your workspace path if needed
         self.source_dir = os.path.join(self.ws_dir, 'inner_speech', 'inner_speech')
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
-        self.llm = ChatGroq(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
-
+        self.llm = init_chat_model(
+                                    model=self.llm_config['model_name'], 
+                                    model_provider=self.llm_config['model_provider'], 
+                                    temperature=self.llm_config['temperature'], 
+                                    api_key=os.getenv("GROQ_API_KEY")
+                                )
+        
         self.action_id_to_required_parameters = {'1': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
                                             '2': ['nome_piatto'],
                                             '3': ['nome_utente', 'giorno', 'pasto'],

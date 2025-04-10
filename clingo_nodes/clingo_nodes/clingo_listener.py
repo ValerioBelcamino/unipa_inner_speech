@@ -10,7 +10,8 @@ from clingo_call import clingo_call
 class Clingo_Listener(Node):
 
     def __init__(self):
-        super().__init__('clingo_listener')
+        self.node_name = 'clingo_listener'
+        super().__init__(f'{self.node_name}_node')
         self.clingo_start_topic = '/clingo_start'
         self.clingo_explanation_topic = '/ex_clingo'
 
