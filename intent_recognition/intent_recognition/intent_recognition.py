@@ -26,7 +26,7 @@ class AddToDatabase(BaseModel):
     proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
     carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
     grassi: int = Field(description="How many fats user should eat per day", default=0)
-    intolleranze: str = Field(description="User's intollerances", default='')
+    intolleranze: list[str] = Field(description="User's intollerances", default='')
 
 class DishInfo(BaseModel):
     """User asks you to give him information about a specific dish.
@@ -151,23 +151,48 @@ class Intent_Recognition(Node):
         return llm_output
     
 
-    def tool_to_lower(self, tool_output):
+    def tool_to_lower(self, tool_output, tool_id):
         '''Updates the parameters extracted by the tools to match our KG conventions'''
         for k,v in tool_output.items():
-            # Remove accents from italian names of the week
-            if k == 'giorno':
-                v = unidecode(v)
+            # AddToDatabase
+            if tool_id == '1':
+                if k == 'nome_utente':
+                    # Cast to lowercase
+                    v = v.lower()
+                elif k == 'intolleranze':
+                    for i in range(len(v)):
+                        v[i] = v[i].lower()
+                        v[i] = v[i].replace(' ', '_')
+            # DishInfo
+            elif tool_id == '2':
+                if k == 'controllo_ingredienti':
+                    for i in range(len(v)):
+                        v[i] = v[i].lower()
+                        v[i] = v[i].replace(' ', '_')
+                else:
+                    # Cast to lowercase
+                    v = v.lower()
+                    # Replace spaces with underscores
+                    v = v.replace(' ', '_')
+                tool_output[k] = v
+            # SubstituteDish
+            elif tool_id == '3':
+                # Remove accents from italian names of the week
+                if k == 'giorno':
+                    v = unidecode(v)
 
-            if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
-                for i in range(len(v)):
-                    v[i] = v[i].lower()
-                    v[i] = v[i].replace(' ', '_')
-            else:
-                # Cast to lowercase
-                v = v.lower()
-                # Replace spaces with underscores
-                v = v.replace(' ', '_')
-            tool_output[k] = v
+                if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
+                    for i in range(len(v)):
+                        v[i] = v[i].lower()
+                        v[i] = v[i].replace(' ', '_')
+                else:
+                    # Cast to lowercase
+                    v = v.lower()
+                    # Replace spaces with underscores
+                    v = v.replace(' ', '_')
+                tool_output[k] = v
+
+
     
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
@@ -190,7 +215,7 @@ class Intent_Recognition(Node):
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']
             tool_id = self.tool_name_2_id[tool_name]
-            self.tool_to_lower(tool_result)
+            self.tool_to_lower(tool_result, tool_id)
             tool_result['action_id'] = tool_id
 
             # change relative days to days of the week
