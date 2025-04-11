@@ -83,7 +83,11 @@ class Inner_Speech(Node):
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
         required_parameters = self.action_id_to_required_parameters[action_id]
-        missing_parameters = [param for param in required_parameters if json_data[param] in [0, None, '']]
+        missing_parameters = [param for param in required_parameters if param not in json_data]
+        missing_parameters.extend([
+                                   param for param in list(set(required_parameters) - set(missing_parameters)) 
+                                   if json_data[param] in [0, None, '']
+                                   ])
         if missing_parameters:
             print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
             completed = False
