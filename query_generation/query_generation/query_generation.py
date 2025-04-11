@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 import ast 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)

@@ -11,6 +11,8 @@ import ast
 from pydantic import BaseModel, Field
 from groq import BadRequestError
 from unidecode import unidecode
+import time 
+
 
 # Define Pydantic classes with tools
 class AddToDatabase(BaseModel):
@@ -32,6 +34,7 @@ class DishInfo(BaseModel):
 
     nome_utente: str = Field(description="The name of the user in lowercase", default='')
     nome_piatto: str = Field(description="The name of the dish in lowercase")
+    controllo_ingredienti: list[str] = Field(description="Ingredients to check for in the dish", default=[])
 
 class SubstituteDish(BaseModel):
     """User asks you to propose an alternative dish based on their allergies and dietary plan.
@@ -170,7 +173,9 @@ class Intent_Recognition(Node):
         self.get_logger().info('Received: "%s"\n' % msg.data)
         user_input = msg.data.strip()
         try:
+            # start_time = time.time()
             llm_response = self.llm_with_tools.invoke(user_input)
+            # print(f'\033[91m{time.time() - start_time}\033[0m')
             tool_calls = llm_response.tool_calls
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")

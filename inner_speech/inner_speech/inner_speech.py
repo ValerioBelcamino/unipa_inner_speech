@@ -10,6 +10,8 @@ from std_msgs.msg import String
 import ast
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+import time 
+
 
 # Load environment variables from .env file
 BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
@@ -100,7 +102,9 @@ class Inner_Speech(Node):
             
             Il tuo discorso interiore in italiano:"""
 
+        # start_time = time.time()
         llm_response = self.llm.invoke(prompt)
+        # print(f'\033[91m{time.time() - start_time}\033[0m')
 
         result = {}
         result['question'] = user_input
