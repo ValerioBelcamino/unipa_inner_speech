@@ -106,6 +106,7 @@ class Intent_Recognition(Node):
 
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
+        self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -205,8 +206,8 @@ class Intent_Recognition(Node):
             size(plannedDays) AS daysCovered,
             CASE WHEN size(plannedDays) = 7 THEN true ELSE false END AS hasWeeklyPlan
         """
-        driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
-        with driver.session() as session:
+        
+        with self.driver.session() as session:
             result = session.run(query, name=person_name)
             record = result.single()  # Expecting one result
             if record:
