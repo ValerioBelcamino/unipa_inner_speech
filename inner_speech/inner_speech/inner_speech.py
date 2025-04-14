@@ -62,7 +62,7 @@ class Inner_Speech(Node):
         
         self.action_id_to_required_parameters = {'1': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
                                             '2': ['nome_piatto'],
-                                            '3': ['nome_utente', 'giorno', 'pasto'],
+                                            '3': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
                                             '0': []}  # Out of scope doesn't require any parameters
 
         self.action_id_to_description = {'1': 'Aggiungere un nuovo utente alla base di conoscenza.',
