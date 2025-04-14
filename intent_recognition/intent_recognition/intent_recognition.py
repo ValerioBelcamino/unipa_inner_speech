@@ -1,6 +1,7 @@
 import os, re
 import json
 from langchain_neo4j import Neo4jGraph
+from neo4j import GraphDatabase 
 from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
@@ -116,6 +117,7 @@ class Intent_Recognition(Node):
         self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
 
+
     def get_day_of_the_week(self, llm_output: str) -> str:
         
         if llm_output['giorno'] in ['oggi', '']:
@@ -193,6 +195,32 @@ class Intent_Recognition(Node):
                 tool_output[k] = v
 
 
+    def check_user_weekly_plan(self, person_name):
+        query = """
+        MATCH (p:Person {name: $name})-[:SHOULD_EAT]->(d:Dish)
+        WITH p, collect(DISTINCT d) AS dishes
+        MATCH (p)-[r:SHOULD_EAT]->(:Dish)
+        WITH p, collect(DISTINCT r.day) AS plannedDays
+        RETURN p.name AS person, plannedDays,
+            size(plannedDays) AS daysCovered,
+            CASE WHEN size(plannedDays) = 7 THEN true ELSE false END AS hasWeeklyPlan
+        """
+        driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
+        with driver.session() as session:
+            result = session.run(query, name=person_name)
+            record = result.single()  # Expecting one result
+            if record:
+                # return {
+                #     "person": record["person"],
+                #     "plannedDays": record["plannedDays"],
+                #     "daysCovered": record["daysCovered"],
+                #     "hasWeeklyPlan": record["hasWeeklyPlan"]
+                # }
+                return record["hasWeeklyPlan"]
+            else:
+                return None
+
+
     
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
@@ -225,6 +253,11 @@ class Intent_Recognition(Node):
                 # fill 'pasto' field for action 3 if not already filled
                 if tool_result['pasto'] == '':
                     tool_result = self.get_next_meal(tool_result)
+
+        # Check whether the user has a weekly plan
+        ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
+        if ha_piano_settimanale:
+            tool_result['ha_piano_settimanale'] = ha_piano_settimanale
 
         result = {}
         result['question'] = user_input
