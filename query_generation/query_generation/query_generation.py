@@ -14,6 +14,7 @@ from std_msgs.msg import String, Bool
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 import ast 
+from typing import Optional, List
 
 # Load environment variables from .env file
 BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
@@ -22,13 +23,26 @@ dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 load_dotenv(dotenv_path)
 
-class DishInfoCypherQuery(BaseModel):
-    """A tool to convert user input into Cypher queries. 
-    This tool is specified for giving the user information about a specific dish, 
-    e.g. what nutrients or allergens it has, 
-    if the user can eat it or not (depending on their allergens), etc."""
+class UserInsertionTool(BaseModel):
+    """Inserts user details (calories, macros, allergies) into the knowledge graph."""
+    query: str = Field(description="Cypher query to insert a user.")
 
-    query: str = Field(description="A valid cypher query generated from the user input")
+
+class DishInfoTool(BaseModel):
+    """Returns a query to fetch dish info, and optionally evaluate user compatibility."""
+    query: str = Field(description="Cypher query to fetch dish information and allergy compatibility.")
+
+
+class MealPreparationTool(BaseModel):
+    """Generates two queries: one to suggest meals and another to prepare or log the meal."""
+    queries: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
+
+
+class QueryGeneratorTool(BaseModel):
+    """Wrapper for modular Cypher query generation based on input intent."""
+    user_insertion: Optional[UserInsertionTool] = Field(None, description="Insert a user into the graph.")
+    dish_info: Optional[DishInfoTool] = Field(None, description="Get dish info and user compatibility.")
+    meal_preparation: Optional[MealPreparationTool] = Field(None, description="Generate meal preparation queries.")
 
 def escape_curly_braces(text):
     """
@@ -91,7 +105,7 @@ class Query_Generation(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = escape_curly_braces(self.graph.schema)
 
-        print(self.schema)
+        # print(self.schema)
 
         self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
@@ -138,7 +152,7 @@ class Query_Generation(Node):
                                     temperature=self.llm_config['temperature'], 
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
-        self.llm_with_query = self.llm.with_structured_output(DishInfoCypherQuery)
+        self.llm_with_query = self.llm.with_structured_output(QueryGeneratorTool)
         
         self.llm_response = (
             self.llm.bind()
@@ -189,24 +203,20 @@ class Query_Generation(Node):
     def user_insertion_listener_callback(self, msg):
         self.get_logger().info('Received: "%s" __ user_insertion_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
+        user_message = msg_dict['question']
+        parameters = msg_dict['parameters']
 
         example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\n{query}")
 
         few_shot_prompt = self.prepare_few_shot_prompt(1, example_prompt)
         self.get_logger().info('Prepared Few Shot Prompt for Action ID: 1')
 
-        cypher = self.llm_query_generation(few_shot_prompt, msg_dict['question'], msg_dict['parameters'])
+        cypher = self.llm_query_generation(few_shot_prompt, user_message, parameters)
 
-        cypher, user_results = self.query_execution(cypher)
+        cypher, query_results = self.query_execution(cypher)
+        self.send_query_output(cypher, query_results, user_message)
 
-        result = {}
-        result['user_input'] = msg_dict["question"]
-        result['results'] = str(user_results)
-        result['queries'] = cypher
-
-        result_string = json.dumps(result)
-        self.get_logger().info('Published: "%s"' % result_string)
-        self.publisher_explainability_queries.publish(String(data=result_string))
+        
 
 
     def dish_info_listener_callback(self, msg):
@@ -222,22 +232,11 @@ class Query_Generation(Node):
 
         cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
         print(cypher)
+        print(type(cypher))
+        print(cypher.dish_info.query)
 
-        cypher, query_results = self.query_execution(cypher.query)
-
-        # Initialize an empty dictionary to hold extracted data
-        result = {}
-
-        # Populate the result dictionary
-        result['user_input'] = f"user request: {user_message}, query result: {query_results}"
-
-        # For demonstration, include the raw Cypher query used (optional)
-        result['queries'] = cypher
-
-        result_string = json.dumps(result)
-        self.get_logger().info('Published: "%s"' % result_string)
-        self.publisher_explainability_queries.publish(String(data=result_string))
-
+        cypher, query_results = self.query_execution(cypher.dish_info.query)
+        self.send_query_output(cypher, query_results, user_message)
 
 
     def meal_prep_listener_callback(self, msg):
@@ -364,6 +363,17 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
             driver.close()
 
         return cypher, query_results
+    
+
+    def send_query_output(self, cypher, results, user_prompt):
+        result_dict = {}
+        result_dict['user_input'] = user_prompt
+        result_dict['results'] = str(results)
+        result_dict['queries'] = cypher
+
+        result_string = json.dumps(result_dict)
+        self.get_logger().info('Published: "%s"' % result_string)
+        self.publisher_explainability_queries.publish(String(data=result_string))
 
 
 def main(args=None):
