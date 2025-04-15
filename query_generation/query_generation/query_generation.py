@@ -197,7 +197,7 @@ class Query_Generation(Node):
 
         cypher = self.llm_query_generation(few_shot_prompt, msg_dict['question'], msg_dict['parameters'])
 
-        cypher, user_results = self.query_execution_user_insertion(cypher)
+        cypher, user_results = self.query_execution(cypher)
 
         result = {}
         result['user_input'] = msg_dict["question"]
@@ -223,7 +223,7 @@ class Query_Generation(Node):
         cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
         print(cypher)
 
-        cypher, query_results = self.query_execution_dish_info(cypher.query)
+        cypher, query_results = self.query_execution(cypher.query)
 
         # Initialize an empty dictionary to hold extracted data
         result = {}
@@ -335,7 +335,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
 
     
-    def query_execution_user_insertion(self, cypher):
+    def query_execution(self, cypher):
         driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
         query_results = []
 
@@ -359,41 +359,11 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
         except Exception as e:
             print("Error:", e.message)
+            query_results = e.message
         finally:
             driver.close()
 
         return cypher, query_results
-    
-
-    def query_execution_dish_info(self, cypher):
-        driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
-        query_results = []
-
-        try:
-            with driver.session() as session:
-                # Execute the query
-                result = session.run(cypher)
-                print("Query results:")
-
-                for record in result:
-                    # query_results.append(record)
-                    recdict = {}
-                    for key, value in record.items():
-                        subdict = {}
-                        for label, prop in value.items():
-                            subdict[label] = prop
-                            # print(f"{key}: {label} - {prop}")
-                        recdict[key] = subdict
-                    query_results.append(recdict)
-                print("\033[32m" + str(query_results) + "\033[0m")
-
-        except Exception as e:
-            print("Error:", e.message)
-        finally:
-            driver.close()
-
-        return cypher, query_results
-
 
 
 def main(args=None):
