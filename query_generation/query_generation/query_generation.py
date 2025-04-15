@@ -91,6 +91,8 @@ class Query_Generation(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = escape_curly_braces(self.graph.schema)
 
+        print(self.schema)
+
         self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
 
@@ -116,12 +118,15 @@ class Query_Generation(Node):
         for i, file in enumerate(self.example_filenames):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
+                for example in self.examples[i]:
+                    for k,v in example.items():
+                        example[k] = escape_curly_braces(v)
         
-        with open(os.path.join(self.source_dir, 'fewshot_examples', 'dish_info.json'), 'r') as f:
-            self.examples[1] = json.load(f)
-            for example in self.examples[1]:
-                example['parameters'] = escape_curly_braces(example['parameters'])
-                example['query'] = escape_curly_braces(example['query'])
+        # with open(os.path.join(self.source_dir, 'fewshot_examples', 'dish_info.json'), 'r') as f:
+        #     self.examples[1] = json.load(f)
+        #     for example in self.examples[1]:
+        #         example['parameters'] = escape_curly_braces(example['parameters'])
+        #         example['query'] = escape_curly_braces(example['query'])
                     
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher query: {query}"""
@@ -194,43 +199,9 @@ class Query_Generation(Node):
 
         cypher, user_results = self.query_execution_user_insertion(cypher)
 
-        user_node = user_results['u']        # Extract the user node
-        fabbisogno_node = user_results['f']    # Extract the fabbisogno node
-
-
-        # Dynamically extract all allergy nodes (keys starting with 'a')
-        allergy_names = []
-        for key in user_results.keys():
-            # Check if key represents an allergen node.
-            if key.startswith('a'):
-                allergen_node = user_results[key]
-                # It's good to check if the allergen node is not None
-                if allergen_node is not None:
-                    allergy_names.append(allergen_node.get('name'))
-
-        # Create a dictionary with the desired keys. Note: Adjust the keys if your actual properties differ.
-        user_results_dict = {
-            'name': user_node.get('name'),
-            'daily_calories': fabbisogno_node.get('calories'),
-            'daily_proteins': fabbisogno_node.get('proteins'),
-            'daily_carbs': fabbisogno_node.get('carbs'),
-            'daily_fats': fabbisogno_node.get('fats'),
-            # If you have allergy nodes, you'll need to extract them separately.
-            # For example, if you also returned allergy nodes in a list under key 'allergies':
-            'allergies': allergy_names  # Placeholder if no allergies were returned.
-        }
-
-        # Assuming msg_dict is already defined and contains a "question" key:
-        user_string = f'''user_request: {msg_dict["question"]}.
-        name: {user_results_dict['name']},
-        calories: {user_results_dict['daily_calories']},
-        proteins: {user_results_dict['daily_proteins']},
-        carbs: {user_results_dict['daily_carbs']},
-        fats: {user_results_dict['daily_fats']},
-        allergies: {', '.join(user_results_dict['allergies'])}'''
-
         result = {}
-        result['user_input'] = user_string
+        result['user_input'] = msg_dict["question"]
+        result['results'] = str(user_results)
         result['queries'] = cypher
 
         result_string = json.dumps(result)
@@ -366,28 +337,32 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
     
     def query_execution_user_insertion(self, cypher):
         driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
+        query_results = []
+
         try:
             with driver.session() as session:
                 # Execute the query
                 result = session.run(cypher)
-                records = list(result)  # Convert result into a list
+                print("Query results:")
 
-                print(f"\033[34mQuery results:\033[0m")
-                for record in records:
-                    print(f'\033[32m{record}\033[0m')  # Print each record
-
-                # Check if insertion was successful
-                if records:
-                    print("\033[32mUser was inserted successfully!\033[0m")
-                else:
-                    print("\033[31mNo user was inserted.\033[0m")
+                for record in result:
+                    # query_results.append(record)
+                    recdict = {}
+                    for key, value in record.items():
+                        subdict = {}
+                        for label, prop in value.items():
+                            subdict[label] = prop
+                            # print(f"{key}: {label} - {prop}")
+                        recdict[key] = subdict
+                    query_results.append(recdict)
+                print("\033[32m" + str(query_results) + "\033[0m")
 
         except Exception as e:
             print("Error:", e.message)
         finally:
             driver.close()
 
-        return cypher, record
+        return cypher, query_results
     
 
     def query_execution_dish_info(self, cypher):
@@ -407,7 +382,7 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
                         subdict = {}
                         for label, prop in value.items():
                             subdict[label] = prop
-                            print(f"{key}: {label} - {prop}")
+                            # print(f"{key}: {label} - {prop}")
                         recdict[key] = subdict
                     query_results.append(recdict)
                 print("\033[32m" + str(query_results) + "\033[0m")
