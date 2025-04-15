@@ -86,17 +86,17 @@ class Explainability(Node):
         self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
-        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nExplanation: {explanation}")
+        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nResults: {queries}\nExplanation: {explanation}")
 
         prompt = FewShotPromptTemplate(
             examples=self.examples['queries'],
             example_prompt=example_prompt,
             prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. Data una richiesta e le cypher query generate per interrogare il knowledge graph, produci una spiegazione del processo decisionale.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nExplanation: ",
-            input_variables=["user_input", "queries"],
+            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nResults: {results}\nExplanation: ",
+            input_variables=["user_input", "queries", "results"],
         )
 
-        formatted_prompt = prompt.format(user_input = msg_dict['user_input'], queries = msg_dict['queries'])
+        formatted_prompt = prompt.format(user_input = msg_dict['user_input'], queries = msg_dict['queries'], results = msg_dict['results'])
         
         explanation = self.llm_response.invoke(formatted_prompt)
 
