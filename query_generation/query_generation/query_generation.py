@@ -186,7 +186,16 @@ class Query_Generation(Node):
         print(f"\033[1;32m{queries}\033[0m")
 
         cypher, query_results = self.query_execution(queries)
+        query_results = self.prepare_results_string(query_results)
+        # print(f"\033[1;32m{query_results}\033[0m")
         self.send_query_output(cypher, query_results, user_message)
+
+
+    def prepare_results_string(self, result_list):
+        string_repr = ''
+        for i,qr in enumerate(result_list):
+            string_repr = string_repr + f'Query{i+1}: ' + str(qr)
+        return string_repr
 
     
     def meal_prep_listener_callback(self, msg):
