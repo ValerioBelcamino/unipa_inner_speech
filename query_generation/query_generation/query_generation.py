@@ -194,7 +194,10 @@ class Query_Generation(Node):
     def prepare_results_string(self, result_list):
         string_repr = ''
         for i,qr in enumerate(result_list):
-            string_repr = string_repr + f'Query{i+1}: ' + str(qr)
+            if i == len(result_list) - 1:
+                string_repr = string_repr + str(qr)
+            else:
+                string_repr = string_repr + str(qr) + '\n'
         return string_repr
 
     
