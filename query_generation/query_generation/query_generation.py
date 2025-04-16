@@ -27,15 +27,24 @@ class UserInsertionTool(BaseModel):
     """Inserts user details (calories, macros, allergies) into the knowledge graph."""
     query: str = Field(description="Cypher query to insert a user.")
 
+    def get_queries(self):
+        return [self.query]
+
 
 class DishInfoTool(BaseModel):
     """Returns a query to fetch dish info, and optionally evaluate user compatibility."""
     query: str = Field(description="Cypher query to fetch dish information and allergy compatibility.")
 
+    def get_queries(self):
+        return [self.query]
+
 
 class MealPreparationTool(BaseModel):
     """Generates two queries: one to suggest meals and another to prepare or log the meal."""
     queries: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
+
+    def get_queries(self):
+        return self.queries
 
 
 class QueryGeneratorTool(BaseModel):
@@ -43,6 +52,7 @@ class QueryGeneratorTool(BaseModel):
     user_insertion: Optional[UserInsertionTool] = Field(None, description="Insert a user into the graph.")
     dish_info: Optional[DishInfoTool] = Field(None, description="Get dish info and user compatibility.")
     meal_preparation: Optional[MealPreparationTool] = Field(None, description="Generate meal preparation queries.")
+
 
 def escape_curly_braces(text):
     """
@@ -55,7 +65,7 @@ class Query_Generation(Node):
     def __init__(self):
         self.node_name = 'query_generation'
         super().__init__(f'{self.node_name}_node')
-        self.in_user_insertion_topic = '/user_insertion'
+        self.query_generation_topic = '/query_generation'
         self.in_dish_info_topic = '/dish_info'
         self.in_meal_prep_topic = '/meal_prep'
 
@@ -64,20 +74,8 @@ class Query_Generation(Node):
 
         self.user_insertion_listener = self.create_subscription(
             String,
-            self.in_user_insertion_topic,
-            self.user_insertion_listener_callback,
-            10
-        )
-        self.dish_info_listener = self.create_subscription(
-            String,
-            self.in_dish_info_topic,
-            self.dish_info_listener_callback,
-            10
-        )
-        self.meal_prep_listener = self.create_subscription(
-            String,
-            self.in_meal_prep_topic,
-            self.meal_prep_listener_callback,
+            self.query_generation_topic,
+            self.query_generation_callback,
             10
         )
 
@@ -89,9 +87,7 @@ class Query_Generation(Node):
         print(f"\033[34mQuery Generation Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.out_clingo_topic}!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
-        print(f"\033[34mStarted Listening to {self.in_user_insertion_topic}!!!\033[0m")
-        print(f"\033[34mStarted Listening to {self.in_dish_info_topic}!!!\033[0m")
-        print(f"\033[34mStarted Listening to {self.in_meal_prep_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.query_generation_topic}!!!\033[0m")
 
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
@@ -128,6 +124,8 @@ class Query_Generation(Node):
 
 
         self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
+        self.tool_fields = list(QueryGeneratorTool.model_fields.keys())
+
         self.examples = {}
         for i, file in enumerate(self.example_filenames):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
@@ -135,13 +133,6 @@ class Query_Generation(Node):
                 for example in self.examples[i]:
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
-        
-        # with open(os.path.join(self.source_dir, 'fewshot_examples', 'dish_info.json'), 'r') as f:
-        #     self.examples[1] = json.load(f)
-        #     for example in self.examples[1]:
-        #         example['parameters'] = escape_curly_braces(example['parameters'])
-        #         example['query'] = escape_curly_braces(example['query'])
-                    
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher query: {query}"""
         self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
@@ -157,36 +148,9 @@ class Query_Generation(Node):
         self.llm_response = (
             self.llm.bind()
             | StrOutputParser()
-            # | self.extract_answer
         )
         
-
-    def extract_answer(self, llm_output: str) -> str:
-        if "Answer:" in llm_output:
-            return llm_output.split("Answer:", 1)[1].strip()
-        return llm_output.strip()
-    
-    def prepare_few_shot_prompt(self, action_id, _example_prompt):
-        # print(self.example_filenames[action_id-1])
-        if action_id == 1 or action_id == 2:
-            _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea una query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
-
-            _suffix='''Ritornami esclusivamente una singola Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
-
-        else:
-            _prefix='''Tu sei un Robot di nome Pepper, esperto in Neo4j. Dato una domanda in input crea tre query Cypher sintatticamente corrette da eseguire. Hai a disposizione lo schema con le informazioni del database neo4j: {schema}. Inoltre, sotto trovi un numero di esempi di domande con la relativa traduzione in codice Cypher. Rispondi solo con le query Cypher, non aggiungere nient'altro.'''
-
-            _suffix='''Ritornami esclusivamente le tre query Cypher query e non aggiungere altro testo.\nQuestion: {question},\nParameters: {parameters},\n'''
-
-        return FewShotPromptTemplate(
-            examples=self.examples[action_id-1],
-            example_prompt=_example_prompt,
-            prefix=_prefix,
-            suffix=_suffix,
-            input_variables=["question", "schema", "parameters"],
-        )
-
-    def prepare_few_shot_prompt_2(self, action_id):
+    def prepare_few_shot_prompt(self, action_id):
         few_shot_prompt = FewShotPromptTemplate(
             input_variables=["question", "parameters"],
             examples=self.examples[action_id],
@@ -198,47 +162,29 @@ class Query_Generation(Node):
             suffix=self.suffix
             )
         return few_shot_prompt
-
     
-    def user_insertion_listener_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ user_insertion_listener_callback\n' % msg.data)
+
+    def query_generation_callback(self, msg):
+        self.get_logger().info('Received: "%s" __ query_generation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
-        user_message = msg_dict['question']
-        parameters = msg_dict['parameters']
-
-        example_prompt = PromptTemplate.from_template("Question: {question}\nParameters: {parameters}\n{query}")
-
-        few_shot_prompt = self.prepare_few_shot_prompt(1, example_prompt)
-        self.get_logger().info('Prepared Few Shot Prompt for Action ID: 1')
-
-        cypher = self.llm_query_generation(few_shot_prompt, user_message, parameters)
-
-        cypher, query_results = self.query_execution(cypher)
-        self.send_query_output(cypher, query_results, user_message)
-
         
-
-
-    def dish_info_listener_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ dish_info_listener_callback\n' % msg.data)
-        msg_dict = json.loads(msg.data)
+        action_id = int(msg_dict['action_id']) - 1
         user_message = msg_dict['question']
         parameters = msg_dict['parameters']
 
-        few_shot_prompt = self.prepare_few_shot_prompt_2(1)
+        few_shot_prompt = self.prepare_few_shot_prompt(action_id)
         llm_cypher_chain = few_shot_prompt | self.llm_with_query
 
-        self.get_logger().info('Prepared Few Shot Prompt for Action ID: 2')
-
         cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
-        print(cypher)
-        print(type(cypher))
-        print(cypher.dish_info.query)
 
-        cypher, query_results = self.query_execution(cypher.dish_info.query)
+        field_name = self.tool_fields[action_id]
+        selected_tool = getattr(cypher, field_name)
+        queries = selected_tool.get_queries()
+
+        cypher, query_results = self.query_execution(queries)
         self.send_query_output(cypher, query_results, user_message)
 
-
+    
     def meal_prep_listener_callback(self, msg):
         self.get_logger().info('Received: "%s" __ meal_prep_listener_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
@@ -334,42 +280,48 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
 
 
     
-    def query_execution(self, cypher):
+    def query_execution(self, cypher_list):
         driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
-        query_results = []
 
-        try:
-            with driver.session() as session:
-                # Execute the query
-                result = session.run(cypher)
-                print("Query results:")
+        multi_query_results = []
+        for cypher in cypher_list:
+            query_results = []
+            try:
+                with driver.session() as session:
+                    # Execute the query
+                    result = session.run(cypher)
+                    print("Query results:")
 
-                for record in result:
-                    # query_results.append(record)
-                    recdict = {}
-                    for key, value in record.items():
-                        subdict = {}
-                        for label, prop in value.items():
-                            subdict[label] = prop
-                            # print(f"{key}: {label} - {prop}")
-                        recdict[key] = subdict
-                    query_results.append(recdict)
-                print("\033[32m" + str(query_results) + "\033[0m")
+                    for record in result:
+                        # query_results.append(record)
+                        recdict = {}
+                        for key, value in record.items():
+                            subdict = {}
+                            for label, prop in value.items():
+                                subdict[label] = prop
+                                # print(f"{key}: {label} - {prop}")
+                            recdict[key] = subdict
+                        query_results.append(recdict)
+                    print("\033[32m" + str(query_results) + "\033[0m\n")
 
-        except Exception as e:
-            print("Error:", e.message)
-            query_results = e.message
-        finally:
-            driver.close()
+            except Exception as e:
+                print("Error:", e.message)
+                query_results = e.message
 
-        return cypher, query_results
+            multi_query_results.append(query_results)
+                
+        driver.close()
+
+        print("\033[32m" + str(multi_query_results) + "\033[0m\n")
+
+        return cypher, multi_query_results
     
 
     def send_query_output(self, cypher, results, user_prompt):
         result_dict = {}
         result_dict['user_input'] = user_prompt
-        result_dict['results'] = str(results)
         result_dict['queries'] = cypher
+        result_dict['query_results'] = str(results)
 
         result_string = json.dumps(result_dict)
         self.get_logger().info('Published: "%s"' % result_string)

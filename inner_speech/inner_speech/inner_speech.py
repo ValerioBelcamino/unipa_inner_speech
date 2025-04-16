@@ -22,7 +22,8 @@ class Inner_Speech(Node):
         self.node_name = 'inner_speech'
         super().__init__(f'{self.node_name}_node')
         self.in_topic = '/user_intent'
-        self.out_topic = '/user_input_activation'
+        self.user_input_topic = '/user_input_activation'
+        self.query_generation_topic = '/query_generation'
 
         self.subscription = self.create_subscription(
             String,
@@ -30,13 +31,13 @@ class Inner_Speech(Node):
             self.listener_callback,
             10)
         
-        self.publisher_user_input = self.create_publisher(String, '/user_input_activation', 10)
+        self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
+        self.publisher_action_dispatch = self.create_publisher(String, self.query_generation_topic, 10)
 
         print(f"\033[34mInner Speech Node started!!!\033[0m")
-        print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.user_input_topic}!!!\033[0m")
+        print(f"\033[34mInitialized publishers to {self.query_generation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
-
-        self.action_dict = {0: '/out_of_scope', 1: '/user_insertion', 2: '/dish_info', 3: '/meal_prep'}
 
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
@@ -129,18 +130,18 @@ class Inner_Speech(Node):
             response_dict = {'question':user_input, 'response':result['answer']}
             response_string = json.dumps(response_dict)
             self.publisher_user_input.publish(String(data=response_string))
-            self.get_logger().info('Published: "%s"' % result_string)
+            self.get_logger().info('Published: "%s"' % response_string)
 
         else:
             print(f"\033[34m" + "Complete answer, we can procede!" + "\033[0m")
 
             msg = String()
-            msg_json = {'question': user_input, 'parameters': parameters}
+            msg_json = {'question': user_input, 'action_id': action_id, 'parameters': parameters}
             msg.data = json.dumps(msg_json)
 
-            publisher_action_dispatch = self.create_publisher(String, self.action_dict[int(action_id)], 10)
-            publisher_action_dispatch.publish(msg)
-            self.get_logger().info(f'Publishing {msg.data} on topic {self.action_dict[int(action_id)]}')
+            
+            self.publisher_action_dispatch.publish(msg)
+            self.get_logger().info(f'Publishing {msg.data} on topic {self.query_generation_topic}')
 
 
 def main(args=None):
