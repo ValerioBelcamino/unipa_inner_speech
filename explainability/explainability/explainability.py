@@ -17,6 +17,14 @@ load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
+
+def escape_curly_braces(text):
+    """
+    Escape curly braces in the text by doubling them.
+    """
+    return text.replace("{", "{{").replace("}", "}}")
+
+
 class Explainability(Node):
     def __init__(self):
         self.node_name = 'explainability'
@@ -59,8 +67,12 @@ class Explainability(Node):
         self.examples = {}
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_queries_explanation.json'), 'r') as f:
             self.examples['queries'] = json.load(f)["examples"]
+            for example in self.examples['queries']:
+                for k,v in example.items():
+                    example[k] = escape_curly_braces(v)
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
+
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -91,15 +103,14 @@ class Explainability(Node):
         prompt = FewShotPromptTemplate(
             examples=self.examples['queries'],
             example_prompt=example_prompt,
-            prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. Data una richiesta e le cypher query generate per interrogare il knowledge graph, produci una spiegazione del processo decisionale.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: ",
+            prefix="Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato.",
+            suffix="Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: ",
             input_variables=["user_input", "queries", "query_results"],
         )
 
         print(prompt)
+        print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['query_results']=}\033[0m")
 
-        print(msg_dict['query_results'])
-        print(type(msg_dict['query_results']))
 
         formatted_prompt = prompt.format(
                                         user_input = msg_dict['user_input'], 
