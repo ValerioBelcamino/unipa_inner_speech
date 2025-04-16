@@ -17,7 +17,7 @@ import ast
 from typing import Optional, List
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
@@ -123,13 +123,13 @@ class Query_Generation(Node):
         {self.schema}"""
 
 
-        self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
+        self.example_filenames = ['insertion.json', 'dish_info.json', 'meal_prep.json']
         self.tool_fields = list(QueryGeneratorTool.model_fields.keys())
 
         self.examples = {}
         for i, file in enumerate(self.example_filenames):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
-                self.examples[i]=json.load(f)["examples"]
+                self.examples[i]=json.load(f)
                 for example in self.examples[i]:
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)

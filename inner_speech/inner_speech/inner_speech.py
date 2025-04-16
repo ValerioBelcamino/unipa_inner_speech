@@ -11,7 +11,7 @@ import time
 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
@@ -77,20 +77,48 @@ class Inner_Speech(Node):
 
         action_id = str(json_data['action_id'])
         json_data.pop('action_id', None)
+
+        completed = True
         parameters = json.dumps(json_data)
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        required_parameters = self.action_id_to_required_parameters[action_id]
-        missing_parameters = [param for param in required_parameters if param not in json_data]
-        missing_parameters.extend([
-                                   param for param in list(set(required_parameters) - set(missing_parameters)) 
-                                   if json_data[param] in [0, None, '']
-                                   ])
-        if missing_parameters:
-            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+        if action_id == '0':
+            print(f"\033[34m" + "Action ID is 0, no action needed!" + "\033[0m")
             completed = False
+            missing_parameters = []
+            available_actions = self.action_id_to_description.values()
+
+            answer_prompt = f"""
+                L'utente sta ponendo una domanda che non è rilevante per il sistema, 
+                quindi il sistema non è in grado di fornire una risposta all'utente.
+                Spiega all'utente che il sistema non è in grado di fornire una risposta.
+                
+                La domanda dell'utente è: {user_input}.
+                Le azioni disponibili sono: {available_actions}.
+
+                Fornire una spiegazione in italiano:"""
+            
         else:
-            completed = True
+            required_parameters = self.action_id_to_required_parameters[action_id]
+            missing_parameters = [param for param in required_parameters if param not in json_data]
+            missing_parameters.extend([
+                                    param for param in list(set(required_parameters) - set(missing_parameters)) 
+                                    if json_data[param] in [0, None, '']
+                                    ])
+            if missing_parameters:
+                completed = False 
+                print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+                print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
+                
+                answer_prompt = f"""
+                Chiedi all'utente maggiori dettagli per completare l'azione {action_id}: {self.action_id_to_description[action_id]}.
+
+                La sua domanda è: {user_input}.
+                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
+                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
+                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
+
+                Formula la tua risposta in italiano:"""
 
         prompt = f"""
             Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
@@ -116,16 +144,6 @@ class Inner_Speech(Node):
         print("\033[32m"+result_string+"\033[0m")
 
         if not completed:
-            print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
-            answer_prompt = f"""
-                Chiedi all'utente maggiori dettagli per completare l'azione {action_id}: {self.action_id_to_description[action_id]}.
-
-                La sua domanda è: {user_input}.
-                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
-                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
-                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
-
-                Formula la tua risposta in italiano:"""
             result['answer'] = self.llm.invoke(answer_prompt).content
             response_dict = {'question':user_input, 'response':result['answer']}
             response_string = json.dumps(response_dict)

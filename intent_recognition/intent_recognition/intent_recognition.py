@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from groq import BadRequestError
 from unidecode import unidecode
 import time 
+from typing import List
 
 
 # Define Pydantic classes with tools
@@ -27,7 +28,7 @@ class AddToDatabase(BaseModel):
     proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
     carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
     grassi: int = Field(description="How many fats user should eat per day", default=0)
-    intolleranze: list[str] = Field(description="User's intollerances", default='')
+    intolleranze: List[str] = Field(description="User's intollerances", default='')
 
 class DishInfo(BaseModel):
     """User asks you to give him information about a specific dish.
@@ -35,29 +36,31 @@ class DishInfo(BaseModel):
 
     nome_utente: str = Field(description="The name of the user in lowercase", default='')
     nome_piatto: str = Field(description="The name of the dish in lowercase")
-    controllo_ingredienti: list[str] = Field(description="Ingredients to check for in the dish", default=[])
+    controllo_ingredienti: List[str] = Field(description="Ingredients to check for in the dish", default_factory=list)
 
 class SubstituteDish(BaseModel):
     """User asks you to propose an alternative dish based on their allergies and dietary plan.
     Extract necessary information from the user message. 
     Do not generate any new information, use only what user provided for you.
+
+    IMPORTANT: Always return ALL fields in the response, even with empty values.
     If you don't have some piece of information, leave the corresponding field blank."""
 
     nome_utente: str = Field(description="The name of the user in lowercase")
-    ingredienti_rimossi: list[str] = Field(description="Ingredients that the user wants to exclude", default=[])
-    ingredienti_preferiti: list[str] = Field(description="Ingredients that the user wants to include", default=[])
-    solo_questi_ingredienti: list[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty", default=[])
+    ingredienti_rimossi: List[str] = Field(description="Ingredients that the user wants to exclude", default_factory=list)
+    ingredienti_preferiti: List[str] = Field(description="Ingredients that the user wants to include", default_factory=list)
+    solo_questi_ingredienti: List[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty", default_factory=list)
     giorno: str = Field(description="Day of the week in italian when the user wants the dish", 
                         examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'],
                         default='')
-    pasto: str = Field(description="Type of meal for which the user wants the dish",
+    pasto: str = Field(description="Type of meal for which the user wants the dish. Map 'stasera'/'sera' to 'cena', 'mattina' to 'colazione', etc.",
                        examples=['colazione', 'pranzo', 'cena'],
                        default='')
 
 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
@@ -165,18 +168,18 @@ class Intent_Recognition(Node):
                 elif k == 'intolleranze':
                     for i in range(len(v)):
                         v[i] = v[i].lower()
-                        v[i] = v[i].replace(' ', '_')
+                        # v[i] = v[i].replace(' ', '_')
             # DishInfo
             elif tool_id == '2':
                 if k == 'controllo_ingredienti':
                     for i in range(len(v)):
                         v[i] = v[i].lower()
-                        v[i] = v[i].replace(' ', '_')
+                        # v[i] = v[i].replace(' ', '_')
                 else:
                     # Cast to lowercase
                     v = v.lower()
                     # Replace spaces with underscores
-                    v = v.replace(' ', '_')
+                    # v = v.replace(' ', '_')
                 tool_output[k] = v
             # SubstituteDish
             elif tool_id == '3':
@@ -187,12 +190,12 @@ class Intent_Recognition(Node):
                 if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
                     for i in range(len(v)):
                         v[i] = v[i].lower()
-                        v[i] = v[i].replace(' ', '_')
+                        # v[i] = v[i].replace(' ', '_')
                 else:
                     # Cast to lowercase
                     v = v.lower()
                     # Replace spaces with underscores
-                    v = v.replace(' ', '_')
+                    # v = v.replace(' ', '_')
                 tool_output[k] = v
 
 
@@ -237,7 +240,9 @@ class Intent_Recognition(Node):
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
             print(f"\033[32m{llm_response}\033[0m")
-            
+
+        tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.tool_name_2_id.keys()]
+
         if tool_calls == []: # no tool called -> out of scope
             tool_result = {'action_id': '0'}
         else:
@@ -247,6 +252,7 @@ class Intent_Recognition(Node):
             self.tool_to_lower(tool_result, tool_id)
             tool_result['action_id'] = tool_id
 
+            print(f'\033[91m{tool_result}\033[0m')
             # change relative days to days of the week
             if tool_result['action_id'] == '3':
                 tool_result = self.get_day_of_the_week(tool_result)
@@ -255,10 +261,10 @@ class Intent_Recognition(Node):
                 if tool_result['pasto'] == '':
                     tool_result = self.get_next_meal(tool_result)
 
-        # Check whether the user has a weekly plan
-        ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
-        if ha_piano_settimanale:
-            tool_result['ha_piano_settimanale'] = ha_piano_settimanale
+                # Check whether the user has a weekly plan
+                ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
+                if ha_piano_settimanale:
+                    tool_result['ha_piano_settimanale'] = ha_piano_settimanale
 
         result = {}
         result['question'] = user_input
