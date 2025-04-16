@@ -165,12 +165,14 @@ class Query_Generation(Node):
     
 
     def query_generation_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ query_generation_callback\n' % msg.data)
+        self.get_logger().info('Received: "%s" __ query_generation_callback\n')
         msg_dict = json.loads(msg.data)
         
         action_id = int(msg_dict['action_id']) - 1
         user_message = msg_dict['question']
         parameters = msg_dict['parameters']
+
+        print(f"\033[34m{user_message=}, {parameters=}\033[0m")
 
         few_shot_prompt = self.prepare_few_shot_prompt(action_id)
         llm_cypher_chain = few_shot_prompt | self.llm_with_query
@@ -180,6 +182,8 @@ class Query_Generation(Node):
         field_name = self.tool_fields[action_id]
         selected_tool = getattr(cypher, field_name)
         queries = selected_tool.get_queries()
+
+        print(f"\033[1;32m{queries}\033[0m")
 
         cypher, query_results = self.query_execution(queries)
         self.send_query_output(cypher, query_results, user_message)
@@ -292,17 +296,31 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
                     result = session.run(cypher)
                     print("Query results:")
 
+
                     for record in result:
+                        # print(f"\033[1;32m{record}\033[0m")
                         # query_results.append(record)
                         recdict = {}
                         for key, value in record.items():
-                            subdict = {}
-                            for label, prop in value.items():
-                                subdict[label] = prop
-                                # print(f"{key}: {label} - {prop}")
-                            recdict[key] = subdict
+                            # print(f'{key}: {value}')
+                            if isinstance(value, list):
+                                # It's a collected list of nodes
+                                sublist = []
+                                for item in value:
+                                    if hasattr(item, "items"):
+                                        subdict = {k: v for k, v in item.items()}
+                                        sublist.append(subdict)
+                                    else:
+                                        sublist.append(item)  # fallback if not a node
+                                recdict[key] = sublist
+                            elif hasattr(value, "items"):
+                                # It's a single node
+                                subdict = {k: v for k, v in value.items()}
+                                recdict[key] = subdict
+                            else:
+                                recdict[key] = value  # fallback for primitives
                         query_results.append(recdict)
-                    print("\033[32m" + str(query_results) + "\033[0m\n")
+                    # print("\033[32m" + str(query_results) + "\033[0m\n")
 
             except Exception as e:
                 print("Error:", e.message)
