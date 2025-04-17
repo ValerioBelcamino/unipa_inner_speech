@@ -175,6 +175,7 @@ class Query_Generation(Node):
         print(f"\033[34m{user_message=}, {parameters=}\033[0m")
 
         few_shot_prompt = self.prepare_few_shot_prompt(action_id)
+        print(f"\033[34m{few_shot_prompt=}\033[0m")
         llm_cypher_chain = few_shot_prompt | self.llm_with_query
 
         cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
@@ -188,7 +189,7 @@ class Query_Generation(Node):
         cypher, query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
         # print(f"\033[1;32m{query_results}\033[0m")
-        self.send_query_output(cypher, query_results, user_message)
+        self.send_query_output(cypher, query_results, user_message, action_id)
 
 
     def prepare_results_string(self, result_list):
@@ -347,9 +348,10 @@ allergies: {', '.join(user_results[0]['allergies'])}'''
         return cypher, multi_query_results
     
 
-    def send_query_output(self, cypher, results, user_prompt):
+    def send_query_output(self, cypher, results, user_prompt, action_id):
         result_dict = {}
         result_dict['user_input'] = user_prompt
+        result_dict['action_id'] = action_id
         result_dict['queries'] = cypher
         result_dict['query_results'] = str(results)
 

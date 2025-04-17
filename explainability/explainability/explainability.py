@@ -64,15 +64,21 @@ class Explainability(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
+        self.example_filenames = ['FewShot_queries_explanation_insertion.json', 'FewShot_queries_explanation_dish_info.json', 'FewShot_queries_explanation_meal_prep.json']
         self.examples = {}
-        with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_queries_explanation.json'), 'r') as f:
-            self.examples['queries'] = json.load(f)["examples"]
-            for example in self.examples['queries']:
-                for k,v in example.items():
-                    example[k] = escape_curly_braces(v)
+        for i, file in enumerate(self.example_filenames):
+            with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
+                self.examples[i]=json.load(f)["examples"]
+                for example in self.examples[i]:
+                    for k,v in example.items():
+                        example[k] = escape_curly_braces(v)
+        # with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_queries_explanation.json'), 'r') as f:
+        #     self.examples['queries'] = json.load(f)["examples"]
+        #     for example in self.examples['queries']:
+        #         for k,v in example.items():
+        #             example[k] = escape_curly_braces(v)
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
-
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -95,13 +101,14 @@ class Explainability(Node):
 
 
     def query_explanation_callback(self, msg):
-        self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
+        action_id = msg_dict['action_id']
+        self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % action_id)
 
         example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: {explanation}")
 
         prompt = FewShotPromptTemplate(
-            examples=self.examples['queries'],
+            examples=self.examples[action_id],
             example_prompt=example_prompt,
             prefix="Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato.",
             suffix="Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: ",

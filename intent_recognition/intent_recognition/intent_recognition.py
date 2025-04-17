@@ -236,7 +236,7 @@ class Intent_Recognition(Node):
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
-            print(f"\033[32m{llm_response}\033[0m")
+        print(f"\033[32m{llm_response}\033[0m")
             
         if tool_calls == []: # no tool called -> out of scope
             tool_result = {'action_id': '0'}
