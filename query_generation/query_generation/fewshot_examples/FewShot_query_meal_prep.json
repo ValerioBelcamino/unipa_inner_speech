@@ -3,7 +3,9 @@
         {
             "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza uova per domenica? Viene anche un amico allergico al lattosio",
             "parameters": "{'nome_utente': 'luca', 'ingredienti_rimossi': ['uova','lattosio'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'domenica', 'pasto': 'cena'}",
-            "query": "[MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;, MATCH (p:Person {name: 'luca'})-[:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d:Dish) RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats;, MATCH (p:Person {name: 'luca'}) MATCH (d:Dish) WHERE NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['lattosio', 'uova'] OR EXISTS { MATCH (d)-[]-()-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['lattosio', 'uova']}} AND NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) MATCH (p)-[:IS_ALLERGIC_TO]->(i)} RETURN d.name AS dish, d.type AS type, d.calories AS calories,d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;]"
+            "query1": "MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+            "query2": "MATCH (p:Person {name: 'luca'})-[:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d:Dish) RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats;",
+            "query3": "MATCH (p:Person {name: 'luca'}) MATCH (d:Dish) WHERE NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['lattosio', 'uova'] OR EXISTS { MATCH (d)-[]-()-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['lattosio', 'uova']}} AND NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) MATCH (p)-[:IS_ALLERGIC_TO]->(i)} RETURN d.name AS dish, d.type AS type, d.calories AS calories,d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;"
         },
         {
             "question": "Ciao, sono Giulia. Puoi suggerirmi una cena senza frutta secca per mercoledì?",
