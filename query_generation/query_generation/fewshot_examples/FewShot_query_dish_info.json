@@ -3,7 +3,7 @@
         {
             "question": "Ciao, il couscous contiene glutine?",
             "parameters": "{'nome_utente': '','nome_piatto': 'couscous', 'controllo_ingredienti':'[glutine]'}",
-            "query": "MATCH (d:Dish {name: 'pasta al pomodoro'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"
+            "query": "MATCH (d:Dish {name: 'couscous'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"
         },
         {
             "question": "Sono Giorgio, vorrei sapere se la panna cotta contiene il lattosio.",
