@@ -139,7 +139,6 @@ class Intent_Recognition(Node):
     
 
     def get_next_meal(self, llm_output):
-        print(f'{llm_output}')
 
         current_time = datetime.now().time() #11:34:30.263342
 
@@ -224,6 +223,12 @@ class Intent_Recognition(Node):
             else:
                 return None
 
+    def check_undeclared_parameters(self, tool_name, tool_result):
+        parameter_list = [field for field in eval(tool_name).__fields__.keys()]
+        for parameter in parameter_list:
+            if parameter not in tool_result:
+                tool_result[parameter] = ''
+        return tool_result
 
     
     def listener_callback(self, msg):
@@ -239,7 +244,6 @@ class Intent_Recognition(Node):
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
-            print(f"\033[32m{llm_response}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.tool_name_2_id.keys()]
 
@@ -251,8 +255,9 @@ class Intent_Recognition(Node):
             tool_id = self.tool_name_2_id[tool_name]
             self.tool_to_lower(tool_result, tool_id)
             tool_result['action_id'] = tool_id
+            tool_result = self.check_undeclared_parameters(tool_name, tool_result)
+            print(tool_result)
 
-            print(f'\033[91m{tool_result}\033[0m')
             # change relative days to days of the week
             if tool_result['action_id'] == '3':
                 tool_result = self.get_day_of_the_week(tool_result)

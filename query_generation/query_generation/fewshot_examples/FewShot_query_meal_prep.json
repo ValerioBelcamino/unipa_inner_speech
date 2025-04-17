@@ -1,5 +1,4 @@
-{
-    "examples": [
+[
         {
             "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza uova per domenica? Viene anche un amico allergico al lattosio",
             "parameters": "{{'nome_utente': 'luca', 'ingredienti_rimossi': ['uova','lattosio'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'domenica', 'pasto': 'cena'}}",
@@ -16,9 +15,9 @@
         },
         {
             "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
-            "parameters": "{{'nome_utente': 'marco', 'ingredienti_rimossi': [], 'ingredienti_preferiti': ['pollo', 'riso'], 'solo_questi_ingredienti': [], 'giorno': 'giovedì', 'pasto': 'pranzo'}}",
+            "parameters": "{{'nome_utente': 'marco', 'ingredienti_rimossi': [], 'ingredienti_preferiti': ['pollo', 'riso'], 'solo_questi_ingredienti': [], 'giorno': 'giovedi', 'pasto': 'pranzo'}}",
             "query1": "MATCH (p:Person {{name: 'marco'}})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
-            "query2": "MATCH (p:Person {{name: 'marco'}})-[:SHOULD_EAT {{day: 'giovedì', meal: 'pranzo'}}]->(d:Dish) RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats;",
+            "query2": "MATCH (p:Person {{name: 'marco'}})-[:SHOULD_EAT {{day: 'giovedi', meal: 'pranzo'}}]->(d:Dish) RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats;",
             "query3": "MATCH (d:Dish) WHERE EXISTS {{ MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['pollo', 'riso'] }} AND NOT EXISTS {{ MATCH (p:Person {{name: 'marco'}})-[:IS_ALLERGIC_TO]->(i:Ingredient) MATCH (d)-[:CONTAINS]->(i) }} RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;"
         },
         {
@@ -37,4 +36,3 @@
         }
     
     ]
-}
