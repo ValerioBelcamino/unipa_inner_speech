@@ -123,12 +123,13 @@ class Query_Generation(Node):
         for i, file in enumerate(self.example_filenames, start=1):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)
-                for example in self.examples[i]:
+                for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
+                    self.examples[i][j] = self.queries_to_query_list(example)
 
-        self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher query: {query}"""
-        self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
+        self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
+        # self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
         self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
 
         self.llm = init_chat_model(
@@ -137,6 +138,17 @@ class Query_Generation(Node):
             temperature=self.llm_config['temperature'], 
             api_key=os.getenv("GROQ_API_KEY")
         )
+
+    def queries_to_query_list(self, example):
+        query_list = []
+        for k,v in example.items():
+            if 'query' in k.lower():
+                query_list.append(v)
+        updated_dict = {k: v for k,v in example.items() if 'query' not in k.lower()}
+        updated_dict['queries'] = query_list
+        return updated_dict
+
+
         
     def prepare_few_shot_prompt(self, action_id):
         example_template = self.example_template_3 if action_id == 3 else self.example_template
@@ -144,7 +156,7 @@ class Query_Generation(Node):
             input_variables=["question", "parameters"],
             examples=self.examples[action_id],
             example_prompt=PromptTemplate(
-                input_variables=["question", "parameters", "query"],
+                input_variables=["question", "parameters", "queries"],
                 template=example_template
             ),
             prefix=self.instruction,
