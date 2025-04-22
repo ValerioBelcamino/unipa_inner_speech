@@ -121,7 +121,7 @@ class Query_Generation(Node):
                     self.examples[i][j] = queries_to_query_list(example)
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
-        # self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
+
         self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
 
         self.llm = init_chat_model(
@@ -220,8 +220,6 @@ class Query_Generation(Node):
             multi_query_results.append(query_results)
                 
         driver.close()
-
-        # print("\033[32m" + str(multi_query_results) + "\033[0m\n")
 
         return cypher, multi_query_results
     

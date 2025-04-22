@@ -1,27 +1,27 @@
 [
-        {
-            "question": "Ciao, il couscous contiene glutine?",
-            "parameters": "{'nome_utente': '','nome_piatto': 'couscous', 'controllo_ingredienti':'[glutine]'}",
-            "query": "MATCH (d:Dish {name: 'couscous'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"
-        },
-        {
-            "question": "Sono Giorgio, vorrei sapere se la panna cotta contiene il lattosio.",
-            "parameters": "{'nome_utente': 'giorgio','nome_piatto': 'panna cotta', 'controllo_ingredienti':'[lattosio]'}",
-            "query": "MATCH (p:Person {name: 'giorgio'}) MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"
-        },
-        {
-            "question": "Ciao, puoi darmi informazioni sui valori nutrizionali della lasagna?",
-            "parameters": "{'nome_utente': '','nome_piatto': 'lasagna', 'controllo_ingredienti':'[]'}",
-            "query": "MATCH (d:Dish {name: 'lasagna'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS allergens RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs, ingredients, allergens"
-        },
-        {
-            "question": "Mi chiamo Valerio, vorrei sapere se posso mangiare il tiramisù.",
-            "parameters": "{'nome_utente': 'valerio', 'nome_piatto': 'tiramisu', 'controllo_ingredienti':'[]'}",
-            "query": "MATCH (p:Person {name: 'valerio'}) MATCH (d:Dish {name: 'tiramisu'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, dish_allergens, user_allergens, risks_for_user"
-        },
-        {
-            "question": "C'è qualcosa addatto a me con gamberi e limone? Sono Giulia",
-            "parameters": "{'nome_utente': 'giulia', 'nome_piatto': '', 'controllo_ingredienti': ['gamberi', 'limone']}",
-            "query": "MATCH (p:Person {name: 'giulia'})  MATCH (d:Dish)  MATCH (d)-[:CONTAINS]->(i_gamberi:Ingredient {name: 'gamberi'}) MATCH (d)-[:CONTAINS]->(i_limone:Ingredient {name: 'limone'})OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"
-        }
-    ]
+    {
+        "question": "Ciao, il couscous contiene glutine?",
+        "parameters": "{'nome_utente': '','nome_piatto': 'couscous', 'controllo_ingredienti':'[glutine]'}",
+        "query": "MATCH (d:Dish {name: 'couscous'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"
+    },
+    {
+        "question": "Sono Giorgio, vorrei sapere se la panna cotta contiene il lattosio.",
+        "parameters": "{'nome_utente': 'giorgio','nome_piatto': 'panna cotta', 'controllo_ingredienti':'[lattosio]'}",
+        "query": "MATCH (p:Person {name: 'giorgio'}) MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"
+    },
+    {
+        "question": "Ciao, puoi darmi informazioni sui valori nutrizionali della lasagna?",
+        "parameters": "{'nome_utente': '','nome_piatto': 'lasagna', 'controllo_ingredienti':'[]'}",
+        "query": "MATCH (d:Dish {name: 'lasagna'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS allergens RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs, ingredients, allergens"
+    },
+    {
+        "question": "Mi chiamo Valerio, vorrei sapere se posso mangiare il tiramisù.",
+        "parameters": "{'nome_utente': 'valerio', 'nome_piatto': 'tiramisu', 'controllo_ingredienti':'[]'}",
+        "query": "MATCH (p:Person {name: 'valerio'}) MATCH (d:Dish {name: 'tiramisu'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, dish_allergens, user_allergens, risks_for_user"
+    },
+    {
+        "question": "C'è qualcosa addatto a me con gamberi e limone? Sono Giulia",
+        "parameters": "{'nome_utente': 'giulia', 'nome_piatto': '', 'controllo_ingredienti': ['gamberi', 'limone']}",
+        "query": "MATCH (p:Person {name: 'giulia'})  MATCH (d:Dish)  MATCH (d)-[:CONTAINS]->(i_gamberi:Ingredient {name: 'gamberi'}) MATCH (d)-[:CONTAINS]->(i_limone:Ingredient {name: 'limone'})OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"
+    }
+]

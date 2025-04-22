@@ -99,7 +99,7 @@ class Explainability(Node):
     def query_explanation_callback(self, msg):
         msg_dict = json.loads(msg.data)
         action_id = msg_dict['action_id']
-        self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % action_id)
+        self.get_logger().info('Received: "%s" query_explanation_callback\n' % action_id)
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=self.query_instructions,
@@ -110,7 +110,7 @@ class Explainability(Node):
                                                     input_variables=["user_input", "queries", "results"],
                                                     )
 
-        print(few_shot_prompt)
+        # print(few_shot_prompt)
         print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['results']=}\033[0m")
 
 

@@ -1,0 +1,3 @@
+string question
+int32 action_id
+string parameters
