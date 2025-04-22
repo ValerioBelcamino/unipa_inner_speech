@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import ast
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
@@ -64,7 +64,7 @@ class Explainability(Node):
 
         self.example_filenames = ['FewShot_queries_explanation_insertion.json', 'FewShot_queries_explanation_dish_info.json', 'FewShot_queries_explanation_meal_prep.json']
         self.examples = {}
-        for i, file in enumerate(self.example_filenames):
+        for i, file in enumerate(self.example_filenames, start=1):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
                 for example in self.examples[i]:

@@ -17,14 +17,14 @@ import ast
 from typing import Optional, List
 
 # Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
+BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 load_dotenv(dotenv_path)
 
 class UserInsertionTool(BaseModel):
-    """Inserts user details (calories, macros, allergies) into the knowledge graph."""
+    """Inserts user details (calories, macros, allergies) into the knowledge graph. Additionally, you must create the relations to allergens if provided."""
     query: str = Field(description="Cypher query to insert a user.")
 
 class DishInfoTool(BaseModel):
@@ -85,19 +85,34 @@ class Query_Generation(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = escape_curly_braces(self.graph.schema)
 
+        # self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
+        # and converts them to Cypher strictly following the instructions below:
+
+        # 1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
+        # 2. Do not use EXISTS, SIZE keywords in the query. Use an alias when using the WITH keyword.
+        # 3. Do not use the same variable names for different nodes and relationships.
+        # 4. Use only the nodes and relationships mentioned in the schema.
+        # 5. Always enclose the Cypher output inside three backticks.
+        # 6. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        # 7. Always use aliases to refer to nodes throughout the query.
+        # 8. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        # 9. You may generate multiple queries if required.
+        # 10. Every query must start with the MATCH keyword.
+
+        # Schema:
+        # {self.schema}"""
+
         self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
 
         1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
-        2. Do not use EXISTS, SIZE keywords in the query. Use an alias when using the WITH keyword.
-        3. Do not use the same variable names for different nodes and relationships.
-        4. Use only the nodes and relationships mentioned in the schema.
-        5. Always enclose the Cypher output inside three backticks.
-        6. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        7. Always use aliases to refer to nodes throughout the query.
-        8. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        9. You may generate multiple queries if required.
-        10. Every query must start with the MATCH keyword.
+        2. Do not use the same variable names for different nodes and relationships.
+        3. Use only the nodes and relationships mentioned in the schema.
+        4. Always enclose the Cypher output inside three backticks.
+        5. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        6. Always use aliases to refer to nodes throughout the query.
+        7. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        8. You may generate multiple queries if required.
 
         Schema:
         {self.schema}"""
@@ -146,9 +161,10 @@ class Query_Generation(Node):
         user_message = msg_dict['question']
         parameters = msg_dict['parameters']
 
-        print(f"\033[34m{user_message=}, {parameters=}\033[0m")
+        print(f"\033[34m{user_message=}\n {parameters=}\n{action_id=}\033[0m")
 
         few_shot_prompt = self.prepare_few_shot_prompt(action_id)
+        # print(f"\033[34m{few_shot_prompt=}\033[0m")
         llm_with_query = self.llm.with_structured_output(action_id_2_action_class[action_id])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
@@ -162,7 +178,7 @@ class Query_Generation(Node):
         cypher, query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
 
-        self.send_query_output(cypher, query_results, user_message)
+        self.send_query_output(cypher, query_results, user_message, action_id)
 
 
     def prepare_results_string(self, result_list):
