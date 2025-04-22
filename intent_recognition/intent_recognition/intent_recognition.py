@@ -60,7 +60,8 @@ class SubstituteDish(BaseModel):
 
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")

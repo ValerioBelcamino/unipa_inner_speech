@@ -1,10 +1,10 @@
 import os
 import json
 from .export_query_results import generate_pl_file, generate_csv_file
-from langchain.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain.chat_models import init_chat_model
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_neo4j import Neo4jGraph
+from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
@@ -12,14 +12,15 @@ from std_msgs.msg import String, Bool
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 import ast 
-from typing import Optional, List
+from typing import List
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
-load_dotenv(dotenv_path)
 
 class UserInsertionTool(BaseModel):
     """Inserts user details (calories, macros, allergies) into the knowledge graph. Additionally, you must create the relations to allergens if provided."""
@@ -37,12 +38,6 @@ class MealPreparationTool(BaseModel):
 
 
 action_id_2_action_class = {1: UserInsertionTool, 2: DishInfoTool, 3: MealPreparationTool}
-
-def escape_curly_braces(text):
-    """
-    Escape curly braces in the text by doubling them.
-    """
-    return text.replace("{", "{{").replace("}", "}}")
 
 
 class Query_Generation(Node):
@@ -100,7 +95,7 @@ class Query_Generation(Node):
         # Schema:
         # {self.schema}"""
 
-        self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
+        self.instructions = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
 
         1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
@@ -124,7 +119,7 @@ class Query_Generation(Node):
                 for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
-                    self.examples[i][j] = self.queries_to_query_list(example)
+                    self.examples[i][j] = queries_to_query_list(example)
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
         # self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
@@ -137,31 +132,7 @@ class Query_Generation(Node):
             api_key=os.getenv("GROQ_API_KEY")
         )
 
-    def queries_to_query_list(self, example):
-        query_list = []
-        for k,v in example.items():
-            if 'query' in k.lower():
-                query_list.append(v)
-        updated_dict = {k: v for k,v in example.items() if 'query' not in k.lower()}
-        updated_dict['queries'] = query_list
-        return updated_dict
-
-
         
-    def prepare_few_shot_prompt(self, action_id):
-        few_shot_prompt = FewShotPromptTemplate(
-            input_variables=["question", "parameters"],
-            examples=self.examples[action_id],
-            example_prompt=PromptTemplate(
-                input_variables=["question", "parameters", "queries"],
-                template=self.example_template
-            ),
-            prefix=self.instruction,
-            suffix=self.suffix
-            )
-        return few_shot_prompt
-    
-
     def query_generation_callback(self, msg):
         self.get_logger().info('Received: "%s" __ query_generation_callback\n')
         msg_dict = json.loads(msg.data)
@@ -172,8 +143,15 @@ class Query_Generation(Node):
 
         print(f"\033[34m{user_message=}\n {parameters=}\n{action_id=}\033[0m")
 
-        few_shot_prompt = self.prepare_few_shot_prompt(action_id)
-        # print(f"\033[34m{few_shot_prompt=}\033[0m")
+        few_shot_prompt = prepare_few_shot_prompt(
+                                                    instructions=self.instructions,
+                                                    suffix=self.suffix, 
+                                                    examples=self.examples[action_id],
+                                                    example_variables=["question", "parameters", "queries"],
+                                                    example_template=self.example_template,
+                                                    input_variables=["question", "parameters"],
+                                                    )
+
         llm_with_query = self.llm.with_structured_output(action_id_2_action_class[action_id])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 

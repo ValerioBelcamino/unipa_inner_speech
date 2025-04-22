@@ -4,6 +4,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.output_parsers.string import StrOutputParser
 from langchain_neo4j import Neo4jGraph
+from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
@@ -11,17 +12,13 @@ from dotenv import load_dotenv
 import ast
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
-def escape_curly_braces(text):
-    """
-    Escape curly braces in the text by doubling them.
-    """
-    return text.replace("{", "{{").replace("}", "}}")
 
 class Explainability(Node):
     def __init__(self):
@@ -62,6 +59,17 @@ class Explainability(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = self.graph.schema
 
+
+        # QUERY EXPLAINABILITY LLM VARIABLES
+        self.query_instructions = "Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
+        self.query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
+        self.query_example_template = """User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"""
+
+        # CLINGO EXPLAINABILITY LLM VARIABLES
+        self.clingo_instructions = "Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. A questo punto del processo abbiamo escluso già i piatti non adatti allo stile alimentare dell'utente e, in questo step, abbiamo generato diverse combinazioni di piatti in grado di soddisfare i vincoli di calorie e macronutrienti rimanenti. Data una una lista di combinazioni di piatti, il tuo compito è spiegare all'utente come sono stati scelti. Il numero di piatti in ogni risposta può essere 1, N, o 0 dipendentemente dai requisiti."
+        self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
+        self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
+
         self.example_filenames = ['FewShot_queries_explanation_insertion.json', 'FewShot_queries_explanation_dish_info.json', 'FewShot_queries_explanation_meal_prep.json']
         self.examples = {}
         for i, file in enumerate(self.example_filenames, start=1):
@@ -70,13 +78,9 @@ class Explainability(Node):
                 for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
-                    self.examples[i][j] = self.queries_to_query_list(example)
+                    self.examples[i][j] = queries_to_query_list(example)
 
-        # with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_queries_explanation.json'), 'r') as f:
-        #     self.examples['queries'] = json.load(f)["examples"]
-        #     for example in self.examples['queries']:
-        #         for k,v in example.items():
-        #             example[k] = escape_curly_braces(v)
+
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)["examples"]
 
@@ -90,17 +94,7 @@ class Explainability(Node):
         self.llm_response = (
             self.llm.bind()
             | StrOutputParser()
-            # | self.extract_answer
         )
-
-    def queries_to_query_list(self, example):
-        query_list = []
-        for k,v in example.items():
-            if 'query' in k.lower():
-                query_list.append(v)
-        updated_dict = {k: v for k,v in example.items() if 'query' not in k.lower()}
-        updated_dict['queries'] = query_list
-        return updated_dict
 
 
     def query_explanation_callback(self, msg):
@@ -108,21 +102,20 @@ class Explainability(Node):
         action_id = msg_dict['action_id']
         self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % action_id)
 
-        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}")
+        few_shot_prompt = prepare_few_shot_prompt(
+                                                    instructions=self.query_instructions,
+                                                    suffix=self.query_suffix, 
+                                                    examples=self.examples[action_id],
+                                                    example_variables=["user_input", "queries", "results", "explanation"],
+                                                    example_template=self.query_example_template,
+                                                    input_variables=["user_input", "queries", "results"],
+                                                    )
 
-        prompt = FewShotPromptTemplate(
-            examples=self.examples[action_id],
-            example_prompt=example_prompt,
-            prefix="Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: ",
-            input_variables=["user_input", "queries", "results"],
-        )
-
-        print(prompt)
+        print(few_shot_prompt)
         print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['results']=}\033[0m")
 
 
-        formatted_prompt = prompt.format(
+        formatted_prompt = few_shot_prompt.format(
                                         user_input = msg_dict['user_input'], 
                                         queries = msg_dict['queries'], 
                                         results = msg_dict['results']
@@ -139,17 +132,16 @@ class Explainability(Node):
         self.get_logger().info('Received: "%s" __ clingo_explanation_callback\n' % msg.data)
         msg_dict = json.loads(msg.data)
 
-        example_prompt = PromptTemplate.from_template("Results: {results}\nExplanation: {explanation}")
+        few_shot_prompt = prepare_few_shot_prompt(
+                                                    instructions=self.clingo_instructions,
+                                                    suffix=self.clingo_suffix, 
+                                                    examples=self.examples['clingo'],
+                                                    example_variables=["results", "explanation"],
+                                                    example_template=self.clingo_example_template,
+                                                    input_variables=["results"],
+                                                    )
 
-        prompt = FewShotPromptTemplate(
-            examples=self.examples['clingo'],
-            example_prompt=example_prompt,
-            prefix="Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. A questo punto del processo abbiamo escluso già i piatti non adatti allo stile alimentare dell'utente e, in questo step, abbiamo generato diverse combinazioni di piatti in grado di soddisfare i vincoli di calorie e macronutrienti rimanenti. Data una una lista di combinazioni di piatti, il tuo compito è spiegare all'utente come sono stati scelti. Il numero di piatti in ogni risposta può essere 1, N, o 0 dipendentemente dai requisiti.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana.\nUser Input: {results}\nExplanation: ",
-            input_variables=["results"],
-        )
-
-        formatted_prompt = prompt.format(results = msg_dict['results'])
+        formatted_prompt = few_shot_prompt.format(results = msg_dict['results'])
         
         explanation = self.llm_response.invoke(formatted_prompt)
 
