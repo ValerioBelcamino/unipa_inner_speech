@@ -2,7 +2,6 @@ import os
 import json
 from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
-from langchain_core.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_neo4j import Neo4jGraph
 from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
 from neo4j import GraphDatabase 
