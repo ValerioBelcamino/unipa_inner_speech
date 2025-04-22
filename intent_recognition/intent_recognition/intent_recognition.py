@@ -12,6 +12,8 @@ import ast
 from pydantic import BaseModel, Field
 from groq import BadRequestError
 from unidecode import unidecode
+import yaml
+import importlib
 import time 
 from typing import List
 
@@ -67,6 +69,9 @@ load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
+# Set path for plugin configuration
+PLUGIN_CONFIG_PATH = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src/intent_post_processing/intent_post_processing/config/config.yaml"))
+
 class Intent_Recognition(Node):
     def __init__(self):
         self.node_name = 'intent_recognition'
@@ -121,6 +126,31 @@ class Intent_Recognition(Node):
         
         self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
+        # Load plugins dynamically from the config file
+        self.plugins = self.load_plugins(PLUGIN_CONFIG_PATH)
+        print(f"\033[38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
+
+
+    def load_plugins(self, config_path):
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+        
+        plugins = config.get('plugins', [])
+        
+        loaded_plugins = []
+        for plugin in plugins:
+            module_name = plugin.get('module')
+            function_name = plugin.get('function')
+
+            # Dynamically import the module
+            try:
+                module = importlib.import_module(module_name)
+                function = getattr(module, function_name)
+                loaded_plugins.append(function)
+                print(f"\033[38;5;208mLoaded {function_name} from {module_name}\033[0m")
+            except (ModuleNotFoundError, AttributeError) as e:
+                print(f"Error loading {module_name}.{function_name}: {e}")
+        return loaded_plugins
 
 
     def get_day_of_the_week(self, llm_output: str) -> str:
@@ -282,6 +312,7 @@ class Intent_Recognition(Node):
 
         self.publisher.publish(String(data=result_string))
         self.get_logger().info('Published: "%s"' % result)
+
 
 def main(args=None):
     rclpy.init(args=args)

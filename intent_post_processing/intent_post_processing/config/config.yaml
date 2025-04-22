@@ -1,0 +1,4 @@
+plugins:
+  - name: "plugin1"
+    module: "intent_post_processing.plugins.plugin1"
+    function: "process_function1"
