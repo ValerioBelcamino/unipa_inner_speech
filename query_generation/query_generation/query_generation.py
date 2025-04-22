@@ -32,10 +32,9 @@ class DishInfoTool(BaseModel):
     query: str = Field(description="Cypher query to fetch dish information and allergy compatibility.")
 
 class MealPreparationTool(BaseModel):
-    """Generates three queries: 
+    """Generates 2 queries: 
     first one to check user's allergies,
-    second one to return user's meal plan for a specific day
-    and the third one return the dishes compatible with the user's allergies."""
+    second one return the dishes compatible with the user's allergies."""
     query: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
 
 
@@ -94,13 +93,11 @@ class Query_Generation(Node):
         3. Do not use the same variable names for different nodes and relationships.
         4. Use only the nodes and relationships mentioned in the schema.
         5. Always enclose the Cypher output inside three backticks.
-        6. Always perform case-insensitive and fuzzy searches for any property-based filtering. 
-        E.g., to search for a company name, use `toLower(c.name) contains 'neo4j'`.
-        7. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        8. Always use aliases to refer to nodes throughout the query.
-        9. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        10. You may generate multiple queries if required.
-        11. Every query must start with the MATCH keyword.
+        6. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        7. Always use aliases to refer to nodes throughout the query.
+        8. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        9. You may generate multiple queries if required.
+        10. Every query must start with the MATCH keyword.
 
         Schema:
         {self.schema}"""
@@ -116,7 +113,7 @@ class Query_Generation(Node):
                         example[k] = escape_curly_braces(v)
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher query: {query}"""
-        self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}\nQuery3: {query3}"""
+        self.example_template_3 = """User asks: {question}\nParameters: {parameters}\nQuery1: {query1}\nQuery2: {query2}"""
         self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
 
         self.llm = init_chat_model(
@@ -212,7 +209,7 @@ class Query_Generation(Node):
                             else:
                                 recdict[key] = value  # fallback for primitives
                         query_results.append(recdict)
-                    print("\033[32m" + str(recdict) + "\033[0m\n")
+                        print("\033[32m" + str(recdict) + "\033[0m\n")
 
             except Exception as e:
                 print("Error:", e.message)
