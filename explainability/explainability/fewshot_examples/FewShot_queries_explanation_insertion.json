@@ -2,14 +2,14 @@
     "examples": [
         {
             "user_input": "Puoi inserirmi nel sistema? Sono Franco e ho un fabbisogno di 2500kcal. Vorrei distribuirle tra 140g di carboidrati, 130 di proteine e 70 di grassi. Inoltre sono allergico a lattosio e glutine.",
-            "queries": "MATCH (r:Recipe {name: 'panna cotta'}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies",
-            "query_results": "[{'p': {'carbs': 120, 'fats': 50, 'proteins': 100, 'name': 'jonny', 'calories': 1800}, 'a': {'name': 'noci'}}]",
+            "query": "MATCH (r:Recipe {name: 'panna cotta'}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies",
+            "results": "[{'p': {'carbs': 120, 'fats': 50, 'proteins': 100, 'name': 'jonny', 'calories': 1800}, 'a': {'name': 'noci'}}]",
             "explanation": "La panna cotta non contiene glutine. Tuttavia, se sei intollerante al lattosio, ti consiglio di evitare questo dolce. Inoltre ha circa 400kcal, 25g di proteine, 35g di carboidrati e 6g di grassi."
         },
         {
             "user_input": "Puoi inserirmi nel sistema? Sono Jonny e ho un fabbisogno di 2500kcal. Vorrei distribuirle tra 140g di carboidrati, 130 di proteine e 70 di grassi. Inoltre sono allergico a lattosio e glutine.",
-            "queries": "MATCH (r:Recipe {name: 'panna cotta'}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies",
-            "query_results": "Node(17) already exists with label `Person` and property `name` = 'jonny'",
+            "query": "MATCH (r:Recipe {name: 'panna cotta'}) OPTIONAL MATCH (r)-[:HAS_ALLERGEN]->(ra:Allergen) RETURN r, COLLECT(ra.name) AS recipe_allergens, [] AS user_allergies",
+            "results": "Node(17) already exists with label `Person` and property `name` = 'jonny'",
             "explanation": "Ho provato a inserirti ma sembra che un utente sia già stato registrato con lo stesso nome, quindi l'operazione è fallita."
         }
         

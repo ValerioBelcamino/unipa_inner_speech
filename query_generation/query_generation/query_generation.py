@@ -254,7 +254,7 @@ class Query_Generation(Node):
         result_dict['user_input'] = user_prompt
         result_dict['action_id'] = action_id
         result_dict['queries'] = cypher
-        result_dict['query_results'] = str(results)
+        result_dict['results'] = str(results)
 
         result_string = json.dumps(result_dict)
         self.get_logger().info('Published: "%s"' % result_string)

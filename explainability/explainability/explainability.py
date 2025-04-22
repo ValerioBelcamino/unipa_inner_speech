@@ -67,9 +67,11 @@ class Explainability(Node):
         for i, file in enumerate(self.example_filenames, start=1):
             with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
                 self.examples[i]=json.load(f)["examples"]
-                for example in self.examples[i]:
+                for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
+                    self.examples[i][j] = self.queries_to_query_list(example)
+
         # with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_queries_explanation.json'), 'r') as f:
         #     self.examples['queries'] = json.load(f)["examples"]
         #     for example in self.examples['queries']:
@@ -91,11 +93,14 @@ class Explainability(Node):
             # | self.extract_answer
         )
 
-
-    def extract_answer(self, llm_output: str) -> str:
-        if "Answer:" in llm_output:
-            return llm_output.split("Answer:", 1)[1].strip()
-        return llm_output.strip()
+    def queries_to_query_list(self, example):
+        query_list = []
+        for k,v in example.items():
+            if 'query' in k.lower():
+                query_list.append(v)
+        updated_dict = {k: v for k,v in example.items() if 'query' not in k.lower()}
+        updated_dict['queries'] = query_list
+        return updated_dict
 
 
     def query_explanation_callback(self, msg):
@@ -103,24 +108,24 @@ class Explainability(Node):
         action_id = msg_dict['action_id']
         self.get_logger().info('Received: "%s" __ query_explanation_callback\n' % action_id)
 
-        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: {explanation}")
+        example_prompt = PromptTemplate.from_template("\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}")
 
         prompt = FewShotPromptTemplate(
             examples=self.examples[action_id],
             example_prompt=example_prompt,
             prefix="Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato.",
-            suffix="Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {query_results}\nExplanation: ",
-            input_variables=["user_input", "queries", "query_results"],
+            suffix="Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: ",
+            input_variables=["user_input", "queries", "results"],
         )
 
         print(prompt)
-        print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['query_results']=}\033[0m")
+        print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['results']=}\033[0m")
 
 
         formatted_prompt = prompt.format(
                                         user_input = msg_dict['user_input'], 
                                         queries = msg_dict['queries'], 
-                                        query_results = msg_dict['query_results']
+                                        results = msg_dict['results']
                                         )
         
         explanation = self.llm_response.invoke(formatted_prompt)
