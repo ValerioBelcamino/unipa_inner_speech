@@ -22,10 +22,10 @@
         },
         {
             "question": "Ciao, sono Francesca. Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
-            "parameters": "{{'nome_utente': 'francesca', 'ingredienti_rimossi': ['pomodoro'], 'ingredienti_preferiti': ['salmone'], 'solo_questi_ingredienti': [], 'giorno': 'sabato', 'pasto': 'cena'}}",
+            "parameters": "{'nome_utente': 'francesca', 'ingredienti_rimossi': ['pomodoro'], 'ingredienti_preferiti': ['salmone'], 'solo_questi_ingredienti': [], 'giorno': 'sabato', 'pasto': 'cena'}",
             "query1": "MATCH (p:Person {name: 'francesca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
             "query2": "MATCH (p:Person {name: 'francesca'})-[:SHOULD_EAT {day: 'sabato', meal: 'cena'}]->(d:Dish) RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats;",
-            "query3": "MATCH (d:Dish) WHERE EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name = 'salmone' } AND NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['frutta secca'] OR EXISTS { MATCH (d)-[]-()-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['frutta secca']}} AND NOT EXISTS { MATCH (p:Person {name: 'francesca'})-[:IS_ALLERGIC_TO]->(i:Ingredient) MATCH (d)-[:CONTAINS]->(i) }} RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;"
+            "query3": "MATCH (d:Dish) WHERE EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name = 'salmone' } AND NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['frutta secca'] OR EXISTS { MATCH (d)-[]-()-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['frutta secca']}} AND NOT EXISTS { MATCH (p:Person {name: 'francesca'})-[:IS_ALLERGIC_TO]->(i:Ingredient) MATCH (d)-[:CONTAINS]->(i) } RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;"
         },
         {
             "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
@@ -35,4 +35,4 @@
             "query3": "MATCH (p:Person {name: 'alessandro'}) MATCH (d:Dish) WHERE NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE NOT i.name IN ['uova', 'spinaci'] } AND NOT EXISTS { MATCH (d)-[:CONTAINS]->(i:Ingredient) MATCH (p)-[:IS_ALLERGIC_TO]->(i) } RETURN d.name AS dish, d.type AS type, d.calories AS calories, d.proteins AS proteins, d.carbs AS carbs, d.fats AS fats ORDER BY d.type;"
         }
     
-    ]
+]

@@ -11,19 +11,17 @@ from dotenv import load_dotenv
 import ast
 
 # Load environment variables from .env file
-BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
+BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
-
 
 def escape_curly_braces(text):
     """
     Escape curly braces in the text by doubling them.
     """
     return text.replace("{", "{{").replace("}", "}}")
-
 
 class Explainability(Node):
     def __init__(self):
