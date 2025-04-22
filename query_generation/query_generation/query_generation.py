@@ -151,13 +151,12 @@ class Query_Generation(Node):
 
         
     def prepare_few_shot_prompt(self, action_id):
-        example_template = self.example_template_3 if action_id == 3 else self.example_template
         few_shot_prompt = FewShotPromptTemplate(
             input_variables=["question", "parameters"],
             examples=self.examples[action_id],
             example_prompt=PromptTemplate(
                 input_variables=["question", "parameters", "queries"],
-                template=example_template
+                template=self.example_template
             ),
             prefix=self.instruction,
             suffix=self.suffix
