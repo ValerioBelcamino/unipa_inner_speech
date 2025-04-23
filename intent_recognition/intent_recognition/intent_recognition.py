@@ -7,15 +7,12 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 import ast
 from pydantic import BaseModel, Field
 from groq import BadRequestError
-from unidecode import unidecode
-import yaml
-import importlib
 import time 
 from typing import List
+from intent_post_processing.loader import load_plugins
 
 
 # Define Pydantic classes with tools
@@ -69,8 +66,7 @@ load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
-# Set path for plugin configuration
-PLUGIN_CONFIG_PATH = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src/intent_post_processing/intent_post_processing/config/config.yaml"))
+
 
 class Intent_Recognition(Node):
     def __init__(self):
@@ -84,16 +80,6 @@ class Intent_Recognition(Node):
             self.in_topic,
             self.listener_callback,
             10)
-        
-        self.days_of_the_week = {
-            0: "lunedi",
-            1: "martedi",
-            2: "mercoledi",
-            3: "giovedi",
-            4: "venerdi",
-            5: "sabato",
-            6: "domenica",
-        }
 
         self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
@@ -127,132 +113,32 @@ class Intent_Recognition(Node):
         self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
 
         # Load plugins dynamically from the config file
-        self.plugins = self.load_plugins(PLUGIN_CONFIG_PATH)
+        self.plugins = load_plugins()
         print(f"\033[38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 
-    def load_plugins(self, config_path):
-        with open(config_path, "r") as f:
-            config = yaml.safe_load(f)
-        
-        plugins = config.get('plugins', [])
-        
-        loaded_plugins = []
-        for plugin in plugins:
-            module_name = plugin.get('module')
-            function_name = plugin.get('function')
-
-            # Dynamically import the module
-            try:
-                module = importlib.import_module(module_name)
-                function = getattr(module, function_name)
-                loaded_plugins.append(function)
-                print(f"\033[38;5;208mLoaded {function_name} from {module_name}\033[0m")
-            except (ModuleNotFoundError, AttributeError) as e:
-                print(f"Error loading {module_name}.{function_name}: {e}")
-        return loaded_plugins
-
-
-    def get_day_of_the_week(self, llm_output: str) -> str:
-        
-        if llm_output['giorno'] in ['oggi', '']:
-            llm_output['giorno'] = self.days_of_the_week[datetime.today().weekday()]
-
-        elif llm_output['giorno'] == 'domani':
-            domani = datetime.today() + timedelta(days=1)
-            llm_output['giorno'] = self.days_of_the_week[domani.weekday()]
-
-        elif llm_output['giorno'] == 'ieri':
-            ieri = datetime.today() + timedelta(days=-1)
-            llm_output['giorno'] = self.days_of_the_week[ieri.weekday()]
-
-        return llm_output
-    
-
-    def get_next_meal(self, llm_output):
-
-        current_time = datetime.now().time() #11:34:30.263342
-
-        colazione = datetime.strptime("11:00", "%H:%M").time()
-        pranzo = datetime.strptime("14:00", "%H:%M").time()
-        cena = datetime.strptime("22:00", "%H:%M").time()
-
-        if current_time < colazione:
-            llm_output['pasto'] = 'colazione'
-        elif current_time < pranzo:
-            llm_output['pasto'] = 'pranzo'
-        elif current_time < cena:
-            llm_output['pasto'] = 'cena'
-
-        return llm_output
-    
-
-    def tool_to_lower(self, tool_output, tool_id):
-        '''Updates the parameters extracted by the tools to match our KG conventions'''
-        for k,v in tool_output.items():
-            # AddToDatabase
-            if tool_id == '1':
-                if k == 'nome_utente':
-                    # Cast to lowercase
-                    v = v.lower()
-                elif k == 'intolleranze':
-                    for i in range(len(v)):
-                        v[i] = v[i].lower()
-                        # v[i] = v[i].replace(' ', '_')
-            # DishInfo
-            elif tool_id == '2':
-                if k == 'controllo_ingredienti':
-                    for i in range(len(v)):
-                        v[i] = v[i].lower()
-                        # v[i] = v[i].replace(' ', '_')
-                else:
-                    # Cast to lowercase
-                    v = v.lower()
-                    # Replace spaces with underscores
-                    # v = v.replace(' ', '_')
-                tool_output[k] = v
-            # SubstituteDish
-            elif tool_id == '3':
-                # Remove accents from italian names of the week
-                if k == 'giorno':
-                    v = unidecode(v)
-
-                if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
-                    for i in range(len(v)):
-                        v[i] = v[i].lower()
-                        # v[i] = v[i].replace(' ', '_')
-                else:
-                    # Cast to lowercase
-                    v = v.lower()
-                    # Replace spaces with underscores
-                    # v = v.replace(' ', '_')
-                tool_output[k] = v
-
-
-    def check_user_weekly_plan(self, person_name):
-        query = """
-        MATCH (p:Person {name: $name})-[:SHOULD_EAT]->(d:Dish)
-        WITH p, collect(DISTINCT d) AS dishes
-        MATCH (p)-[r:SHOULD_EAT]->(:Dish)
-        WITH p, collect(DISTINCT r.day) AS plannedDays
-        RETURN p.name AS person, plannedDays,
-            size(plannedDays) AS daysCovered,
-            CASE WHEN size(plannedDays) = 7 THEN true ELSE false END AS hasWeeklyPlan
+    def execute_plugin_pipeline(self, db_driver, action_id, intent_parameters):
         """
-        
-        with self.driver.session() as session:
-            result = session.run(query, name=person_name)
-            record = result.single()  # Expecting one result
-            if record:
-                # return {
-                #     "person": record["person"],
-                #     "plannedDays": record["plannedDays"],
-                #     "daysCovered": record["daysCovered"],
-                #     "hasWeeklyPlan": record["hasWeeklyPlan"]
-                # }
-                return record["hasWeeklyPlan"]
-            else:
-                return None
+        Function to execute the loaded plugins with the appropriate parameters.
+        """
+        # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
+
+        # Prepare the context for each plugin: db_driver, action_id, and specific parameters
+        context = {
+            "db_driver": db_driver,
+            "action_id": action_id,
+            "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
+        }
+
+        # Iterate over each loaded plugin (each wrapped function)
+        for plugin_function in self.plugins:
+            try:
+                # Call the plugin with the context
+                context['intent_parameters'] = plugin_function(context)
+
+            except Exception as e:
+                print(f"Error executing plugin: {e}")
+
 
     def check_undeclared_parameters(self, tool_name, tool_result):
         parameter_list = [field for field in eval(tool_name).__fields__.keys()]
@@ -285,30 +171,35 @@ class Intent_Recognition(Node):
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']
             tool_id = self.tool_name_2_id[tool_name]
-            self.tool_to_lower(tool_result, tool_id)
-            tool_result['action_id'] = tool_id
+
+            # defaults missing parameters to '' or None
             tool_result = self.check_undeclared_parameters(tool_name, tool_result)
-            print(tool_result)
 
-            # change relative days to days of the week
-            if tool_result['action_id'] == '3':
-                tool_result = self.get_day_of_the_week(tool_result)
+            # execute post processing plugin pipeline 
+            self.execute_plugin_pipeline(self.driver, tool_id, tool_result)
+
+            # add action id as a parameter
+            tool_result['action_id'] = tool_id
+
+            # # change relative days to days of the week
+            # if tool_result['action_id'] == '3':
+            #     tool_result = self.get_day_of_the_week(tool_result)
                 
-                # fill 'pasto' field for action 3 if not already filled
-                if tool_result['pasto'] == '':
-                    tool_result = self.get_next_meal(tool_result)
+            #     # fill 'pasto' field for action 3 if not already filled
+            #     if tool_result['pasto'] == '':
+            #         tool_result = self.get_next_meal(tool_result)
 
-                # Check whether the user has a weekly plan
-                ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
-                if ha_piano_settimanale:
-                    tool_result['ha_piano_settimanale'] = ha_piano_settimanale
+            #     # Check whether the user has a weekly plan
+            #     ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
+            #     if ha_piano_settimanale:
+            #         tool_result['ha_piano_settimanale'] = ha_piano_settimanale
 
         result = {}
         result['question'] = user_input
         result['answer'] = str(tool_result)
         result_string = json.dumps(result)
 
-        print("\033[32m"+result['answer']+"\033[0m")
+        print("\033[32m\nINTENT_PARAMETERS:"+result['answer']+"\033[0m")
 
         self.publisher.publish(String(data=result_string))
         self.get_logger().info('Published: "%s"' % result)

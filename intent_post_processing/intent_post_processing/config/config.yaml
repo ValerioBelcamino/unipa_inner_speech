@@ -1,4 +1,17 @@
 plugins:
-  - name: "plugin1"
-    module: "intent_post_processing.plugins.plugin1"
-    function: "process_function1"
+
+  - name: "param_to_lower"
+    module: "intent_post_processing.plugins.db_convention_plugin"
+    function: "param_to_lower"
+    
+  - name: "check_user_weekly_plan"
+    module: "intent_post_processing.plugins.db_convention_plugin"
+    function: "check_user_weekly_plan"
+
+  - name: "get_day_of_the_week"
+    module: "intent_post_processing.plugins.time_plugin"
+    function: "get_day_of_the_week"
+    
+  - name: "get_next_meal"
+    module: "intent_post_processing.plugins.time_plugin"
+    function: "get_next_meal"
