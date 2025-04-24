@@ -13,6 +13,7 @@ from groq import BadRequestError
 import time 
 from typing import List
 from intent_post_processing.loader import load_plugins
+from common_msgs.msg import Intent
 
 
 # Define Pydantic classes with tools
@@ -83,7 +84,7 @@ class Intent_Recognition(Node):
 
         self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
-        self.publisher = self.create_publisher(String, self.out_topic, 10)
+        self.publisher = self.create_publisher(Intent, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
@@ -179,7 +180,7 @@ class Intent_Recognition(Node):
             self.execute_plugin_pipeline(self.driver, tool_id, tool_result)
 
             # add action id as a parameter
-            tool_result['action_id'] = tool_id
+            # tool_result['action_id'] = tool_id
 
             # # change relative days to days of the week
             # if tool_result['action_id'] == '3':
@@ -194,15 +195,20 @@ class Intent_Recognition(Node):
             #     if ha_piano_settimanale:
             #         tool_result['ha_piano_settimanale'] = ha_piano_settimanale
 
-        result = {}
-        result['question'] = user_input
-        result['answer'] = str(tool_result)
-        result_string = json.dumps(result)
+        # result = {}
 
-        print("\033[32m\nINTENT_PARAMETERS:"+result['answer']+"\033[0m")
+        intent_msg = Intent()
+        intent_msg.user_input = user_input
+        intent_msg.action_id = int(tool_id)
+        intent_msg.parameters = json.dumps(tool_result)
+        # result['question'] = user_input
+        # result['answer'] = str(tool_result)
+        # result_string = json.dumps(result)
 
-        self.publisher.publish(String(data=result_string))
-        self.get_logger().info('Published: "%s"' % result)
+        # print("\033[32m\nINTENT_PARAMETERS:"+intent_msg+"\033[0m")
+
+        self.publisher.publish(intent_msg)
+        self.get_logger().info('\033[32mPublished: "%s"\033[0m' % intent_msg)
 
 
 def main(args=None):
