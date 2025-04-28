@@ -10,10 +10,8 @@ from rclpy.node import Node
 from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
 import ast 
 from pathlib import Path
-from typing import List
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,22 +21,9 @@ load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
-class UserInsertionTool(BaseModel):
-    """Inserts user details (calories, macros, allergies) into the knowledge graph. Additionally, you must create the relations to allergens if provided."""
-    query: str = Field(description="Cypher query to insert a user.")
-
-class DishInfoTool(BaseModel):
-    """Returns a query to fetch dish info, and optionally evaluate user compatibility."""
-    query: str = Field(description="Cypher query to fetch dish information and allergy compatibility.")
-
-class MealPreparationTool(BaseModel):
-    """Generates 2 queries: 
-    first one to check user's allergies,
-    second one return the dishes compatible with the user's allergies."""
-    query: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
 
 
-action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
+# action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
 
 
 class Query_Generation(Node):
