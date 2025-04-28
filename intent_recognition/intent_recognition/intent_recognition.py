@@ -13,6 +13,7 @@ from groq import BadRequestError
 import time 
 from typing import List
 from intent_post_processing.loader import load_plugins
+from common_msgs.msg import Intent
 
 
 # Define Pydantic classes with tools
@@ -83,7 +84,7 @@ class Intent_Recognition(Node):
 
         self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
-        self.publisher = self.create_publisher(String, self.out_topic, 10)
+        self.publisher = self.create_publisher(Intent, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
@@ -117,7 +118,7 @@ class Intent_Recognition(Node):
         print(f"\033[38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 
-    def execute_plugin_pipeline(self, db_driver, action_id, intent_parameters):
+    def execute_plugin_pipeline(self, db_driver, action_name, intent_parameters):
         """
         Function to execute the loaded plugins with the appropriate parameters.
         """
@@ -126,7 +127,7 @@ class Intent_Recognition(Node):
         # Prepare the context for each plugin: db_driver, action_id, and specific parameters
         context = {
             "db_driver": db_driver,
-            "action_id": action_id,
+            "action_name": action_name,
             "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
         }
 
@@ -170,39 +171,21 @@ class Intent_Recognition(Node):
         else:
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']
-            tool_id = self.tool_name_2_id[tool_name]
+            # tool_id = self.tool_name_2_id[tool_name]
 
             # defaults missing parameters to '' or None
             tool_result = self.check_undeclared_parameters(tool_name, tool_result)
 
             # execute post processing plugin pipeline 
-            self.execute_plugin_pipeline(self.driver, tool_id, tool_result)
+            self.execute_plugin_pipeline(self.driver, tool_name, tool_result)
 
-            # add action id as a parameter
-            tool_result['action_id'] = tool_id
+        intent_msg = Intent()
+        intent_msg.user_input = user_input
+        intent_msg.action_name = tool_name
+        intent_msg.parameters = json.dumps(tool_result)
 
-            # # change relative days to days of the week
-            # if tool_result['action_id'] == '3':
-            #     tool_result = self.get_day_of_the_week(tool_result)
-                
-            #     # fill 'pasto' field for action 3 if not already filled
-            #     if tool_result['pasto'] == '':
-            #         tool_result = self.get_next_meal(tool_result)
-
-            #     # Check whether the user has a weekly plan
-            #     ha_piano_settimanale = self.check_user_weekly_plan(tool_result['nome_utente'])
-            #     if ha_piano_settimanale:
-            #         tool_result['ha_piano_settimanale'] = ha_piano_settimanale
-
-        result = {}
-        result['question'] = user_input
-        result['answer'] = str(tool_result)
-        result_string = json.dumps(result)
-
-        print("\033[32m\nINTENT_PARAMETERS:"+result['answer']+"\033[0m")
-
-        self.publisher.publish(String(data=result_string))
-        self.get_logger().info('Published: "%s"' % result)
+        self.publisher.publish(intent_msg)
+        self.get_logger().info('\033[32mPublished: "%s"\033[0m' % intent_msg)
 
 
 def main(args=None):

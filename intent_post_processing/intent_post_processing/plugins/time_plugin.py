@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 
 
 
-def get_day_of_the_week(intent_parameters: dict, action_id: int) -> dict:
-    # print(f"\033[95m[get_day_of_the_week] parameters = {{'intent_parameters': {intent_parameters}, 'action_id': {action_id}}}\033[0m")
+def get_day_of_the_week(intent_parameters: dict, action_name: str) -> dict:
+    # print(f"\033[95m[get_day_of_the_week] parameters = {{'intent_parameters': {intent_parameters}, 'action_name': {action_name}}}\033[0m")
 
-    # the day of the week is a valid parameter only for the meal preparation case, let's filter out other action_ids
-    if action_id == 3:
+    # the day of the week is a valid parameter only for the meal preparation case, let's filter out other action_names
+    if action_name == 'SubstituteDish':
 
         days_of_the_week = {
                 0: "lunedi",
@@ -33,11 +33,11 @@ def get_day_of_the_week(intent_parameters: dict, action_id: int) -> dict:
 
 
 
-def get_next_meal(intent_parameters: dict, action_id: int) -> dict:
-    # print(f"\033[95m[get_next_meal] parameters = {{'intent_parameters': {intent_parameters}, 'action_id': {action_id}}}\033[0m")
+def get_next_meal(intent_parameters: dict, action_name: str) -> dict:
+    # print(f"\033[95m[get_next_meal] parameters = {{'intent_parameters': {intent_parameters}, 'action_name': {action_name}}}\033[0m")
 
-    # the day of the week is a valid parameter only for the meal preparation case, let's filter out other action_ids
-    if action_id == 3:
+    # the day of the week is a valid parameter only for the meal preparation case, let's filter out other action_names
+    if action_name == 'SubstituteDish':
 
         current_time = datetime.now().time() #11:34:30.263342
 

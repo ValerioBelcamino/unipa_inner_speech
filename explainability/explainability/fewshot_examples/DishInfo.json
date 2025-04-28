@@ -1,0 +1,14 @@
+[
+    {
+        "user_input": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+        "query": "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'pollo_al_curry'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, dish_allergens, user_allergens, risks_for_user",
+        "results": "[{'dish': 'pollo_al_curry', 'dish_allergens': ['soia'], 'user_allergens': ['soia'], 'risks_for_user': ['lattosio']}]",
+        "explanation": "Ciao Giulia, il pollo al curry contiene soia, che non è adatto a te che sei allergica!"
+    },
+    {
+        "user_input": "Ma la panna cotta contiene lattosio?",
+        "query": "MATCH (d:Dish {name: 'cappuccino'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains",
+        "results": "[{'dish': 'cappuccino', 'contains': ['lattosio']}]",
+        "explanation": "Sì, la panna cotta contiene lattosio. Se sei intollerante te la sconsiglio!"
+    }
+]

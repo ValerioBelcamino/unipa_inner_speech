@@ -1,3 +1,3 @@
 string user_input
-int32 action_id
+string action_name
 string parameters
