@@ -9,8 +9,9 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import QueryOutput
 from dotenv import load_dotenv
-from pathlib import Path
 import ast
+from shared_utils.customization_helpers import load_all_explainability_examples
+
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -71,22 +72,10 @@ class Explainability(Node):
         self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
         self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
 
-        self.examples = {}
-        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
-
-        for ex_file in os.listdir(examples_folder):
-            i = Path(ex_file).stem
-
-            # TODO: add a list of available tools and filter here
-            # if i in available_tools:
-
-            with open(os.path.join(examples_folder, ex_file), 'r') as f:
-                self.examples[i]=json.load(f)
-                for j, example in enumerate(self.examples[i]):
-                    for k,v in example.items():
-                        example[k] = escape_curly_braces(v)
-                    self.examples[i][j] = queries_to_query_list(example)
-
+        print()
+        self.examples = load_all_explainability_examples()
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()
 
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)
@@ -107,6 +96,8 @@ class Explainability(Node):
     def query_explanation_callback(self, msg):
         action_name = msg.action_name
         self.get_logger().info('Received: "%s" query_explanation_callback\n' % action_name)
+
+        # print(self.examples[action_name])
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=self.query_instructions,

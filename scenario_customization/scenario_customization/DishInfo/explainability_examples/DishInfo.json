@@ -7,7 +7,7 @@
     },
     {
         "user_input": "Ma la panna cotta contiene lattosio?",
-        "query": "MATCH (d:Dish {name: 'cappuccino'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains",
+        "queries": "MATCH (d:Dish {name: 'cappuccino'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains",
         "results": "[{'dish': 'cappuccino', 'contains': ['lattosio']}]",
         "explanation": "Sì, la panna cotta contiene lattosio. Se sei intollerante te la sconsiglio!"
     }
