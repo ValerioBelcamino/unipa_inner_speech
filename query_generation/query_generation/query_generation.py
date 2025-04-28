@@ -11,8 +11,7 @@ from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
-from pathlib import Path
-from shared_utils.customization_helpers import load_all_query_models
+from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples
 
 
 # Load environment variables from .env file
@@ -24,8 +23,6 @@ dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
 
-
-# action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
 
 
 class Query_Generation(Node):
@@ -74,23 +71,6 @@ class Query_Generation(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = escape_curly_braces(self.graph.schema)
 
-        # self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
-        # and converts them to Cypher strictly following the instructions below:
-
-        # 1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
-        # 2. Do not use EXISTS, SIZE keywords in the query. Use an alias when using the WITH keyword.
-        # 3. Do not use the same variable names for different nodes and relationships.
-        # 4. Use only the nodes and relationships mentioned in the schema.
-        # 5. Always enclose the Cypher output inside three backticks.
-        # 6. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        # 7. Always use aliases to refer to nodes throughout the query.
-        # 8. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        # 9. You may generate multiple queries if required.
-        # 10. Every query must start with the MATCH keyword.
-
-        # Schema:
-        # {self.schema}"""
-
         self.instructions = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
 
@@ -111,21 +91,8 @@ class Query_Generation(Node):
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
         print()
 
-        self.examples = {}
-        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
-
-        for ex_file in os.listdir(examples_folder):
-            i = Path(ex_file).stem
-
-            # TODO: add a list of available tools and filter here
-            # if i in available_tools:
-
-            with open(os.path.join(examples_folder, ex_file), 'r') as f:
-                self.examples[i]=json.load(f)
-                for j, example in enumerate(self.examples[i]):
-                    for k,v in example.items():
-                        example[k] = escape_curly_braces(v)
-                    self.examples[i][j] = queries_to_query_list(example)
+        self.examples = load_all_query_examples()
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
 
