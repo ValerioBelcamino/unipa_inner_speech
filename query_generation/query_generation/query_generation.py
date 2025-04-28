@@ -7,11 +7,12 @@ from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_bra
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Bool
+from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 import ast 
+from pathlib import Path
 from typing import List
 
 # Load environment variables from .env file
@@ -37,7 +38,7 @@ class MealPreparationTool(BaseModel):
     query: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
 
 
-action_id_2_action_class = {1: UserInsertionTool, 2: DishInfoTool, 3: MealPreparationTool}
+action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
 
 
 class Query_Generation(Node):
@@ -118,11 +119,16 @@ class Query_Generation(Node):
         Schema:
         {self.schema}"""
 
-        self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
-
         self.examples = {}
-        for i, file in enumerate(self.example_filenames, start=1):
-            with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
+        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
+
+        for ex_file in os.listdir(examples_folder):
+            i = Path(ex_file).stem
+
+            # TODO: add a list of available tools and filter here
+            # if i in available_tools:
+
+            with open(os.path.join(examples_folder, ex_file), 'r') as f:
                 self.examples[i]=json.load(f)
                 for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
@@ -150,21 +156,21 @@ class Query_Generation(Node):
         # parameters = msg_dict['parameters']
 
         user_input = intent_msg.user_input
-        action_id = intent_msg.action_id
+        action_name = intent_msg.action_name
         parameters = ast.literal_eval(intent_msg.parameters)
 
-        print(f"\033[34m{user_input=}\n {parameters=}\n{action_id=}\033[0m")
+        print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=self.instructions,
                                                     suffix=self.suffix, 
-                                                    examples=self.examples[action_id],
+                                                    examples=self.examples[action_name],
                                                     example_variables=["question", "parameters", "queries"],
                                                     example_template=self.example_template,
                                                     input_variables=["question", "parameters"],
                                                     )
 
-        llm_with_query = self.llm.with_structured_output(action_id_2_action_class[action_id])
+        llm_with_query = self.llm.with_structured_output(action_name_to_action_class[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
         cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
@@ -177,7 +183,7 @@ class Query_Generation(Node):
         query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
 
-        self.send_query_output(queries, query_results, user_input, action_id)
+        self.send_query_output(queries, query_results, user_input, action_name)
 
 
     def prepare_results_string(self, result_list):
@@ -237,10 +243,10 @@ class Query_Generation(Node):
         return multi_query_results
     
 
-    def send_query_output(self, cypher, results, user_input, action_id):
+    def send_query_output(self, cypher, results, user_input, action_name):
 
         query_output_msg = QueryOutput()
-        query_output_msg.action_id = action_id
+        query_output_msg.action_name = action_name
         query_output_msg.queries = cypher
         query_output_msg.user_input = user_input
         query_output_msg.results = str(results)

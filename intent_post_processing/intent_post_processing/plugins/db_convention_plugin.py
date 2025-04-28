@@ -1,13 +1,13 @@
 from unidecode import unidecode
 
 
-def param_to_lower(intent_parameters: dict, action_id: int):
-    # print(f"\033[95m[param_to_lower] parameters = {{'tool_output': {intent_parameters}, 'tool_id': {action_id}}}\033[0m")
+def param_to_lower(intent_parameters: dict, action_name: str):
+    # print(f"\033[95m[param_to_lower] parameters = {{'tool_output': {intent_parameters}, 'action_name': {action_name}}}\033[0m")
 
     '''Updates the parameters extracted by the tools to match our KG conventions'''
     for k,v in intent_parameters.items():
         # AddToDatabase
-        if action_id == '1':
+        if action_name == 'AddToDatabase':
             if k == 'nome_utente':
                 # Cast to lowercase
                 v = v.lower()
@@ -16,7 +16,7 @@ def param_to_lower(intent_parameters: dict, action_id: int):
                     v[i] = v[i].lower()
                     # v[i] = v[i].replace(' ', '_')
         # DishInfo
-        elif action_id == '2':
+        elif action_name == 'DishInfo':
             if k == 'controllo_ingredienti':
                 for i in range(len(v)):
                     v[i] = v[i].lower()
@@ -28,7 +28,7 @@ def param_to_lower(intent_parameters: dict, action_id: int):
                 # v = v.replace(' ', '_')
             intent_parameters[k] = v
         # SubstituteDish
-        elif action_id == '3':
+        elif action_name == 'SubstituteDish':
             # Remove accents from italian names of the week
             if k == 'giorno':
                 v = unidecode(v)
@@ -45,11 +45,11 @@ def param_to_lower(intent_parameters: dict, action_id: int):
             intent_parameters[k] = v
 
 
-def check_user_weekly_plan(intent_parameters: dict, action_id: int, db_driver):
-    # print(f"\033[95m[check_user_weekly_plan] parameters = {{'person_name': {intent_parameters}, 'action_id': {action_id}, 'driver': {db_driver}}}\033[0m")
+def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_driver):
+    # print(f"\033[95m[check_user_weekly_plan] parameters = {{'person_name': {intent_parameters}, 'action_name': {action_name}, 'driver': {db_driver}}}\033[0m")
 
     # we only have to check the user weekly plan for the meal preparation
-    if action_id == 3:
+    if action_name == 'SubstituteDish':
 
         query = """
         MATCH (p:Person {name: $name})-[:SHOULD_EAT]->(d:Dish)
