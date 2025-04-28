@@ -2,15 +2,15 @@ import importlib
 import pkgutil
 import inspect
 from pydantic import BaseModel
-from typing import Type, List
+from typing import Type, Dict
 
-def load_all_intent_models() -> List[Type[BaseModel]]:
+def load_all_intent_models() -> Dict[str, Type[BaseModel]]:
     return dynamic__iterative_load('intent')
 
-def load_all_query_models() -> List[Type[BaseModel]]:
+def load_all_query_models() -> Dict[str, Type[BaseModel]]:
     return dynamic__iterative_load('query')
 
-def dynamic__iterative_load(filename:str) -> List[Type[BaseModel]]:
+def dynamic__iterative_load(filename:str) -> Dict[str, Type[BaseModel]]:
     models = {}
     package = "scenario_customization"  # Top-level package
 
