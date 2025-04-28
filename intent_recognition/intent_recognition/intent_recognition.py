@@ -14,13 +14,15 @@ import time
 from typing import List
 from intent_post_processing.loader import load_plugins
 
-
 # Define Pydantic classes with tools
 class AddToDatabase(BaseModel):
-    """A new user asks you to add them to the database. 
-    Extract necessary information from the user message. 
+    """
+    A new user asks you to add them to the database.
+
+    Extract necessary information from the user message.
     Do not generate any new information, use only what user provided for you.
-    If you don't have some piece of information, leave the corresponding field blank."""
+    If you don't have some piece of information, leave the corresponding field blank.
+    """
 
     nome_utente: str = Field(description="The name of the user in lowercase")
     calorie: int = Field(description="How many calories user should eat per day", default=0)
@@ -30,20 +32,25 @@ class AddToDatabase(BaseModel):
     intolleranze: List[str] = Field(description="User's intollerances", default='')
 
 class DishInfo(BaseModel):
-    """User asks you to give him information about a specific dish.
-    For example, about its nurtients, allergens or if this dish is suitable for the user."""
+    """
+    User asks you to give him information about a specific dish.
+
+    For example, about its nurtients, allergens or if this dish is suitable for the user.
+    """
 
     nome_utente: str = Field(description="The name of the user in lowercase", default='')
     nome_piatto: str = Field(description="The name of the dish in lowercase")
     controllo_ingredienti: List[str] = Field(description="Ingredients to check for in the dish", default_factory=list)
 
 class SubstituteDish(BaseModel):
-    """User asks you to propose an alternative dish based on their allergies and dietary plan.
+    """
+    User asks you to propose an alternative dish based on their allergies and dietary plan.
+
     Extract necessary information from the user message. 
     Do not generate any new information, use only what user provided for you.
-
     IMPORTANT: Always return ALL fields in the response, even with empty values.
-    If you don't have some piece of information, leave the corresponding field blank."""
+    If you don't have some piece of information, leave the corresponding field blank.
+    """
 
     nome_utente: str = Field(description="The name of the user in lowercase")
     ingredienti_rimossi: List[str] = Field(description="Ingredients that the user wants to exclude", default_factory=list)
@@ -118,9 +125,7 @@ class Intent_Recognition(Node):
 
 
     def execute_plugin_pipeline(self, db_driver, action_id, intent_parameters):
-        """
-        Function to execute the loaded plugins with the appropriate parameters.
-        """
+        """Execute the loaded plugins with the appropriate parameters."""
         # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
 
         # Prepare the context for each plugin: db_driver, action_id, and specific parameters
