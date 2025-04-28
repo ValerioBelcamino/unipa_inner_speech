@@ -7,10 +7,12 @@ from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_bra
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String, Bool
+from std_msgs.msg import Bool
+from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 import ast 
+from pathlib import Path
 from typing import List
 
 # Load environment variables from .env file
@@ -36,7 +38,7 @@ class MealPreparationTool(BaseModel):
     query: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
 
 
-action_id_2_action_class = {1: UserInsertionTool, 2: DishInfoTool, 3: MealPreparationTool}
+action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
 
 
 class Query_Generation(Node):
@@ -49,14 +51,22 @@ class Query_Generation(Node):
         self.out_query_explanation = '/ex_queries'
 
         self.query_generation_listener = self.create_subscription(
-            String,
+            Intent,
             self.query_generation_topic,
             self.query_generation_callback,
             10
         )
 
-        self.publisher_clingo_start = self.create_publisher(Bool, self.out_clingo_topic, 10)
-        self.publisher_explainability_queries = self.create_publisher(String, self.out_query_explanation, 10)
+        self.publisher_clingo_start = self.create_publisher(
+                                                                Bool, 
+                                                                self.out_clingo_topic, 
+                                                                10
+                                                            )
+        self.publisher_explainability_queries = self.create_publisher(
+                                                                        QueryOutput, 
+                                                                        self.out_query_explanation, 
+                                                                        10
+                                                                    )
         
         self.get_logger().info('Inner Speech Node has been started')
 
@@ -109,11 +119,16 @@ class Query_Generation(Node):
         Schema:
         {self.schema}"""
 
-        self.example_filenames = ['FewShot_query_insertion.json', 'FewShot_query_dish_info.json', 'FewShot_query_meal_prep.json']
-
         self.examples = {}
-        for i, file in enumerate(self.example_filenames, start=1):
-            with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
+        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
+
+        for ex_file in os.listdir(examples_folder):
+            i = Path(ex_file).stem
+
+            # TODO: add a list of available tools and filter here
+            # if i in available_tools:
+
+            with open(os.path.join(examples_folder, ex_file), 'r') as f:
                 self.examples[i]=json.load(f)
                 for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
@@ -132,39 +147,43 @@ class Query_Generation(Node):
         )
 
         
-    def query_generation_callback(self, msg):
+    def query_generation_callback(self, intent_msg):
         self.get_logger().info('Received: "%s" __ query_generation_callback\n')
-        msg_dict = json.loads(msg.data)
+        # msg_dict = json.loads(msg.data)
         
-        action_id = int(msg_dict['action_id'])
-        user_message = msg_dict['question']
-        parameters = msg_dict['parameters']
+        # action_id = int(msg_dict['action_id'])
+        # user_message = msg_dict['question']
+        # parameters = msg_dict['parameters']
 
-        print(f"\033[34m{user_message=}\n {parameters=}\n{action_id=}\033[0m")
+        user_input = intent_msg.user_input
+        action_name = intent_msg.action_name
+        parameters = ast.literal_eval(intent_msg.parameters)
+
+        print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=self.instructions,
                                                     suffix=self.suffix, 
-                                                    examples=self.examples[action_id],
+                                                    examples=self.examples[action_name],
                                                     example_variables=["question", "parameters", "queries"],
                                                     example_template=self.example_template,
                                                     input_variables=["question", "parameters"],
                                                     )
 
-        llm_with_query = self.llm.with_structured_output(action_id_2_action_class[action_id])
+        llm_with_query = self.llm.with_structured_output(action_name_to_action_class[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
-        cypher = llm_cypher_chain.invoke({"question": user_message, "parameters": parameters})
+        cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
 
         queries = getattr(cypher, 'query')
 
         if type(queries) == str:
             queries = [queries]
 
-        cypher, query_results = self.query_execution(queries)
+        query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
 
-        self.send_query_output(cypher, query_results, user_message, action_id)
+        self.send_query_output(queries, query_results, user_input, action_name)
 
 
     def prepare_results_string(self, result_list):
@@ -221,19 +240,19 @@ class Query_Generation(Node):
                 
         driver.close()
 
-        return cypher, multi_query_results
+        return multi_query_results
     
 
-    def send_query_output(self, cypher, results, user_prompt, action_id):
-        result_dict = {}
-        result_dict['user_input'] = user_prompt
-        result_dict['action_id'] = action_id
-        result_dict['queries'] = cypher
-        result_dict['results'] = str(results)
+    def send_query_output(self, cypher, results, user_input, action_name):
 
-        result_string = json.dumps(result_dict)
-        self.get_logger().info('Published: "%s"' % result_string)
-        self.publisher_explainability_queries.publish(String(data=result_string))
+        query_output_msg = QueryOutput()
+        query_output_msg.action_name = action_name
+        query_output_msg.queries = cypher
+        query_output_msg.user_input = user_input
+        query_output_msg.results = str(results)
+
+        self.get_logger().info('Published: "%s"' % query_output_msg)
+        self.publisher_explainability_queries.publish(query_output_msg)
 
 
 def main(args=None):

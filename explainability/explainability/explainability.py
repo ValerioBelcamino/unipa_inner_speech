@@ -7,7 +7,9 @@ from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_bra
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from common_msgs.msg import QueryOutput
 from dotenv import load_dotenv
+from pathlib import Path
 import ast
 
 # Load environment variables from .env file
@@ -28,7 +30,7 @@ class Explainability(Node):
         self.robot_dialogue_topic = '/speak'
 
         self.listener_query_explanation = self.create_subscription(
-            String,
+            QueryOutput,
             self.query_explanation_topic,
             self.query_explanation_callback,
             10)
@@ -69,11 +71,17 @@ class Explainability(Node):
         self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
         self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
 
-        self.example_filenames = ['FewShot_queries_explanation_insertion.json', 'FewShot_queries_explanation_dish_info.json', 'FewShot_queries_explanation_meal_prep.json']
         self.examples = {}
-        for i, file in enumerate(self.example_filenames, start=1):
-            with open(os.path.join(self.source_dir, 'fewshot_examples', file), 'r') as f:
-                self.examples[i]=json.load(f)["examples"]
+        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
+
+        for ex_file in os.listdir(examples_folder):
+            i = Path(ex_file).stem
+
+            # TODO: add a list of available tools and filter here
+            # if i in available_tools:
+
+            with open(os.path.join(examples_folder, ex_file), 'r') as f:
+                self.examples[i]=json.load(f)
                 for j, example in enumerate(self.examples[i]):
                     for k,v in example.items():
                         example[k] = escape_curly_braces(v)
@@ -81,7 +89,7 @@ class Explainability(Node):
 
 
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
-            self.examples['clingo'] = json.load(f)["examples"]
+            self.examples['clingo'] = json.load(f)
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -97,27 +105,26 @@ class Explainability(Node):
 
 
     def query_explanation_callback(self, msg):
-        msg_dict = json.loads(msg.data)
-        action_id = msg_dict['action_id']
-        self.get_logger().info('Received: "%s" query_explanation_callback\n' % action_id)
+        action_name = msg.action_name
+        self.get_logger().info('Received: "%s" query_explanation_callback\n' % action_name)
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=self.query_instructions,
                                                     suffix=self.query_suffix, 
-                                                    examples=self.examples[action_id],
+                                                    examples=self.examples[action_name],
                                                     example_variables=["user_input", "queries", "results", "explanation"],
                                                     example_template=self.query_example_template,
                                                     input_variables=["user_input", "queries", "results"],
                                                     )
 
         # print(few_shot_prompt)
-        print(f"\033[34m{msg_dict['user_input']=}, {msg_dict['queries']=}, {msg_dict['results']=}\033[0m")
+        print(f"\033[34m{msg.user_input=}, {msg.queries=}, {msg.results=}\033[0m")
 
 
         formatted_prompt = few_shot_prompt.format(
-                                        user_input = msg_dict['user_input'], 
-                                        queries = msg_dict['queries'], 
-                                        results = msg_dict['results']
+                                        user_input = msg.user_input, 
+                                        queries = msg.queries, 
+                                        results = msg.results
                                         )
         
         explanation = self.llm_response.invoke(formatted_prompt)

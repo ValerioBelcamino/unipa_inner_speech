@@ -5,6 +5,7 @@ from langchain_neo4j import Neo4jGraph
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from common_msgs.msg import Intent
 import ast
 from dotenv import load_dotenv
 import time 
@@ -27,13 +28,13 @@ class Inner_Speech(Node):
         self.query_generation_topic = '/query_generation'
 
         self.subscription = self.create_subscription(
-            String,
+            Intent,
             self.in_topic,
             self.listener_callback,
             10)
         
         self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
-        self.publisher_action_dispatch = self.create_publisher(String, self.query_generation_topic, 10)
+        self.publisher_action_dispatch = self.create_publisher(Intent, self.query_generation_topic, 10)
 
         print(f"\033[34mInner Speech Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.user_input_topic}!!!\033[0m")
@@ -59,31 +60,28 @@ class Inner_Speech(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        self.action_id_to_required_parameters = {'1': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
-                                            '2': ['nome_piatto'],
-                                            '3': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
-                                            '0': []}  # Out of scope doesn't require any parameters
+        self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
+                                            'DishInfo': ['nome_piatto'],
+                                            'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
+                                            '': []}  # Out of scope doesn't require any parameters
 
-        self.action_id_to_description = {'1': 'Aggiungere un nuovo utente alla base di conoscenza.',
-                                    '2': 'Dare informazioni a un utente riguardo uno specifico piatto.',
-                                    '3': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
-                                    '0': 'Azione non pertinente.'} 
+        self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
+                                    'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
+                                    'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
+                                    '': 'Azione non pertinente.'} 
 
 
-    def listener_callback(self, msg):
-        self.get_logger().info('Received: "%s"\n' % msg.data)
-        msg_json = json.loads(msg.data)
-        user_input = msg_json['question']
-        json_data = ast.literal_eval(msg_json['answer'])
+    def listener_callback(self, intent_msg):
+        self.get_logger().info('Received: "%s"\n' % intent_msg)
 
-        action_id = str(json_data['action_id'])
-        json_data.pop('action_id', None)
+        user_input = intent_msg.user_input
+        action_name = intent_msg.action_name
+        parameters = ast.literal_eval(intent_msg.parameters)
 
         completed = True
-        parameters = json.dumps(json_data)
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        if action_id == '0':
+        if action_name == '':
             print(f"\033[34m" + "Action ID is 0, no action needed!" + "\033[0m")
             completed = False
             missing_parameters = []
@@ -100,11 +98,11 @@ class Inner_Speech(Node):
                 Fornire una spiegazione in italiano:"""
             
         else:
-            required_parameters = self.action_id_to_required_parameters[action_id]
-            missing_parameters = [param for param in required_parameters if param not in json_data]
+            required_parameters = self.action_name_to_required_parameters[action_name]
+            missing_parameters = [param for param in required_parameters if param not in parameters]
             missing_parameters.extend([
                                     param for param in list(set(required_parameters) - set(missing_parameters)) 
-                                    if json_data[param] in [0, None, '']
+                                    if parameters[param] in [0, None, '']
                                     ])
             if missing_parameters:
                 completed = False 
@@ -112,7 +110,7 @@ class Inner_Speech(Node):
                 print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
                 
                 answer_prompt = f"""
-                Chiedi all'utente maggiori dettagli per completare l'azione {action_id}: {self.action_id_to_description[action_id]}.
+                Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {self.action_name_to_description[action_name]}.
 
                 La sua domanda è: {user_input}.
                 Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
@@ -125,7 +123,7 @@ class Inner_Speech(Node):
             Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
             Non tralasciare alcun dettaglio.
             
-            L'utente desidera eseguire l'azione {action_id}: {self.action_id_to_description[action_id]}.
+            L'utente desidera eseguire l'azione {action_name}: {self.action_name_to_description[action_name]}.
             La loro domanda è: {user_input}.
             Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
             L'azione può essere completata: {completed}.
@@ -153,14 +151,9 @@ class Inner_Speech(Node):
 
         else:
             print(f"\033[34m" + "Complete answer, we can procede!" + "\033[0m")
-
-            msg = String()
-            msg_json = {'question': user_input, 'action_id': action_id, 'parameters': parameters}
-            msg.data = json.dumps(msg_json)
-
             
-            self.publisher_action_dispatch.publish(msg)
-            self.get_logger().info(f'Publishing {msg.data} on topic {self.query_generation_topic}')
+            self.publisher_action_dispatch.publish(intent_msg)
+            self.get_logger().info(f'Publishing {intent_msg} on topic {self.query_generation_topic}')
 
 
 def main(args=None):

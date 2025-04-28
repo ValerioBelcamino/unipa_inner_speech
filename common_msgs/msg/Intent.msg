@@ -1,3 +1,3 @@
-string question
-int32 action_id
+string user_input
+string action_name
 string parameters
