@@ -12,6 +12,8 @@ from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
 from pathlib import Path
+from shared_utils.customization_helpers import load_all_query_models
+
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -104,6 +106,11 @@ class Query_Generation(Node):
         Schema:
         {self.schema}"""
 
+        print()
+        self.dynamic_intent_tools_dict = load_all_query_models()
+        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
+        print()
+
         self.examples = {}
         examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
 
@@ -155,7 +162,7 @@ class Query_Generation(Node):
                                                     input_variables=["question", "parameters"],
                                                     )
 
-        llm_with_query = self.llm.with_structured_output(action_name_to_action_class[action_name])
+        llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
         cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})

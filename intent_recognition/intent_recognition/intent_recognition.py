@@ -67,11 +67,13 @@ class Intent_Recognition(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        self.dynamic_intent_tools = load_all_intent_models()
-        print(f"\033[95m\n{[dit.__name__ for dit in self.dynamic_intent_tools]}\033[0m")
+        print()
+        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
-        self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools)
-        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools)} intent_tool(s).\n\033[0m")
+        self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
+        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_toolnames)} intent_tool(s).\033[0m")
+        print()
 
         # Load plugins dynamically from the config file
         self.plugins = load_plugins()
@@ -101,8 +103,9 @@ class Intent_Recognition(Node):
                 print(f"Error executing plugin: {e}")
 
 
-    def check_undeclared_parameters(self, tool_name, tool_result):
-        parameter_list = [field for field in eval(tool_name).__fields__.keys()]
+    def check_undeclared_parameters(self, tool_class, tool_result):
+        print(tool_class.__fields__.keys())
+        parameter_list = [field for field in tool_class.__fields__.keys()]
         for parameter in parameter_list:
             if parameter not in tool_result:
                 tool_result[parameter] = ''
@@ -124,7 +127,7 @@ class Intent_Recognition(Node):
             tool_calls = llm_response['tool_calls']
         print(f"\033[32m{llm_response}\033[0m")
 
-        tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_tools]
+        tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
 
         if tool_calls == []: # no tool called -> out of scope
             tool_result = {'action_name': ''}
@@ -133,7 +136,7 @@ class Intent_Recognition(Node):
             tool_result = tool_calls[0]['args']
 
             # defaults missing parameters to '' or None
-            tool_result = self.check_undeclared_parameters(tool_name, tool_result)
+            tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
             self.execute_plugin_pipeline(self.driver, tool_name, tool_result)

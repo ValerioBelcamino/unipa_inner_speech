@@ -11,10 +11,8 @@ def load_all_query_models() -> List[Type[BaseModel]]:
     return dynamic__iterative_load('query')
 
 def dynamic__iterative_load(filename:str) -> List[Type[BaseModel]]:
-    models = []
+    models = {}
     package = "scenario_customization"  # Top-level package
-
-    print(__import__(package).__path__)
 
     # Discover all submodules (task folders)
     for finder, task_name, ispkg in pkgutil.iter_modules(__import__(package).__path__):
@@ -27,8 +25,9 @@ def dynamic__iterative_load(filename:str) -> List[Type[BaseModel]]:
             # Inspect classes inside intent.py
             for name, obj in inspect.getmembers(intent_module, inspect.isclass):
                 if issubclass(obj, BaseModel) and obj is not BaseModel:
-                    models.append(obj)
-                    # models[task_name] = obj
+                    # models.append(obj)
+                    print(f"\033[95mLoaded {obj.__name__} from {task_name}\033[0m")
+                    models[task_name] = obj
         except ModuleNotFoundError:
             # No intent.py or broken module, ignore
             pass
