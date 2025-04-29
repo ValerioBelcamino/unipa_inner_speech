@@ -55,4 +55,8 @@ examples.txt
 .env
 *.ipynb
 
-.env
+# Test files
+.pytest_cache/
+__pycache__/
+*.egg-info/
+*.egg

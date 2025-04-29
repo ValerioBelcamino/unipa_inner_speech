@@ -172,9 +172,9 @@ class Intent_Recognition(Node):
         print(f"\033[32m{llm_response}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.tool_name_2_id.keys()]
-
         if tool_calls == []: # no tool called -> out of scope
-            tool_result = {'action_id': '0'}
+            tool_result = {}
+            tool_name = 'OutOfScope'
         else:
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']

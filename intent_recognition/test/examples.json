@@ -1,0 +1,172 @@
+[
+    {
+        "question": "raccontami una barzelletta", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "quanti anni ha giorgia meloni?", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "i carboidrati mi fanno ingrassare?", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "ho comprato un nuovo frigorifero ieri", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "Il mio piatto preferito è il risotto ai funghi", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {
+        "question": "Penso che salterò la cena oggi", 
+        "action_name": "OutOfScope",
+        "parameters": {}
+    },
+    {   "question": "ciao puoi aggiungermi in database? sono paolo", 
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "paolo", 
+            "calorie": 0, 
+            "carboidrati": 0, 
+            "grassi": 0, 
+            "proteine": 0, 
+            "intolleranze": []}
+    },
+    {   "question": "Mi chiamo Anna. Puoi registrare un nuovo utente?", 
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "anna", 
+            "calorie": 0, 
+            "carboidrati": 0, 
+            "grassi": 0, 
+            "proteine": 0, 
+            "intolleranze": []}
+    },
+    {   "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 150 grammi.", 
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "elisa", 
+            "calorie": "", 
+            "carboidrati": "", 
+            "grassi": "", 
+            "proteine": 150, 
+            "intolleranze": ["glutine"]}
+    },
+    {   "question": "Sono Pippo, seguo una dieta priva di glutine e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.", 
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "pippo", 
+            "calorie": 2800, 
+            "carboidrati": 180, 
+            "grassi": 80, 
+            "proteine": 150, 
+            "intolleranze": ["glutine"]}
+    },
+    {
+        "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?", 
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pollo al curry", 
+            "nome_utente": "giulia", 
+            "controllo_ingredienti": []}
+    },
+    {
+        "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio", 
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pasta alla carbonara", 
+            "nome_utente": "luca", 
+            "controllo_ingredienti": ["lattosio"]}
+    },
+    {
+        "question": "Quanti carboidrati ha il tiramisu?", 
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "tiramisu", 
+            "nome_utente": "", 
+            "controllo_ingredienti": ["carboidrati"]}
+    },
+    {
+        "question": "è calorico il riso al pomodoro?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "riso al pomodoro", 
+            "nome_utente": "", 
+            "controllo_ingredienti": []}
+    },
+    {
+        "question": "La panna cotta contiene uova?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "panna cotta", 
+            "nome_utente": "", 
+            "controllo_ingredienti": ["uova"]}
+    },
+    {
+        "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "luca", 
+            "ingredienti_rimossi": ["latticini"], 
+            "ingredienti_preferiti":[], 
+            "solo_questi_ingredienti":[], 
+            "giorno": "domenica", 
+            "pasto": "cena"}
+    },
+    {
+        "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+        "action_name": "SubstituteDish",
+        "parameters": { 
+            "nome_utente": "giulia", 
+            "ingredienti_rimossi": ["frutta secca"], 
+            "ingredienti_preferiti":[], 
+            "solo_questi_ingredienti":[], 
+            "giorno": "mercoledi", 
+            "pasto": "cena"}
+    },
+    {
+        "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+        "action_name": "SubstituteDish",
+        "parameters": { 
+            "nome_utente": "marco", 
+            "ingredienti_rimossi": [], 
+            "ingredienti_preferiti": ["pollo", "riso"], 
+            "solo_questi_ingredienti": [], 
+            "giorno": "giovedi", 
+            "pasto": "pranzo"}
+    },
+    {
+        "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+        "action_name": "SubstituteDish",
+        "parameters": { 
+            "nome_utente": "", 
+            "ingredienti_rimossi": ["pomodoro"], 
+            "ingredienti_preferiti": ["salmone"], 
+            "solo_questi_ingredienti": [], 
+            "giorno": "sabato", 
+            "pasto": "cena"}
+    },
+    {
+        "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+        "action_name": "SubstituteDish",
+        "parameters": { 
+            "nome_utente": "alessandro", 
+            "ingredienti_rimossi": "", 
+            "ingredienti_preferiti": "", 
+            "solo_questi_ingredienti": ["uova", "spinaci"], 
+            "giorno": "", 
+            "pasto": "colazione"}
+    }
+]
