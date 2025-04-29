@@ -8,12 +8,11 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from dotenv import load_dotenv
 import ast
-from pydantic import BaseModel, Field
 from groq import BadRequestError
 import time 
-from typing import List
 from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
+from shared_utils.customization_helpers import load_all_intent_models
 
 # Define Pydantic classes with tools
 class AddToDatabase(BaseModel):
@@ -89,7 +88,6 @@ class Intent_Recognition(Node):
             self.listener_callback,
             10)
 
-        self.tool_name_2_id = {'AddToDatabase': '1', 'DishInfo': '2', 'SubstituteDish': '3'}
 
         self.publisher = self.create_publisher(Intent, self.out_topic, 10)
 
@@ -118,11 +116,17 @@ class Intent_Recognition(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        self.llm_with_tools = self.llm.bind_tools([AddToDatabase, DishInfo, SubstituteDish])
+        print()
+        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
+
+        self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
+        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_toolnames)} intent_tool(s).\033[0m")
+        print()
 
         # Load plugins dynamically from the config file
         self.plugins = load_plugins()
-        print(f"\033[38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
+        print(f"\033[1;38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 
     def execute_plugin_pipeline(self, db_driver, action_name, intent_parameters):
@@ -148,8 +152,9 @@ class Intent_Recognition(Node):
                 print(f"Error executing plugin: {e}")
 
 
-    def check_undeclared_parameters(self, tool_name, tool_result):
-        parameter_list = [field for field in eval(tool_name).__fields__.keys()]
+    def check_undeclared_parameters(self, tool_class, tool_result):
+        print(tool_class.__fields__.keys())
+        parameter_list = [field for field in tool_class.__fields__.keys()]
         for parameter in parameter_list:
             if parameter not in tool_result:
                 tool_result[parameter] = ''
@@ -171,17 +176,17 @@ class Intent_Recognition(Node):
             tool_calls = llm_response['tool_calls']
         print(f"\033[32m{llm_response}\033[0m")
 
-        tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.tool_name_2_id.keys()]
+        tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
+
         if tool_calls == []: # no tool called -> out of scope
             tool_result = {}
             tool_name = 'OutOfScope'
         else:
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']
-            # tool_id = self.tool_name_2_id[tool_name]
 
             # defaults missing parameters to '' or None
-            tool_result = self.check_undeclared_parameters(tool_name, tool_result)
+            tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
             self.execute_plugin_pipeline(self.driver, tool_name, tool_result)

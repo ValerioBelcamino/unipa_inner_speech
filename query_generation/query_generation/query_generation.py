@@ -10,10 +10,9 @@ from rclpy.node import Node
 from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
 import ast 
-from pathlib import Path
-from typing import List
+from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples
+
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,22 +22,7 @@ load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
-class UserInsertionTool(BaseModel):
-    """Inserts user details (calories, macros, allergies) into the knowledge graph. Additionally, you must create the relations to allergens if provided."""
-    query: str = Field(description="Cypher query to insert a user.")
 
-class DishInfoTool(BaseModel):
-    """Returns a query to fetch dish info, and optionally evaluate user compatibility."""
-    query: str = Field(description="Cypher query to fetch dish information and allergy compatibility.")
-
-class MealPreparationTool(BaseModel):
-    """Generates 2 queries: 
-    first one to check user's allergies,
-    second one return the dishes compatible with the user's allergies."""
-    query: List[str] = Field(description="List of Cypher queries for meal planning and preparation.")
-
-
-action_name_to_action_class = {'AddToDatabase': UserInsertionTool, 'DishInfo': DishInfoTool, 'SubstituteDish': MealPreparationTool}
 
 
 class Query_Generation(Node):
@@ -87,23 +71,6 @@ class Query_Generation(Node):
         self.graph = Neo4jGraph(self.uri, self.username, self.password)
         self.schema = escape_curly_braces(self.graph.schema)
 
-        # self.instruction = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
-        # and converts them to Cypher strictly following the instructions below:
-
-        # 1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
-        # 2. Do not use EXISTS, SIZE keywords in the query. Use an alias when using the WITH keyword.
-        # 3. Do not use the same variable names for different nodes and relationships.
-        # 4. Use only the nodes and relationships mentioned in the schema.
-        # 5. Always enclose the Cypher output inside three backticks.
-        # 6. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        # 7. Always use aliases to refer to nodes throughout the query.
-        # 8. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        # 9. You may generate multiple queries if required.
-        # 10. Every query must start with the MATCH keyword.
-
-        # Schema:
-        # {self.schema}"""
-
         self.instructions = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
         and converts them to Cypher strictly following the instructions below:
 
@@ -119,21 +86,13 @@ class Query_Generation(Node):
         Schema:
         {self.schema}"""
 
-        self.examples = {}
-        examples_folder = os.path.join(self.source_dir, 'fewshot_examples')
+        print()
+        self.dynamic_intent_tools_dict = load_all_query_models()
+        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
+        print()
 
-        for ex_file in os.listdir(examples_folder):
-            i = Path(ex_file).stem
-
-            # TODO: add a list of available tools and filter here
-            # if i in available_tools:
-
-            with open(os.path.join(examples_folder, ex_file), 'r') as f:
-                self.examples[i]=json.load(f)
-                for j, example in enumerate(self.examples[i]):
-                    for k,v in example.items():
-                        example[k] = escape_curly_braces(v)
-                    self.examples[i][j] = queries_to_query_list(example)
+        self.examples = load_all_query_examples()
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
 
@@ -170,7 +129,7 @@ class Query_Generation(Node):
                                                     input_variables=["question", "parameters"],
                                                     )
 
-        llm_with_query = self.llm.with_structured_output(action_name_to_action_class[action_name])
+        llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
         cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})

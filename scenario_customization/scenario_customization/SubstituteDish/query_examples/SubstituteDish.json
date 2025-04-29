@@ -1,0 +1,32 @@
+[
+  {
+      "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza uova per domenica? Viene anche un amico allergico al lattosio",
+      "parameters": "{'nome_utente': 'luca', 'ingredienti_rimossi': ['uova','lattosio'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'domenica', 'pasto': 'cena'}",
+      "query1": "MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "query2": "MATCH (p:Person {name: 'luca'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['lattosio', 'uova']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'uova'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+  },
+  {
+      "question": "Ciao, sono Giulia. Puoi suggerirmi una cena senza frutta secca per mercoledì?",
+      "parameters": "{'nome_utente': 'giulia', 'ingredienti_rimossi': ['frutta secca'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'mercoledì', 'pasto': 'cena'}",
+      "query1": "MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "query2": "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen {name: 'frutta secca'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'mercoledi', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+  },
+  {
+      "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+      "parameters": "{'nome_utente': 'marco', 'ingredienti_rimossi': [], 'ingredienti_preferiti': ['pollo', 'riso'], 'solo_questi_ingredienti': [], 'giorno': 'giovedi', 'pasto': 'pranzo'}",
+      "query1": "MATCH (p:Person {name: 'marco'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "query2": "MATCH (p:Person {name: 'marco'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pollo'})} AND EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'riso'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+  },
+  {
+      "question": "Ciao, sono Francesca. Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+      "parameters": "{'nome_utente': 'francesca', 'ingredienti_rimossi': ['pomodoro'], 'ingredienti_preferiti': ['salmone'], 'solo_questi_ingredienti': [], 'giorno': 'sabato', 'pasto': 'cena'}",
+      "query1": "MATCH (p:Person {name: 'francesca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "query2": "MATCH (p:Person {name: 'francesca'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'salmone'})} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pomodoro'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'sabato', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+  },
+  {
+      "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+      "parameters": "{'nome_utente': 'alessandro', 'ingredienti_rimossi': [], 'ingredienti_preferiti': [], 'solo_questi_ingredienti': ['uova', 'spinaci'], 'giorno': 'lunedi', 'pasto': 'colazione'}",
+      "query1": "MATCH (p:Person {name: 'alessandro'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "query2": "MATCH (p:Person {name: 'alessandro'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE NOT i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'lunedi', meal: 'colazione'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+  }
+]
