@@ -14,60 +14,9 @@ from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
 from shared_utils.customization_helpers import load_all_intent_models
 
-# Define Pydantic classes with tools
-class AddToDatabase(BaseModel):
-    """
-    A new user asks you to add them to the database.
-
-    Extract necessary information from the user message.
-    Do not generate any new information, use only what user provided for you.
-    If you don't have some piece of information, leave the corresponding field blank.
-    """
-
-    nome_utente: str = Field(description="The name of the user in lowercase")
-    calorie: int = Field(description="How many calories user should eat per day", default=0)
-    proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
-    carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
-    grassi: int = Field(description="How many fats user should eat per day", default=0)
-    intolleranze: List[str] = Field(description="User's intollerances", default='')
-
-class DishInfo(BaseModel):
-    """
-    User asks you to give him information about a specific dish.
-
-    For example, about its nurtients, allergens or if this dish is suitable for the user.
-    """
-
-    nome_utente: str = Field(description="The name of the user in lowercase", default='')
-    nome_piatto: str = Field(description="The name of the dish in lowercase")
-    controllo_ingredienti: List[str] = Field(description="Ingredients to check for in the dish", default_factory=list)
-
-class SubstituteDish(BaseModel):
-    """
-    User asks you to propose an alternative dish based on their allergies and dietary plan.
-
-    Extract necessary information from the user message. 
-    Do not generate any new information, use only what user provided for you.
-    IMPORTANT: Always return ALL fields in the response, even with empty values.
-    If you don't have some piece of information, leave the corresponding field blank.
-    """
-
-    nome_utente: str = Field(description="The name of the user in lowercase")
-    ingredienti_rimossi: List[str] = Field(description="Ingredients that the user wants to exclude", default_factory=list)
-    ingredienti_preferiti: List[str] = Field(description="Ingredients that the user wants to include", default_factory=list)
-    solo_questi_ingredienti: List[str] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty", default_factory=list)
-    giorno: str = Field(description="Day of the week in italian when the user wants the dish", 
-                        examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'],
-                        default='')
-    pasto: str = Field(description="Type of meal for which the user wants the dish. Map 'stasera'/'sera' to 'cena', 'mattina' to 'colazione', etc.",
-                       examples=['colazione', 'pranzo', 'cena'],
-                       default='')
-
-
-
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
