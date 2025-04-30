@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+import shutil
 import glob
 import os
 
@@ -15,6 +16,9 @@ def get_task_directories(base_dir: str):
     return task_dirs
 
 def build_data_files():
+    """Remove the examples folder to remove eventual old files that are not needed anymore"""
+    clean_examples_directory()
+
     """Function to dynamically build data files (all JSON files)"""
     task_dirs = get_task_directories('scenario_customization')
     data_files = []
@@ -29,6 +33,29 @@ def build_data_files():
             data_files.append((os.path.join('share', package_name, 'examples', task, 'explainability_examples'), explainability_examples))
     
     return data_files
+
+def clean_examples_directory():
+    """Function to clean the examples directory before each build."""
+    install_dirs = os.environ.get('AMENT_PREFIX_PATH', '').split(':')
+    if not install_dirs:
+        raise EnvironmentError("AMENT_PREFIX_PATH environment variable is not set. Please build the workspace first.")
+
+    # Find the correct installation directory for your package
+    install_dir = None
+    for dir in install_dirs:
+        possible_dir = os.path.join(dir, 'share', package_name, 'examples')
+        if os.path.exists(possible_dir):
+            install_dir = dir
+            break
+    
+    # Find the correct installation directory for your package
+    examples_dir = os.path.join(install_dir, 'share', package_name, 'examples')
+
+    # If the examples directory exists, remove it and recreate it
+    if os.path.exists(examples_dir):
+        # print(f"Cleaning up old examples directory: {examples_dir}")
+        shutil.rmtree(examples_dir)
+    os.makedirs(examples_dir)  # Recreate the directory for the new build
 
 
 setup(
