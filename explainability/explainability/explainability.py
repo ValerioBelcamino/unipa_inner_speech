@@ -7,7 +7,7 @@ from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_bra
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from common_msgs.msg import QueryOutput
+from common_msgs.msg import QueryOutput, InnerSpeech
 from dotenv import load_dotenv
 import ast
 from shared_utils.customization_helpers import load_all_explainability_examples
@@ -15,7 +15,7 @@ from shared_utils.customization_helpers import load_all_explainability_examples
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
@@ -26,8 +26,12 @@ class Explainability(Node):
     def __init__(self):
         self.node_name = 'explainability'
         super().__init__(f'{self.node_name}_node')
+        self.inner_speech_explanation_topic = '/ex_inner_speech'
+        self.user_input_topic = '/user_input_activation'
+
         self.query_explanation_topic = '/ex_queries'
         self.clingo_explanation_topic = '/ex_clingo'
+
         self.robot_dialogue_topic = '/speak'
 
         self.listener_query_explanation = self.create_subscription(
@@ -42,12 +46,21 @@ class Explainability(Node):
             self.clingo_explanation_callback,
             10)
         
+        self.listener_inner_speech = self.create_subscription(
+            InnerSpeech,
+            self.inner_speech_explanation_topic,
+            self.inner_speech_explanation_callback,
+            10)
+
+        
         self.robot_dialogue_publisher = self.create_publisher(String, self.robot_dialogue_topic, 10)
+        self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
 
         print(f"\033[34mExplainability Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.robot_dialogue_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.query_explanation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
+        print(f"\033[34mStarted Listening to {self.inner_speech_explanation_topic}!!!\033[0m")
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
@@ -143,6 +156,33 @@ class Explainability(Node):
         print(f"\033[1;34mExplanation:\033[0m")
         print(f"\033[1;32m{explanation}\033[0m")
 
+    def inner_speech_explanation_callback(self, msg):
+        self.get_logger().info('Received: "%s" __ inner_speech_explanation_callback\n' % msg)
+        user_input = msg.user_input
+        parameters = msg.parameters
+        action_name = msg.action_name
+        action_description = msg.action_description
+        missing_parameters = msg.missing_parameters
+
+        answer_prompt = f"""
+                Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {action_description}.
+
+                La sua domanda è: {user_input}.
+                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
+                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
+                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
+
+                Formula la tua risposta in italiano:"""
+        
+        answer = self.llm.invoke(answer_prompt).content
+        response_dict = {'question':user_input, 'response':answer}
+        response_string = json.dumps(response_dict)
+        self.publisher_user_input.publish(String(data=response_string))
+        self.get_logger().info('Published: "%s"' % response_string)
+
+        # Output the explanation
+        print(f"\033[1;34mExplanation:\033[0m")
+        print(f"\033[1;32m{answer}\033[0m")
 
 def main(args=None):
     rclpy.init(args=args)

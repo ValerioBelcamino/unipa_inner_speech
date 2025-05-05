@@ -17,7 +17,6 @@ def get_task_directories(base_dir: str):
 
 def build_data_files():
     """Remove the examples folder to remove eventual old files that are not needed anymore"""
-    clean_examples_directory()
 
     """Function to dynamically build data files (all JSON files)"""
     task_dirs = get_task_directories('scenario_customization')

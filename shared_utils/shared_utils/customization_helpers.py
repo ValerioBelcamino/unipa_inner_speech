@@ -50,7 +50,7 @@ def load_all_explainability_examples() -> Dict[str, Type[BaseModel]]:
 def dynamic_iterative_load_examples(modality: str) -> Dict[str, list]:
     examples = {}
     package = "scenario_customization"
-    base_path = os.path.join(os.path.expanduser('~'), 'Desktop', 'ros2_humble_ws', 'install', 'scenario_customization', 'share', 'scenario_customization', 'examples')
+    base_path = os.path.join(os.path.expanduser('~'), 'unipa', 'src', 'install', 'scenario_customization', 'share', 'scenario_customization', 'examples')
 
     # Ensure modality is either 'query' or 'explainability'
     if modality not in ['query', 'explainability']:

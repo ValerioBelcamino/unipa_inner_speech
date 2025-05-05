@@ -4,7 +4,7 @@ from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from common_msgs.msg import Intent
+from common_msgs.msg import Intent, InnerSpeech
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
@@ -13,7 +13,7 @@ import time
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../src"))
+BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
@@ -26,6 +26,7 @@ class Inner_Speech(Node):
         self.in_topic = '/user_intent'
         self.user_input_topic = '/user_input_activation'
         self.query_generation_topic = '/query_generation'
+        self.inner_speech_explanation_topic = '/ex_inner_speech'
 
         self.subscription = self.create_subscription(
             Intent,
@@ -35,6 +36,7 @@ class Inner_Speech(Node):
         
         self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
         self.publisher_action_dispatch = self.create_publisher(Intent, self.query_generation_topic, 10)
+        self.publisher_inner_speech = self.create_publisher(InnerSpeech, self.inner_speech_explanation_topic, 10)
 
         print(f"\033[34mInner Speech Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.user_input_topic}!!!\033[0m")
@@ -104,17 +106,15 @@ class Inner_Speech(Node):
             if missing_parameters:
                 completed = False 
                 print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
-                print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
-                
-                answer_prompt = f"""
-                Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {self.action_name_to_description[action_name]}.
 
-                La sua domanda è: {user_input}.
-                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
-                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
-                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
 
-                Formula la tua risposta in italiano:"""
+                IS_msg = InnerSpeech(
+                    user_input=user_input, 
+                    action_name=action_name, 
+                    action_description=self.action_name_to_description[action_name], 
+                    parameters=json.dumps(parameters), 
+                    missing_parameters=missing_parameters)
+
 
         prompt = f"""
             Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
@@ -140,11 +140,10 @@ class Inner_Speech(Node):
         print("\033[32m"+result_string+"\033[0m")
 
         if not completed:
-            result['answer'] = self.llm.invoke(answer_prompt).content
-            response_dict = {'question':user_input, 'response':result['answer']}
-            response_string = json.dumps(response_dict)
-            self.publisher_user_input.publish(String(data=response_string))
-            self.get_logger().info('Published: "%s"' % response_string)
+            print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
+
+            self.publisher_inner_speech.publish(IS_msg)
+            self.get_logger().info('Published {} on topic {}'.format(IS_msg, self.inner_speech_explanation_topic))
 
         else:
             print(f"\033[34m" + "Complete answer, we can procede!" + "\033[0m")
