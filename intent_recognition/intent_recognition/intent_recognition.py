@@ -1,7 +1,6 @@
 import os, re
 import json
-from langchain_neo4j import Neo4jGraph
-from neo4j import GraphDatabase 
+from db_adapters import DBFactory  # Import the DBFactory
 from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
@@ -46,19 +45,16 @@ class Intent_Recognition(Node):
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
-
-        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
-
         self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
 
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
-        self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
+        # Initialize the database adapter
+        self.db_type = os.getenv("DB_TYPE")  # Default to neo4j if not specified
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
+
+        # Get LLM configuration
+        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -80,15 +76,15 @@ class Intent_Recognition(Node):
         print(f"\033[1;38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 
-    def execute_plugin_pipeline(self, db_driver, action_name, intent_parameters):
+    def execute_plugin_pipeline(self, db_adapter, action_name, intent_parameters):
         """
         Function to execute the loaded plugins with the appropriate parameters.
         """
         # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
 
-        # Prepare the context for each plugin: db_driver, action_id, and specific parameters
+        # Prepare the context for each plugin: db_adapter, action_id, and specific parameters
         context = {
-            "db_driver": db_driver,
+            "db_adapter": db_adapter,  # Pass the adapter instead of the driver
             "action_name": action_name,
             "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
         }
@@ -139,7 +135,7 @@ class Intent_Recognition(Node):
             tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
-            self.execute_plugin_pipeline(self.driver, tool_name, tool_result)
+            self.execute_plugin_pipeline(self.db, tool_name, tool_result)
 
         intent_msg = Intent()
         intent_msg.user_input = user_input
@@ -148,6 +144,12 @@ class Intent_Recognition(Node):
 
         self.publisher.publish(intent_msg)
         self.get_logger().info('\033[32mPublished: "%s"\033[0m' % intent_msg)
+
+    def destroy_node(self):
+        # Clean up database connection when the node is destroyed
+        if hasattr(self, 'db'):
+            self.db.disconnect()
+        super().destroy_node()
 
 
 def main(args=None):

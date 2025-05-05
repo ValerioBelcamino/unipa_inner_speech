@@ -2,7 +2,7 @@ import os
 import json
 from langchain.chat_models import init_chat_model
 from langchain_core.output_parsers.string import StrOutputParser
-from langchain_neo4j import Neo4jGraph
+from db_adapters import DBFactory
 from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
 import rclpy
 from rclpy.node import Node
@@ -49,17 +49,14 @@ class Explainability(Node):
         print(f"\033[34mStarted Listening to {self.query_explanation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
-
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'explainability', 'explainability')
 
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
+        self.db_type = os.getenv("DB_TYPE")
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
 
 
         # QUERY EXPLAINABILITY LLM VARIABLES

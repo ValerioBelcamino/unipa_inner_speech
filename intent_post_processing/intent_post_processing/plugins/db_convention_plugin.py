@@ -45,8 +45,8 @@ def param_to_lower(intent_parameters: dict, action_name: str):
             intent_parameters[k] = v
 
 
-def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_driver):
-    # print(f"\033[95m[check_user_weekly_plan] parameters = {{'person_name': {intent_parameters}, 'action_name': {action_name}, 'driver': {db_driver}}}\033[0m")
+def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_adapter):
+    # print(f"\033[95m[check_user_weekly_plan] parameters = {{'person_name': {intent_parameters}, 'action_name': {action_name}, 'db_adapter': {db_adapter}}}\033[0m")
 
     # we only have to check the user weekly plan for the meal preparation
     if action_name == 'SubstituteDish':
@@ -60,10 +60,11 @@ def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_driver)
             size(plannedDays) AS daysCovered,
             CASE WHEN size(plannedDays) = 7 THEN true ELSE false END AS hasWeeklyPlan
         """
+        # Use the db_adapter to execute the query with parameters
+        results = db_adapter.execute_query(query, {"name": intent_parameters["nome_utente"]})
         
-        with db_driver.session() as session:
-            result = session.run(query, name=intent_parameters)
-            record = result.single()  # Expecting one result
-            if record:
-                intent_parameters["hasWeeklyPlan"] = record["hasWeeklyPlan"]
+        # Process the results directly from the adapter
+        if results and len(results) > 0:
+            intent_parameters["hasWeeklyPlan"] = results[0]["hasWeeklyPlan"]
+    
     return intent_parameters

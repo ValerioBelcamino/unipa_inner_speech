@@ -1,13 +1,13 @@
 import os
 import json
 from langchain.chat_models import init_chat_model
-from langchain_neo4j import Neo4jGraph
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import Intent
 import ast
 from dotenv import load_dotenv
+from db_adapters import DBFactory
 import time 
 
 
@@ -41,17 +41,14 @@ class Inner_Speech(Node):
         print(f"\033[34mInitialized publishers to {self.query_generation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
+        self.db_type = os.getenv("DB_TYPE")
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
         self.ws_dir = os.getenv("ROS2_WORKSPACE")  # Replace with your workspace path if needed
         self.source_dir = os.path.join(self.ws_dir, 'inner_speech', 'inner_speech')
-
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
