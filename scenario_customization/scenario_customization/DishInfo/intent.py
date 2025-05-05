@@ -9,4 +9,4 @@ class DishInfo(BaseModel):
 
     nome_utente: str = Field(description="The name of the user in lowercase", default='')
     nome_piatto: str = Field(description="The name of the dish in lowercase")
-    controllo_ingredienti: List[str] = Field(description="Ingredients to check for in the dish", default_factory=list)
+    controllo_ingredienti: List[str] = Field(description="Ingredients to check for in the dish", default=[])

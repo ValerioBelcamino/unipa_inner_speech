@@ -58,9 +58,9 @@
         "action_name": "AddToDatabase",
         "parameters": {
             "nome_utente": "elisa", 
-            "calorie": "", 
-            "carboidrati": "", 
-            "grassi": "", 
+            "calorie": 0, 
+            "carboidrati": 0, 
+            "grassi": 0, 
             "proteine": 150, 
             "intolleranze": ["glutine"]}
     },

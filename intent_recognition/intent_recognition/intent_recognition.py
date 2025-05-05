@@ -13,6 +13,7 @@ import time
 from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
 from shared_utils.customization_helpers import load_all_intent_models
+from typing import Any, get_origin, get_args
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -100,13 +101,21 @@ class Intent_Recognition(Node):
             except Exception as e:
                 print(f"Error executing plugin: {e}")
 
+    def get_default_value(self, t: Any):
+        try:
+            origin = get_origin(t) or t
+            value = origin()
+            if callable(value):
+                return value
+            return value
+        except:
+            return None
 
     def check_undeclared_parameters(self, tool_class, tool_result):
-        print(tool_class.__fields__.keys())
-        parameter_list = [field for field in tool_class.__fields__.keys()]
-        for parameter in parameter_list:
+        parameter_list = [(k, self.get_default_value(v.annotation)) for k,v in tool_class.model_fields.items()]
+        for parameter, default_value in parameter_list:
             if parameter not in tool_result:
-                tool_result[parameter] = ''
+                tool_result[parameter] = default_value
         return tool_result
 
     
