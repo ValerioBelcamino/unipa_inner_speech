@@ -63,18 +63,11 @@ class Inner_Speech(Node):
         self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
                                             'DishInfo': ['nome_piatto'],
                                             'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
-                                            '': []}  # Out of scope doesn't require any parameters
+                                            'OutOfScope': []}  # Out of scope doesn't require any parameters
 
         self.dynamic_intent_tools_dict = load_all_intent_models()
-        self.action_name_to_description2 = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
-        # print(self.action_name_to_description2)
-
-        # self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
-        #                             'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
-        #                             'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
-        #                             '': 'Azione non pertinente.'} 
-        # print(self.action_name_to_description)
-
+        self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
+        self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'
 
     def listener_callback(self, intent_msg):
         self.get_logger().info('Received: "%s"\n' % intent_msg)
@@ -86,40 +79,23 @@ class Inner_Speech(Node):
         completed = True
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        if action_name == '':
-            print(f"\033[34m" + "Action ID is 0, no action needed!" + "\033[0m")
-            completed = False
-            missing_parameters = []
-            available_actions = self.action_id_to_description.values()
-
-            answer_prompt = f"""
-                L'utente sta ponendo una domanda che non è rilevante per il sistema, 
-                quindi il sistema non è in grado di fornire una risposta all'utente.
-                Spiega all'utente che il sistema non è in grado di fornire una risposta.
-                
-                La domanda dell'utente è: {user_input}.
-                Le azioni disponibili sono: {available_actions}.
-
-                Fornire una spiegazione in italiano:"""
-            
-        else:
-            required_parameters = self.action_name_to_required_parameters[action_name]
-            missing_parameters = [param for param in required_parameters if param not in parameters]
-            missing_parameters.extend([
-                                    param for param in list(set(required_parameters) - set(missing_parameters)) 
-                                    if parameters[param] in [0, None, '']
-                                    ])
-            if missing_parameters:
-                completed = False 
-                print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+        required_parameters = self.action_name_to_required_parameters[action_name]
+        missing_parameters = [param for param in required_parameters if param not in parameters]
+        missing_parameters.extend([
+                                param for param in list(set(required_parameters) - set(missing_parameters)) 
+                                if parameters[param] in [0, None, '']
+                                ])
+        if missing_parameters or action_name == 'OutOfScope':
+            completed = False 
+            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
 
 
-                IS_msg = InnerSpeech(
-                    user_input=user_input, 
-                    action_name=action_name, 
-                    action_description=self.action_name_to_description[action_name], 
-                    parameters=json.dumps(parameters), 
-                    missing_parameters=missing_parameters)
+            IS_msg = InnerSpeech(
+                user_input=user_input, 
+                action_name=action_name, 
+                action_description=self.action_name_to_description[action_name], 
+                parameters=json.dumps(parameters), 
+                missing_parameters=missing_parameters)
 
 
         prompt = f"""

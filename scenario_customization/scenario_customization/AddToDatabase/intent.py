@@ -6,8 +6,7 @@ from typing import List
 class AddToDatabase(BaseModel):
     """A new user asks you to add them to the database. 
     Extract necessary information from the user message. 
-    Do not generate any new information, use only what user provided for you.
-    If you don't have some piece of information, leave the corresponding field blank."""
+    Do not generate any new information, use only what user provided for you."""
 
     nome_utente: str = Field(description="The name of the user in lowercase")
     calorie: int = Field(description="How many calories user should eat per day", default=0)

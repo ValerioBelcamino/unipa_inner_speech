@@ -8,11 +8,10 @@ from std_msgs.msg import String
 from dotenv import load_dotenv
 import ast
 from groq import BadRequestError
-import time 
 from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
 from shared_utils.customization_helpers import load_all_intent_models
-
+from typing import Any, get_origin
 
 
 # Load environment variables from .env file
@@ -99,12 +98,22 @@ class Intent_Recognition(Node):
                 print(f"Error executing plugin: {e}")
 
 
+    def get_default_value(self, t: Any):
+        try:
+            origin = get_origin(t) or t
+            value = origin()
+            if callable(value):
+                return value
+            return value
+        except:
+            return None
+
     def check_undeclared_parameters(self, tool_class, tool_result):
-        print(tool_class.__fields__.keys())
-        parameter_list = [field for field in tool_class.__fields__.keys()]
-        for parameter in parameter_list:
+        parameter_list = [(k, self.get_default_value(v.annotation)) for k,v in tool_class.model_fields.items()]
+        for parameter, default_value in parameter_list:
             if parameter not in tool_result:
-                tool_result[parameter] = ''
+                print(f"\033[33mParameter {parameter} not found in tool result. Setting default value: {default_value}\033[0m")
+                tool_result[parameter] = default_value
         return tool_result
 
     
@@ -126,7 +135,8 @@ class Intent_Recognition(Node):
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
 
         if tool_calls == []: # no tool called -> out of scope
-            tool_result = {'action_name': ''}
+            tool_result = {}
+            tool_name = 'OutOfScope'
         else:
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']

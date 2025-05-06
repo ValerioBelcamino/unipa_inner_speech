@@ -129,6 +129,10 @@ class Explainability(Node):
                                         )
         
         explanation = self.llm_response.invoke(formatted_prompt)
+        response_dict = {'question':msg.user_input, 'response':explanation}
+        response_string = json.dumps(response_dict)
+        self.publisher_user_input.publish(String(data=response_string))
+        self.get_logger().info('Published: "%s"' % response_string)
 
         # Output the explanation
         print(f"\033[1;34mExplanation:\033[0m")
@@ -151,6 +155,10 @@ class Explainability(Node):
         formatted_prompt = few_shot_prompt.format(results = msg_dict['results'])
         
         explanation = self.llm_response.invoke(formatted_prompt)
+        response_dict = {'question':msg.user_input, 'response':explanation}
+        response_string = json.dumps(response_dict)
+        self.publisher_user_input.publish(String(data=response_string))
+        self.get_logger().info('Published: "%s"' % response_string)
 
         # Output the explanation
         print(f"\033[1;34mExplanation:\033[0m")
@@ -165,12 +173,14 @@ class Explainability(Node):
         missing_parameters = msg.missing_parameters
 
         answer_prompt = f"""
+                Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare.
                 Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {action_description}.
 
                 La sua domanda è: {user_input}.
                 Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
                 L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
-                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
+                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale se è relevante alla sistema.
+                Oppure, se non è rilevante, chiedi all'utente di riformulare la domanda in modo che il sistema possa fornire una risposta.
 
                 Formula la tua risposta in italiano:"""
         
