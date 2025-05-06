@@ -2,7 +2,7 @@ import importlib
 import pkgutil
 import inspect
 from pydantic import BaseModel
-from typing import Type, Dict
+from typing import Type, Dict, get_origin, get_args, Union
 from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces
 import json
 import os 
@@ -16,7 +16,7 @@ def load_all_query_models() -> Dict[str, Type[BaseModel]]:
     return dynamic_iterative_load('query')
 
 def dynamic_iterative_load(filename:str) -> Dict[str, Type[BaseModel]]:
-    models = {}
+    tool_dict = {}
     package = "scenario_customization"  # Top-level package
 
     # Discover all submodules (task folders)
@@ -32,14 +32,25 @@ def dynamic_iterative_load(filename:str) -> Dict[str, Type[BaseModel]]:
                 if issubclass(obj, BaseModel) and obj is not BaseModel:
                     # models.append(obj)
                     print(f"\033[95mLoaded {obj.__name__} from {task_name}\033[0m")
-                    models[task_name] = obj
+                    tool_dict[task_name] = obj
         except ModuleNotFoundError:
             # No intent.py or broken module, ignore
             pass
 
-    return models
+    return tool_dict
 
+def is_optional(annotation):
+    return get_origin(annotation) is Union and type(None) in get_args(annotation)
 
+def list_required_parameters_by_tool(tool_dict):
+    required_parameters = {}
+    for tool, tool_class in tool_dict.items():
+        tool_required_parameters = []
+        for field_name, field_info in tool_class.model_fields.items():
+            if not is_optional(field_info.annotation):
+                tool_required_parameters.append(field_name)
+        required_parameters[tool] = tool_required_parameters
+    return required_parameters    
 
 def load_all_query_examples() -> Dict[str, Type[BaseModel]]:
     return dynamic_iterative_load_examples('query')
@@ -80,3 +91,4 @@ def dynamic_iterative_load_examples(modality: str) -> Dict[str, list]:
                 examples[task_name] = task_examples
 
     return examples
+
