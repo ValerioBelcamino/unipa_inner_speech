@@ -8,7 +8,7 @@ from common_msgs.msg import Intent, InnerSpeech
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
-from shared_utils.customization_helpers import load_all_intent_models
+from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool
 import time 
 
 
@@ -60,13 +60,15 @@ class Inner_Speech(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
-                                            'DishInfo': ['nome_piatto'],
-                                            'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
-                                            '': []}  # Out of scope doesn't require any parameters
+        # self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
+        #                                     'DishInfo': ['nome_piatto'],
+        #                                     'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
+        #                                     '': []}  # Out of scope doesn't require any parameters
 
         self.dynamic_intent_tools_dict = load_all_intent_models()
-        self.action_name_to_description2 = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
+        self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
+
+        self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
         # print(self.action_name_to_description2)
 
         # self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',

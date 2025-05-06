@@ -100,8 +100,8 @@ class Intent_Recognition(Node):
 
 
     def check_undeclared_parameters(self, tool_class, tool_result):
-        print(tool_class.__fields__.keys())
-        parameter_list = [field for field in tool_class.__fields__.keys()]
+        print(tool_class.model_fields.keys())
+        parameter_list = [field for field in tool_class.model_fields.keys()]
         for parameter in parameter_list:
             if parameter not in tool_result:
                 tool_result[parameter] = ''

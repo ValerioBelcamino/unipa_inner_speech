@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 
 
@@ -14,4 +14,6 @@ class AddToDatabase(BaseModel):
     proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
     carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
     grassi: int = Field(description="How many fats user should eat per day", default=0)
-    intolleranze: List[str] = Field(description="User's intollerances", default='')
+    intolleranze: Optional[List[str]] = Field(description="User's intollerances", default='')
+
+mandatory_parameters = ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi']
