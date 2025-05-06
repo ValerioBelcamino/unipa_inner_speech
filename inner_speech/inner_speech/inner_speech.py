@@ -8,6 +8,7 @@ from common_msgs.msg import Intent, InnerSpeech
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
+from shared_utils.customization_helpers import load_all_intent_models
 import time 
 
 
@@ -64,10 +65,15 @@ class Inner_Speech(Node):
                                             'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
                                             '': []}  # Out of scope doesn't require any parameters
 
-        self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
-                                    'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
-                                    'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
-                                    '': 'Azione non pertinente.'} 
+        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.action_name_to_description2 = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
+        # print(self.action_name_to_description2)
+
+        # self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
+        #                             'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
+        #                             'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
+        #                             '': 'Azione non pertinente.'} 
+        # print(self.action_name_to_description)
 
 
     def listener_callback(self, intent_msg):
