@@ -7,7 +7,16 @@ from .db_adapter import DBAdapter
 class Neo4jAdapter(DBAdapter):
     """
     Neo4j implementation of the DBAdapter interface.
+    This adopts singleton design pattern to have a single instance connected to the DB
+    multiple connections are not supported in Neo4j
     """
+
+    _instance = None
+
+    def __new__(cls, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Neo4jAdapter, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self, uri: str, username: str, password: str):
         """
@@ -18,11 +27,14 @@ class Neo4jAdapter(DBAdapter):
             username: Neo4j username
             password: Neo4j password
         """
-        self.uri = uri
-        self.username = username
-        self.password = password
-        self.driver = None
-        self.graph = None
+
+        if not hasattr(self, "_initialized"):
+            self.uri = uri
+            self.username = username
+            self.password = password
+            self.driver = None
+            self.graph = None
+            self._initialized = True
         
     def connect(self) -> None:
         """Establish a connection to the Neo4j database"""
