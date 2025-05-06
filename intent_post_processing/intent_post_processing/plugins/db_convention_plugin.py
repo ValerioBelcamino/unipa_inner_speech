@@ -65,6 +65,6 @@ def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_adapter
         
         # Process the results directly from the adapter
         if results and len(results) > 0:
-            intent_parameters["hasWeeklyPlan"] = results[0]["hasWeeklyPlan"]
+            intent_parameters["ha_piano_settimanale"] = results[0]["hasWeeklyPlan"]
     
     return intent_parameters

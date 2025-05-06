@@ -11,7 +11,7 @@ from groq import BadRequestError
 from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
 from shared_utils.customization_helpers import load_all_intent_models
-from typing import Any, get_origin
+from typing import Any, get_origin, get_args, Union
 
 
 # Load environment variables from .env file
@@ -100,12 +100,21 @@ class Intent_Recognition(Node):
 
     def get_default_value(self, t: Any):
         try:
+            origin = get_origin(t)
+            
+            if origin is Union:
+                # Filter out NoneType and keep the first non-None type
+                non_none_args = [arg for arg in get_args(t) if arg is not type(None)]
+                if non_none_args:
+                    t = non_none_args[0]
+            
             origin = get_origin(t) or t
             value = origin()
+            
             if callable(value):
                 return value
             return value
-        except:
+        except Exception:
             return None
 
     def check_undeclared_parameters(self, tool_class, tool_result):

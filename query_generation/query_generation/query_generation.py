@@ -108,15 +108,10 @@ class Query_Generation(Node):
         
     def query_generation_callback(self, intent_msg):
         self.get_logger().info('Received: "%s" __ query_generation_callback\n')
-        # msg_dict = json.loads(msg.data)
-        
-        # action_id = int(msg_dict['action_id'])
-        # user_message = msg_dict['question']
-        # parameters = msg_dict['parameters']
 
         user_input = intent_msg.user_input
         action_name = intent_msg.action_name
-        parameters = ast.literal_eval(intent_msg.parameters)
+        parameters = json.loads(intent_msg.parameters)
 
         print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 

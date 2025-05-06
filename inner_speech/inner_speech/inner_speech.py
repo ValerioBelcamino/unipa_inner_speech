@@ -60,24 +60,12 @@ class Inner_Speech(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        # self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
-        #                                     'DishInfo': ['nome_piatto'],
-        #                                     'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
-        #                                     '': []}  # Out of scope doesn't require any parameters
-
         self.dynamic_intent_tools_dict = load_all_intent_models()
         self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
+        self.action_name_to_required_parameters['OutOfScope'] = []
 
         self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
         self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'
-
-        # print(self.action_name_to_description2)
-
-        # self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
-        #                             'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
-        #                             'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
-        #                             '': 'Azione non pertinente.'} 
-        # print(self.action_name_to_description)
 
 
     def listener_callback(self, intent_msg):
@@ -85,7 +73,7 @@ class Inner_Speech(Node):
 
         user_input = intent_msg.user_input
         action_name = intent_msg.action_name
-        parameters = ast.literal_eval(intent_msg.parameters)
+        parameters = json.loads(intent_msg.parameters)
 
         completed = True
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
