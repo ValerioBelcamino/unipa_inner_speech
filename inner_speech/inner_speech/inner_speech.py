@@ -60,7 +60,9 @@ class Inner_Speech(Node):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
         
-        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
         self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
         self.action_name_to_required_parameters['OutOfScope'] = []
 
