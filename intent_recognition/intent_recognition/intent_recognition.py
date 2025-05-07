@@ -120,7 +120,7 @@ class Intent_Recognition(Node):
     def check_undeclared_parameters(self, tool_class, tool_result):
         parameter_list = [(k, self.get_default_value(v.annotation)) for k,v in tool_class.model_fields.items()]
         for parameter, default_value in parameter_list:
-            if parameter not in tool_result:
+            if parameter not in tool_result or tool_result[parameter] is None:
                 print(f"\033[33mParameter {parameter} not found in tool result. Setting default value: {default_value}\033[0m")
                 tool_result[parameter] = default_value
         return tool_result
