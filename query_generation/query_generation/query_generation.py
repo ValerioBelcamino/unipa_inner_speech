@@ -1,9 +1,9 @@
 import os
 import json
-from .export_query_results import generate_pl_file, generate_csv_file
+# from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
 from langchain_neo4j import Neo4jGraph
-from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
+from shared_utils.fewshot_helpers import escape_curly_braces, prepare_few_shot_prompt
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
@@ -30,7 +30,6 @@ class Query_Generation(Node):
         self.node_name = 'query_generation'
         super().__init__(f'{self.node_name}_node')
         self.query_generation_topic = '/query_generation'
-
         self.out_clingo_topic = '/clingo_start'
         self.out_query_explanation = '/ex_queries'
 
@@ -87,11 +86,15 @@ class Query_Generation(Node):
         {self.schema}"""
 
         print()
-        self.dynamic_intent_tools_dict = load_all_query_models()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.dynamic_intent_tools_dict = load_all_query_models(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
         print()
 
-        self.examples = load_all_query_examples()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.examples = load_all_query_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""

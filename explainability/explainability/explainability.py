@@ -83,7 +83,9 @@ class Explainability(Node):
         self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
 
         print()
-        self.examples = load_all_explainability_examples()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.examples = load_all_explainability_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
         print()
 

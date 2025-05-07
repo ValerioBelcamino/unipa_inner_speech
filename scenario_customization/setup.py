@@ -12,25 +12,44 @@ def get_task_directories(base_dir: str):
     for root, dirs, files in os.walk(base_dir):
         # Look for directories that are tasks
         if "query_examples" in dirs or "explainability_examples" in dirs:
-            task_dirs.append(os.path.basename(root))  # Add task name (task_1, task_2, etc.)
+            task_dirs.append(os.path.basename(root))   # e.g., AddToDatabase
     return task_dirs
 
-def build_data_files():
-    """Remove the examples folder to remove eventual old files that are not needed anymore"""
+def get_all_scenarios_task_paths():
+    """Wrapper that calls get_task_directories() for each scenario and returns full relative paths"""
+    scenario_base = 'scenario_customization'
+    all_task_paths = []
 
-    """Function to dynamically build data files (all JSON files)"""
-    task_dirs = get_task_directories('scenario_customization')
+    for scenario in os.listdir(scenario_base):
+        scenario_path = os.path.join(scenario_base, scenario)
+        if os.path.isdir(scenario_path):
+            tasks = get_task_directories(scenario_path)
+            for task in tasks:
+                relative_path = os.path.join(scenario, task)
+                all_task_paths.append(relative_path)
+
+    return all_task_paths
+
+def build_data_files():
+    """Builds data_files for all scenarios and their tasks"""
+    task_dirs = get_all_scenarios_task_paths()
     data_files = []
-    
-    for task in task_dirs:
-        query_examples = glob.glob(f'scenario_customization/{task}/query_examples/*.json', recursive=True)
-        explainability_examples = glob.glob(f'scenario_customization/{task}/explainability_examples/*.json', recursive=True)
+
+    for task_rel_path in task_dirs:
+        query_examples = glob.glob(f'scenario_customization/{task_rel_path}/query_examples/*.json', recursive=True)
+        explainability_examples = glob.glob(f'scenario_customization/{task_rel_path}/explainability_examples/*.json', recursive=True)
 
         if query_examples:
-            data_files.append((os.path.join('share', package_name, 'examples', task, 'query_examples'), query_examples))
+            data_files.append((
+                os.path.join('share', package_name, 'examples', task_rel_path, 'query_examples'),
+                query_examples
+            ))
         if explainability_examples:
-            data_files.append((os.path.join('share', package_name, 'examples', task, 'explainability_examples'), explainability_examples))
-    
+            data_files.append((
+                os.path.join('share', package_name, 'examples', task_rel_path, 'explainability_examples'),
+                explainability_examples
+            ))
+
     return data_files
 
 def clean_examples_directory():

@@ -63,7 +63,9 @@ class Intent_Recognition(Node):
                                 )
         
         print()
-        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
         self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
         self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
