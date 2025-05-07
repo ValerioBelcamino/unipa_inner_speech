@@ -38,10 +38,11 @@ def param_to_lower(intent_parameters: dict, action_name: str):
                     v[i] = v[i].lower()
                     # v[i] = v[i].replace(' ', '_')
             else:
-                # Cast to lowercase
-                v = v.lower()
-                # Replace spaces with underscores
-                # v = v.replace(' ', '_')
+                if not k == 'ha_piano_settimanale':
+                    # Cast to lowercase
+                    v = v.lower()
+                    # Replace spaces with underscores
+                    # v = v.replace(' ', '_')
             intent_parameters[k] = v
 
 
