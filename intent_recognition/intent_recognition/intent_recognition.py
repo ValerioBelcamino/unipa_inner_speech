@@ -48,7 +48,7 @@ class Intent_Recognition(Node):
         self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
 
         # Initialize the database adapter
-        self.db_type = os.getenv("DB_TYPE")  # Default to neo4j if not specified
+        self.db_type = os.getenv("DB_TYPE") 
         self.db = DBFactory.create_adapter(self.db_type)
         self.schema = self.db.get_schema()
 
@@ -67,6 +67,7 @@ class Intent_Recognition(Node):
         self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
         self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
+        print(self.llm_with_tools.get_input_schema())
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_toolnames)} intent_tool(s).\033[0m")
         print()
 
@@ -131,7 +132,13 @@ class Intent_Recognition(Node):
         user_input = msg.data.strip()
         try:
             # start_time = time.time()
-            llm_response = self.llm_with_tools.invoke(user_input)
+            llm_response = self.llm_with_tools.invoke(
+                [
+                    ("system", 'you have to understand the user intent. You have a set of tools at your disposal. if the user prompt is not related to the tools you should not answer'),
+                    ("human", user_input),
+                ]
+            )
+            print(llm_response)
             # print(f'\033[91m{time.time() - start_time}\033[0m')
             tool_calls = llm_response.tool_calls
         except BadRequestError as e:
