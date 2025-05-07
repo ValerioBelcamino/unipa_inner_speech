@@ -73,7 +73,7 @@ class Explainability(Node):
 
 
         # QUERY EXPLAINABILITY LLM VARIABLES
-        self.query_instructions = "Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
+        self.query_instructions = "Un assistente che aiuta gli utenti a ottenere informazioni aggiornate sui film attualmente in programmazione a Genova. Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
         self.query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
         self.query_example_template = """User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"""
 
@@ -175,7 +175,7 @@ class Explainability(Node):
         missing_parameters = msg.missing_parameters
 
         answer_prompt = f"""
-                Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare.
+                Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti.
                 Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {action_description}.
 
                 La sua domanda è: {user_input}.

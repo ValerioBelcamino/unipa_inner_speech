@@ -66,6 +66,7 @@ class Intent_Recognition(Node):
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
         self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
         self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
         self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
@@ -163,7 +164,7 @@ class Intent_Recognition(Node):
             tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
-            self.execute_plugin_pipeline(self.db, tool_name, tool_result)
+            # self.execute_plugin_pipeline(self.db, tool_name, tool_result)
 
         intent_msg = Intent()
         intent_msg.user_input = user_input

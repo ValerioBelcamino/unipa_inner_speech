@@ -12,6 +12,7 @@ from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
 from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples
+from db_adapters import DBFactory
 
 
 # Load environment variables from .env file
@@ -58,32 +59,16 @@ class Query_Generation(Node):
         print(f"\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.query_generation_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
+        self.db_type = os.getenv("DB_TYPE") 
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = escape_curly_braces(self.graph.schema)
-
-        self.instructions = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
-        and converts them to Cypher strictly following the instructions below:
-
-        1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
-        2. Do not use the same variable names for different nodes and relationships.
-        3. Use only the nodes and relationships mentioned in the schema.
-        4. Always enclose the Cypher output inside three backticks.
-        5. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        6. Always use aliases to refer to nodes throughout the query.
-        7. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        8. You may generate multiple queries if required.
-
-        Schema:
-        {self.schema}"""
+        self.instructions = self.db.get_prompt()
 
         print()
         self.scenario = os.getenv("SCENARIO")
@@ -153,51 +138,11 @@ class Query_Generation(Node):
         return string_repr
     
     
-    def query_execution(self, cypher_list):
-        driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
-
-        multi_query_results = []
-        for cypher in cypher_list:
-            query_results = []
-            try:
-                with driver.session() as session:
-                    # Execute the query
-                    result = session.run(cypher)
-                    print("Query:")
-                    print(f"\033[32m{cypher}\033[0m\n")
-                    print(f"Query results:")
-
-                    for record in result:
-                        recdict = {}
-                        for key, value in record.items():
-                            if isinstance(value, list):
-                                # It's a collected list of nodes
-                                sublist = []
-                                for item in value:
-                                    if hasattr(item, "items"):
-                                        subdict = {k: v for k, v in item.items()}
-                                        sublist.append(subdict)
-                                    else:
-                                        sublist.append(item)  # fallback if not a node
-                                recdict[key] = sublist
-                            elif hasattr(value, "items"):
-                                # It's a single node
-                                subdict = {k: v for k, v in value.items()}
-                                recdict[key] = subdict
-                            else:
-                                recdict[key] = value  # fallback for primitives
-                        query_results.append(recdict)
-                        print("\033[32m" + str(recdict) + "\033[0m\n")
-
-            except Exception as e:
-                print("Error:", e.message)
-                query_results = e.message
-
-            multi_query_results.append(query_results)
-                
-        driver.close()
-
-        return multi_query_results
+    def query_execution(self, query_list):
+        query_results = []
+        for query in query_list:
+            query_results.append(self.db.execute_query(query))
+        return query_results
     
 
     def send_query_output(self, cypher, results, user_input, action_name):

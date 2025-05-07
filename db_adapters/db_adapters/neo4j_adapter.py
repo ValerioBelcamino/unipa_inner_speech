@@ -35,7 +35,32 @@ class Neo4jAdapter(DBAdapter):
             self.driver = None
             self.graph = None
             self._initialized = True
+            self._prompt = """You are an expert Neo4j Cypher translator who understands questions in Italian 
+        and converts them to Cypher strictly following the instructions below:
+
+        1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
+        2. Do not use the same variable names for different nodes and relationships.
+        3. Use only the nodes and relationships mentioned in the schema.
+        4. Always enclose the Cypher output inside three backticks.
+        5. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        6. Always use aliases to refer to nodes throughout the query.
+        7. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        8. You may generate multiple queries if required.
+
+        Schema:
+        {schema}"""
         
+    def get_prompt(self) -> str:
+        """
+        Get the prompt for the Neo4j adapter
+        
+        Returns:
+            The prompt string
+        """
+        schema = self.get_schema()
+        self._prompt = self._prompt.format(schema=schema)
+        return self._prompt
+    
     def connect(self) -> None:
         """Establish a connection to the Neo4j database"""
         self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))

@@ -19,6 +19,11 @@ class DBAdapter(ABC):
     def disconnect(self) -> None:
         """Close the database connection"""
         pass
+
+    @abstractmethod
+    def get_prompt(self) -> str:
+        """Get prompt for the query generation"""
+        pass
     
     @abstractmethod
     def execute_query(self, query: str, parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:

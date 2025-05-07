@@ -36,8 +36,14 @@ class DBFactory:
             adapter.connect()
             return adapter
             
-        elif db_type.lower() == 'sql':
-            connection_string = config.get('connection_string', os.getenv("SQL_CONNECTION_STRING"))
+        elif db_type.lower() == 'sqlite':
+            db_config = {
+                'user': config.get('user', os.getenv("SQL_USER")),
+                'password': config.get('password', os.getenv("SQL_PASSWORD")),
+                'host': config.get('host', os.getenv("SQL_HOST")),
+                'database': config.get('database', os.getenv("SQL_DATABASE"))
+            }
+            connection_string = f"mysql+pymysql://{db_config['user']}:{db_config['password']}@{db_config['host']}/{db_config['database']}"
             
             if not connection_string:
                 raise ValueError("Missing required SQL connection string")
