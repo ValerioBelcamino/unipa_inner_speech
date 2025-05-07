@@ -95,19 +95,9 @@ class Inner_Speech(Node):
                                 param for param in list(set(required_parameters) - set(missing_parameters)) 
                                 if parameters[param] in [0, None, '']
                                 ])
-        if missing_parameters or action_name == 'OutOfScope':
-            completed = False 
-            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
-
-
-            IS_msg = InnerSpeech(
-                user_input=user_input, 
-                action_name=action_name, 
-                action_description=self.action_name_to_description[action_name], 
-                parameters=json.dumps(parameters), 
-                missing_parameters=missing_parameters)
-
         prompt = [
+                    # ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
+                    ("system", "Sei un assistente AI specializzato nel fornire informazioni aggiornate sui film attualmente in programmazione nei cinema di Genova. Devi rispondere solo a domande pertinenti a questo ambito e ignorare richieste non correlate."),
                     ("human", f"""  La domande dell'utente è: {user_input}.
                                     Il riconoscimenti dell'intento ha assegnato la seguente funzione {action_name}.
                                     con i seguenti parametri: {parameters}.
@@ -115,8 +105,6 @@ class Inner_Speech(Node):
                                     Parametri mancanti: {missing_parameters}
                                     """
                     ),
-                    ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
-                     ),
                 ]
 
         # start_time = time.time()
@@ -132,7 +120,19 @@ class Inner_Speech(Node):
 
         print("\033[32m"+result_string+"\033[0m")
 
-        if not completed or not result['can_proceed']:
+        if missing_parameters or action_name == 'OutOfScope' or not result['can_proceed']:
+            completed = False 
+            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+
+
+            IS_msg = InnerSpeech(
+                user_input=user_input, 
+                action_name=action_name, 
+                action_description=self.action_name_to_description[action_name], 
+                parameters=json.dumps(parameters), 
+                missing_parameters=missing_parameters)
+
+        if not completed:
             print(f"\033[34m" + "Incomplete or out of scope answer, let's ask for more details" + "\033[0m")
 
             self.publisher_inner_speech.publish(IS_msg)
