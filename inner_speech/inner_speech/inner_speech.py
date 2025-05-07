@@ -5,11 +5,19 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import Intent, InnerSpeech
+from pydantic import BaseModel, Field
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
 from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool
 import time 
+
+
+class InnerSeechOutputFormat(BaseModel):
+    """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
+
+    inner_speech: str = Field(description="Il tuo ragionamento")
+    can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
 
 
 # Load environment variables from .env file
@@ -59,6 +67,7 @@ class Inner_Speech(Node):
                                     temperature=self.llm_config['temperature'], 
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
+        self.structured_llm = self.llm.with_structured_output(InnerSeechOutputFormat)
         
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
@@ -98,32 +107,33 @@ class Inner_Speech(Node):
                 parameters=json.dumps(parameters), 
                 missing_parameters=missing_parameters)
 
-
-        prompt = f"""
-            Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
-            Non tralasciare alcun dettaglio.
-            
-            L'utente desidera eseguire l'azione {action_name}: {self.action_name_to_description[action_name]}.
-            La loro domanda è: {user_input}.
-            Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
-            L'azione può essere completata: {completed}.
-            Parametri mancanti: {missing_parameters}
-            
-            Il tuo discorso interiore in italiano:"""
+        prompt = [
+                    ("human", f"""  La domande dell'utente è: {user_input}.
+                                    Il riconoscimenti dell'intento ha assegnato la seguente funzione {action_name}.
+                                    con i seguenti parametri: {parameters}.
+                                    L'azione può essere completata: {completed}.
+                                    Parametri mancanti: {missing_parameters}
+                                    """
+                    ),
+                    ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
+                     ),
+                ]
 
         # start_time = time.time()
-        llm_response = self.llm.invoke(prompt)
+        llm_response = self.structured_llm.invoke(prompt)
+        print(f'\033[91m{llm_response}\033[0m')
         # print(f'\033[91m{time.time() - start_time}\033[0m')
 
         result = {}
         result['question'] = user_input
-        result['inner_speech'] = llm_response.content
+        result['inner_speech'] = llm_response.inner_speech
+        result['can_proceed'] = llm_response.can_proceed
         result_string = json.dumps(result)
 
         print("\033[32m"+result_string+"\033[0m")
 
-        if not completed:
-            print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
+        if not completed or not result['can_proceed']:
+            print(f"\033[34m" + "Incomplete or out of scope answer, let's ask for more details" + "\033[0m")
 
             self.publisher_inner_speech.publish(IS_msg)
             self.get_logger().info('Published {} on topic {}'.format(IS_msg, self.inner_speech_explanation_topic))
