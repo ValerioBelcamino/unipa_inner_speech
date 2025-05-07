@@ -77,8 +77,12 @@ def dynamic_iterative_load_examples(scenario: str, modality: str) -> Dict[str, l
 
     # print(package_dir)
     # go from code installation path in lib to file installation folder in share
+
+    # from this 
+    # /home/belca/Desktop/ros2_humble_ws/src/install/scenario_customization/lib/python3.10/site-packages/scenario_customization
+    # to this 
+    # /home/belca/Desktop/ros2_humble_ws/src/install/scenario_customization/share/scenario_customization/examples/{SCENARIO}
     base_path = Path(package_dir).parent.parent.parent.parent / 'share' / 'scenario_customization' / 'examples' / scenario
-    # print(base_path)
 
     if not os.path.isdir(base_path):
         raise FileNotFoundError(f"Scenario folder not found: {base_path}")
