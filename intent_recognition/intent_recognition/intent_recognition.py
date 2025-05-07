@@ -164,7 +164,7 @@ class Intent_Recognition(Node):
             tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
-            # self.execute_plugin_pipeline(self.db, tool_name, tool_result)
+            self.execute_plugin_pipeline(self.db, tool_name, tool_result)
 
         intent_msg = Intent()
         intent_msg.user_input = user_input
