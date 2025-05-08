@@ -5,12 +5,12 @@ from ament_index_python.packages import get_package_share_directory
 from .wrapper import make_callable_from_context
 
 
-def load_plugins():
-    package_share = get_package_share_directory("intent_post_processing")
-    PLUGIN_CONFIG_PATH = os.path.abspath(os.path.join(package_share, "./config/config.yaml"))
+def load_plugins(scenario:str):
+    package_share = get_package_share_directory("scenario_customization")
+    PLUGIN_CONFIG_PATH = os.path.abspath(os.path.join(package_share, f'./scenarios/{scenario}/plugin_config.yaml'))
     
     with open(PLUGIN_CONFIG_PATH, "r") as f:
-        config = yaml.safe_load(f)
+        config = yaml.safe_load(f) or {}
     
     plugins = config.get('plugins', [])
     

@@ -113,6 +113,7 @@ class Inner_Speech(Node):
                                     con i seguenti parametri: {parameters}.
                                     L'azione può essere completata: {completed}.
                                     Parametri mancanti: {missing_parameters}
+                                    Utilizza queste informazioni per generare il tuo dialogo interiore.
                                     """
                     ),
                     ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
