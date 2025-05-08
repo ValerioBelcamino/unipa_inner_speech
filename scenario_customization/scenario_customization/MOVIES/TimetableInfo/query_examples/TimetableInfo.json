@@ -2,12 +2,12 @@
   {
       "question": "Gimme all movies in english for this weekend.",
       "parameters": "{'language': 'en', 'dates': ['2025-05-10','2025-05-11']}",
-      "query": "SELECT * FROM timetable WHERE language = 'en' AND date BETWEEN '2025-05-10' AND '2025-05-11'"
+      "query": "SELECT cinema, title, date, time FROM timetable WHERE language = 'en' AND date BETWEEN '2025-05-10' AND '2025-05-11'"
   },
   {
       "question": "What's today in Odeon?",
       "parameters": "{'cinema': 'Circuito Odeon', 'dates': ['2025-05-07']}",
-      "query": "SELECT * FROM timetable WHERE date = '2025-05-07' AND cinema = 'Circuito Odeon';"
+      "query": "SELECT title, language, time FROM timetable WHERE date = '2025-05-07' AND cinema = 'Circuito Odeon';"
   },
   {
       "question": "Give me a list of all italian movies tomorrow evening.",

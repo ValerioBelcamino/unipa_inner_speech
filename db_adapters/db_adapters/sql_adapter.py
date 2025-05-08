@@ -39,7 +39,7 @@ class SQLAdapter(DBAdapter):
         2. Limited Rows: Unless explicitly stated in the user's question, limit the query to return at most 20 results. 
         Use the LIMIT clause for this purpose.
         3. Column Selection: Only retrieve the specific columns relevant to the question. Avoid selecting all columns (e.g., avoid SELECT *). 
-        Limit the number of columns as much as you can choosing only the ones really necessary.
+        Include all the columns that are useful to answer the question.
         4. Unique Results: Use DISTINCT if it is applicable.
         5. Valid Columns and Tables: Use only the column names and table names provided in the schema below. 
         Do not reference columns or tables that are not explicitly listed.

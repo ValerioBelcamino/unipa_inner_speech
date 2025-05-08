@@ -75,16 +75,12 @@ class Query_Generation(Node):
         print(f"\033[34mUsing {self.scenario}!\033[0m")
         self.dynamic_intent_tools_dict = load_all_query_models(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
-        print()
-
-        self.scenario = os.getenv("SCENARIO")
-        print(f"\033[34mUsing {self.scenario}!\033[0m")
         self.examples = load_all_query_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
 
-        self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
+        self.example_template = """User asks: {question}\nParameters: {parameters}\nQueries: {queries}"""
 
-        self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
+        self.suffix = """User asks: {question}\nParameters: {parameters}\nQuery: """
 
         self.llm = init_chat_model(
             model=self.llm_config['model_name'], 
@@ -114,7 +110,6 @@ class Query_Generation(Node):
 
         llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
-
         cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
 
         queries = getattr(cypher, 'query')

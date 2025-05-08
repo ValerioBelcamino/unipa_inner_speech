@@ -10,7 +10,7 @@ import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
 from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool
-import time 
+from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class InnerSeechOutputFormat(BaseModel):
@@ -95,17 +95,22 @@ class Inner_Speech(Node):
                                 param for param in list(set(required_parameters) - set(missing_parameters)) 
                                 if parameters[param] in [0, None, '']
                                 ])
-        prompt = [
-                    # ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
-                    ("system", "Sei un assistente AI specializzato nel fornire informazioni aggiornate sui film attualmente in programmazione nei cinema di Genova. Devi rispondere solo a domande pertinenti a questo ambito e ignorare richieste non correlate."),
-                    ("human", f"""  La domande dell'utente è: {user_input}.
-                                    Il riconoscimenti dell'intento ha assegnato la seguente funzione {action_name}.
-                                    con i seguenti parametri: {parameters}.
-                                    L'azione può essere completata: {completed}.
-                                    Parametri mancanti: {missing_parameters}
-                                    """
-                    ),
-                ]
+        
+        scenario = os.getenv("SCENARIO")
+        if scenario == 'MOVIES':
+            system_message = SystemMessage(content="Sei un assistente AI specializzato nel fornire informazioni aggiornate sui film attualmente in programmazione nei cinema di Genova. Devi rispondere solo a domande pertinenti a questo ambito e ignorare richieste non correlate.")
+        elif scenario == 'ADVISOR':
+            system_message = SystemMessage(content="Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo.")
+
+        prompt = [  
+            system_message,
+            HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
+                Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
+                Con i seguenti parametri: {parameters}.
+                L'azione può essere completata: {completed}.
+                Parametri mancanti: {missing_parameters}
+                """) 
+        ]
 
         # start_time = time.time()
         llm_response = self.structured_llm.invoke(prompt)

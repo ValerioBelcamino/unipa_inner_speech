@@ -2,6 +2,7 @@ from typing import List, Dict, Any, Optional, Union
 from neo4j import GraphDatabase
 from langchain_neo4j import Neo4jGraph
 from .db_adapter import DBAdapter
+from shared_utils.fewshot_helpers import escape_curly_braces
 
 
 class Neo4jAdapter(DBAdapter):
@@ -58,6 +59,7 @@ class Neo4jAdapter(DBAdapter):
             The prompt string
         """
         schema = self.get_schema()
+        schema = escape_curly_braces(schema)
         self._prompt = self._prompt.format(schema=schema)
         return self._prompt
     

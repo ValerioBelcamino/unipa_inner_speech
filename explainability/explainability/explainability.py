@@ -71,9 +71,16 @@ class Explainability(Node):
         self.db = DBFactory.create_adapter(self.db_type)
         self.schema = self.db.get_schema()
 
+        self.scenario = os.getenv("SCENARIO")
+
 
         # QUERY EXPLAINABILITY LLM VARIABLES
-        self.query_instructions = "Un assistente che aiuta gli utenti a ottenere informazioni aggiornate sui film attualmente in programmazione a Genova. Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
+        if self.scenario == "MOVIES":
+            scenario_description = "Un assistente che aiuta gli utenti a ottenere informazioni aggiornate sui film attualmente in programmazione a Genova."
+        elif self.scenario == "ADVISOR":
+            scenario_description = "Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare."
+
+        self.query_instructions = f"{scenario_description} Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
         self.query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
         self.query_example_template = """User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"""
 
