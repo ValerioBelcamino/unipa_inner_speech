@@ -83,15 +83,12 @@ class Intent_Recognition(Node):
         """
         Function to execute the loaded plugins with the appropriate parameters.
         """
-        # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
 
-        # Prepare the context for each plugin: db_adapter, action_id, and specific parameters
         context = {
             "db_adapter": db_adapter,  # Pass the adapter instead of the driver
             "action_name": action_name,
             "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
         }
-
         # Iterate over each loaded plugin (each wrapped function)
         for plugin_function in self.plugins:
             try:
@@ -149,7 +146,6 @@ class Intent_Recognition(Node):
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
-        print(f"\033[32m{llm_response}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
 
