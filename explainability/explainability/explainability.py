@@ -3,14 +3,14 @@ import json
 from langchain.chat_models import init_chat_model
 from langchain_core.output_parsers.string import StrOutputParser
 from db_adapters import DBFactory
-from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces, prepare_few_shot_prompt
+from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import QueryOutput, InnerSpeech
 from dotenv import load_dotenv
 import ast
-from shared_utils.customization_helpers import load_all_explainability_examples
+from shared_utils.customization_helpers import load_all_explainability_examples, get_scenario_description
 
 
 # Load environment variables from .env file
@@ -71,9 +71,17 @@ class Explainability(Node):
         self.db = DBFactory.create_adapter(self.db_type)
         self.schema = self.db.get_schema()
 
+        print()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.context_scenario = get_scenario_description(self.scenario)
+        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
+        self.examples = load_all_explainability_examples(self.scenario)
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()
 
         # QUERY EXPLAINABILITY LLM VARIABLES
-        self.query_instructions = "Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare. Data una richiesta e la sua traduzione in cypher query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
+        self.query_instructions = f"{self.context_scenario}. Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
         self.query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
         self.query_example_template = """User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"""
 
@@ -81,13 +89,6 @@ class Explainability(Node):
         self.clingo_instructions = "Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. A questo punto del processo abbiamo escluso già i piatti non adatti allo stile alimentare dell'utente e, in questo step, abbiamo generato diverse combinazioni di piatti in grado di soddisfare i vincoli di calorie e macronutrienti rimanenti. Data una una lista di combinazioni di piatti, il tuo compito è spiegare all'utente come sono stati scelti. Il numero di piatti in ogni risposta può essere 1, N, o 0 dipendentemente dai requisiti."
         self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
         self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
-
-        print()
-        self.scenario = os.getenv("SCENARIO")
-        print(f"\033[34mUsing {self.scenario}!\033[0m")
-        self.examples = load_all_explainability_examples(self.scenario)
-        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
-        print()
 
         with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
             self.examples['clingo'] = json.load(f)

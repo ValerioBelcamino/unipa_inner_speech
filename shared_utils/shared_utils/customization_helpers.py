@@ -9,6 +9,22 @@ import json
 import os 
 
 
+def get_scenario_description(scenario:str):
+    spec = importlib.util.find_spec("scenario_customization")
+    if spec is None or not spec.submodule_search_locations:
+        raise ImportError("Cannot locate scenario_customization package.")
+    package_dir = spec.submodule_search_locations[0]
+
+    base_path = Path(package_dir).parent.parent.parent.parent / 'share' / 'scenario_customization' / 'scenarios' / scenario
+
+    if not os.path.isfile(base_path / 'scenario_description.txt'):
+        raise FileNotFoundError(f"Scenario description file not found: {base_path / 'scenario_description.txt'}")
+    
+    description = ''
+    with open((base_path / 'scenario_description.txt'), 'r') as f:
+        description = f.readlines()
+    
+    return '\n'.join(description)
 
 def load_all_intent_models(scenario:str) -> Dict[str, Type[BaseModel]]:
     '''returns all intent tools for a given scenario'''

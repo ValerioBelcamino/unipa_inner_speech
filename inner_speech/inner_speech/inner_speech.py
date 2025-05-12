@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
-from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool
+from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool, get_scenario_description
 import time 
 
 
@@ -71,6 +71,8 @@ class Inner_Speech(Node):
         
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.context_scenario = get_scenario_description(self.scenario)
+        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
         self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
         self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
         self.action_name_to_required_parameters['OutOfScope'] = []
@@ -116,7 +118,7 @@ class Inner_Speech(Node):
                                     Utilizza queste informazioni per generare il tuo dialogo interiore.
                                     """
                     ),
-                    ("system","Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
+                    ("system","{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
                      ),
                 ]
 

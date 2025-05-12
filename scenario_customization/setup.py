@@ -55,7 +55,11 @@ def build_data_files():
                 os.path.join('share', package_name, 'scenarios', scenario),
                [ f'scenario_customization/{scenario}/plugin_config.yaml']
             ))
-
+        data_files.append((
+                os.path.join('share', package_name, 'scenarios', scenario),
+               [ f'scenario_customization/{scenario}/scenario_description.txt']
+            ))
+        
     return data_files
 
 def clean_examples_directory():
