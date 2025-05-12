@@ -58,9 +58,6 @@ class Inner_Speech(Node):
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'inner_speech', 'inner_speech')
-
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
                                     model_provider=self.llm_config['model_provider'], 

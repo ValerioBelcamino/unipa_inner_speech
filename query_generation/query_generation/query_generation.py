@@ -3,7 +3,6 @@ import json
 # from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
 from shared_utils.fewshot_helpers import prepare_few_shot_prompt
-from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
@@ -58,9 +57,6 @@ class Query_Generation(Node):
         print(f"\033[34mStarted Listening to {self.query_generation_topic}!!!\033[0m")
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")
-        self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
         print()
         self.scenario = os.getenv("SCENARIO")
@@ -136,53 +132,6 @@ class Query_Generation(Node):
             else:
                 string_repr = string_repr + str(qr) + '\n'
         return string_repr
-    
-    
-    def query_execution(self, cypher_list):
-        driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
-
-        multi_query_results = []
-        for cypher in cypher_list:
-            query_results = []
-            try:
-                with driver.session() as session:
-                    # Execute the query
-                    result = session.run(cypher)
-                    print("Query:")
-                    print(f"\033[32m{cypher}\033[0m\n")
-                    print(f"Query results:")
-
-                    for record in result:
-                        recdict = {}
-                        for key, value in record.items():
-                            if isinstance(value, list):
-                                # It's a collected list of nodes
-                                sublist = []
-                                for item in value:
-                                    if hasattr(item, "items"):
-                                        subdict = {k: v for k, v in item.items()}
-                                        sublist.append(subdict)
-                                    else:
-                                        sublist.append(item)  # fallback if not a node
-                                recdict[key] = sublist
-                            elif hasattr(value, "items"):
-                                # It's a single node
-                                subdict = {k: v for k, v in value.items()}
-                                recdict[key] = subdict
-                            else:
-                                recdict[key] = value  # fallback for primitives
-                        query_results.append(recdict)
-                        print("\033[32m" + str(recdict) + "\033[0m\n")
-
-            except Exception as e:
-                print("Error:", e.message)
-                query_results = e.message
-
-            multi_query_results.append(query_results)
-                
-        driver.close()
-
-        return multi_query_results
     
 
     def send_query_output(self, cypher, results, user_input, action_name):
