@@ -2,8 +2,7 @@ import os
 import json
 # from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
-from langchain_neo4j import Neo4jGraph
-from shared_utils.fewshot_helpers import escape_curly_braces, prepare_few_shot_prompt
+from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
@@ -11,7 +10,7 @@ from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
-from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples
+from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples, load_all_scenario_dbs
 from db_adapters import DBFactory
 
 
@@ -73,10 +72,18 @@ class Query_Generation(Node):
         print()
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
+
+        self.default_db_type = os.getenv("DB_TYPE")
+        self.db_dict, self.schemas_dict, self.instructions_dict = load_all_scenario_dbs(self.scenario, self.default_db_type)
+        print(f"\033[34mDB Dict: {self.db_dict}!\033[0m")
+        # print(f"\033[34mDB Dict: {self.schemas_dict}!\033[0m")
+        # print(f"\033[34mDB Dict: {self.instructions_dict}!\033[0m")
+
         self.dynamic_intent_tools_dict = load_all_query_models(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
         self.examples = load_all_query_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()
 
         self.example_template = """User asks: {question}\nParameters: {parameters}\nQueries: {queries}"""
 
@@ -99,8 +106,11 @@ class Query_Generation(Node):
 
         print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
+        instructions = self.instructions_dict[action_name]
+        instructions = self.instructions_dict[action_name]
+
         few_shot_prompt = prepare_few_shot_prompt(
-                                                    instructions=self.instructions,
+                                                    instructions=instructions,
                                                     suffix=self.suffix, 
                                                     examples=self.examples[action_name],
                                                     example_variables=["question", "parameters", "queries"],
@@ -110,9 +120,10 @@ class Query_Generation(Node):
 
         llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
-        cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
 
-        queries = getattr(cypher, 'query')
+        llm_answer = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
+
+        queries = getattr(llm_answer, 'query')
 
         if type(queries) == str:
             queries = [queries]

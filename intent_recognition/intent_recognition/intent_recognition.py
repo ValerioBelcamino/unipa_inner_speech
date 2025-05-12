@@ -75,7 +75,7 @@ class Intent_Recognition(Node):
         print()
 
         # Load plugins dynamically from the config file
-        self.plugins = load_plugins()
+        self.plugins = load_plugins(self.scenario)
         print(f"\033[1;38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 

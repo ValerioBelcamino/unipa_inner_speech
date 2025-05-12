@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
-from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool
+from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool, get_scenario_description
 from langchain_core.messages import SystemMessage, HumanMessage
 
 
@@ -71,6 +71,8 @@ class Inner_Speech(Node):
         
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.context_scenario = get_scenario_description(self.scenario)
+        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
         self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
         self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
         self.action_name_to_required_parameters['OutOfScope'] = []
@@ -96,20 +98,13 @@ class Inner_Speech(Node):
                                 if parameters[param] in [0, None, '']
                                 ])
         
-        scenario = os.getenv("SCENARIO")
-        if scenario == 'MOVIES':
-            system_message = SystemMessage(content="Sei un assistente AI specializzato nel fornire informazioni aggiornate sui film attualmente in programmazione nei cinema di Genova. Devi rispondere solo a domande pertinenti a questo ambito e ignorare richieste non correlate.")
-        elif scenario == 'ADVISOR':
-            system_message = SystemMessage(content="Sei un assistente AI che deve guidare un utente nel seguire un corretto regime alimentare. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo.")
-
         prompt = [  
-            system_message,
+            SystemMessage(content=f"{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
             HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
                 Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
                 Con i seguenti parametri: {parameters}.
                 L'azione può essere completata: {completed}.
-                Parametri mancanti: {missing_parameters}
-                """) 
+                Parametri mancanti: {missing_parameters}""") 
         ]
 
         # start_time = time.time()
