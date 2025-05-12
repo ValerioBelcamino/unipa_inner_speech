@@ -2,8 +2,7 @@ import os
 import json
 # from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
-from langchain_neo4j import Neo4jGraph
-from shared_utils.fewshot_helpers import escape_curly_braces, prepare_few_shot_prompt
+from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
@@ -11,7 +10,7 @@ from std_msgs.msg import Bool
 from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
-from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples
+from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples, load_all_scenario_dbs
 
 
 # Load environment variables from .env file
@@ -58,48 +57,31 @@ class Query_Generation(Node):
         print(f"\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.query_generation_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
-
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
         self.ws_dir = os.getenv("ROS2_WORKSPACE")
         self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
 
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = escape_curly_braces(self.graph.schema)
-
-        self.instructions = f"""You are an expert Neo4j Cypher translator who understands questions in Italian 
-        and converts them to Cypher strictly following the instructions below:
-
-        1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
-        2. Do not use the same variable names for different nodes and relationships.
-        3. Use only the nodes and relationships mentioned in the schema.
-        4. Always enclose the Cypher output inside three backticks.
-        5. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        6. Always use aliases to refer to nodes throughout the query.
-        7. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        8. You may generate multiple queries if required.
-
-        Schema:
-        {self.schema}"""
-
         print()
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
+
+        self.default_db_type = os.getenv("DB_TYPE")
+        self.db_dict, self.schemas_dict, self.instructions_dict = load_all_scenario_dbs(self.scenario, self.default_db_type)
+        print(f"\033[34mDB Dict: {self.db_dict}!\033[0m")
+        # print(f"\033[34mDB Dict: {self.schemas_dict}!\033[0m")
+        # print(f"\033[34mDB Dict: {self.instructions_dict}!\033[0m")
+
         self.dynamic_intent_tools_dict = load_all_query_models(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
-        print()
 
-        self.scenario = os.getenv("SCENARIO")
-        print(f"\033[34mUsing {self.scenario}!\033[0m")
         self.examples = load_all_query_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()
 
-        self.example_template = """User asks: {question}\nParameters: {parameters}\nCypher queries: {queries}"""
+        self.example_template = """User asks: {question}\nParameters: {parameters}\nQueries: {queries}"""
 
-        self.suffix = """User asks: {question}\nParameters: {parameters}\nCypher query: """
+        self.suffix = """User asks: {question}\nParameters: {parameters}\nQuery: """
 
         self.llm = init_chat_model(
             model=self.llm_config['model_name'], 
@@ -118,8 +100,11 @@ class Query_Generation(Node):
 
         print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
+        instructions = self.instructions_dict[action_name]
+        instructions = self.instructions_dict[action_name]
+
         few_shot_prompt = prepare_few_shot_prompt(
-                                                    instructions=self.instructions,
+                                                    instructions=instructions,
                                                     suffix=self.suffix, 
                                                     examples=self.examples[action_name],
                                                     example_variables=["question", "parameters", "queries"],
@@ -130,9 +115,9 @@ class Query_Generation(Node):
         llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
-        cypher = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
+        llm_answer = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
 
-        queries = getattr(cypher, 'query')
+        queries = getattr(llm_answer, 'query')
 
         if type(queries) == str:
             queries = [queries]
