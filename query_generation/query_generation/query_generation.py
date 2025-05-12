@@ -107,7 +107,6 @@ class Query_Generation(Node):
         print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
         instructions = self.instructions_dict[action_name]
-        instructions = self.instructions_dict[action_name]
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=instructions,

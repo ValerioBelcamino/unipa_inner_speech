@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from .db_adapter import DBAdapter
 from .neo4j_adapter import Neo4jAdapter
 from .sql_adapter import SQLAdapter
+from .qdrant_adapter import QdrantAdapter
 
 
 class DBFactory:
@@ -16,7 +17,7 @@ class DBFactory:
         Create a database adapter based on the specified type and configuration
         
         Args:
-            db_type: Type of database adapter to create ('neo4j', 'sql', etc.)
+            db_type: Type of database adapter to create ('neo4j', 'sqlite', etc.)
             config: Configuration parameters for the adapter
             
         Returns:
@@ -49,6 +50,17 @@ class DBFactory:
                 raise ValueError("Missing required SQL connection string")
                 
             adapter = SQLAdapter(connection_string)
+            adapter.connect()
+            return adapter
+
+        elif db_type.lower() == 'qdrant':
+            host = config.get('host', os.getenv("QDRANT_HOST"))
+            api_key = config.get('api_key', os.getenv("QDRANT_API_KEY"))
+            
+            if not all([host, api_key]):
+                raise ValueError("Missing required Qdrant configuration parameters")
+                
+            adapter = QdrantAdapter(host, api_key)
             adapter.connect()
             return adapter
             
