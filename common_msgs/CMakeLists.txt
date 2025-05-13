@@ -8,6 +8,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Intent.msg"
   "msg/QueryOutput.msg"
+  "msg/InnerSpeech.msg"
   DEPENDENCIES std_msgs
 )
 

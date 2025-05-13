@@ -1,8 +1,6 @@
 from setuptools import find_packages, setup
-import os 
-import glob
 
-package_name = 'intent_post_processing'
+package_name = 'scope_detection'
 
 setup(
     name=package_name,
@@ -22,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'scope_detection = scope_detection.scope_detection:main',
         ],
     },
 )

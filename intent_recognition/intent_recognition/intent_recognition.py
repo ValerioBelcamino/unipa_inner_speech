@@ -1,7 +1,6 @@
 import os, re
 import json
-from langchain_neo4j import Neo4jGraph
-from neo4j import GraphDatabase 
+from db_adapters import DBFactory  # Import the DBFactory
 from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
@@ -9,11 +8,11 @@ from std_msgs.msg import String
 from dotenv import load_dotenv
 import ast
 from groq import BadRequestError
-import time 
 from intent_post_processing.loader import load_plugins
 from common_msgs.msg import Intent
 from shared_utils.customization_helpers import load_all_intent_models
-from typing import Any, get_origin, get_args
+from typing import Any, get_origin, get_args, Union
+
 
 # Load environment variables from .env file
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,19 +44,13 @@ class Intent_Recognition(Node):
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
+        # Initialize the database adapter
+        self.db_type = os.getenv("DB_TYPE") 
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
 
+        # Get LLM configuration
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")
-
-        self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
-
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
-        self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -67,31 +60,32 @@ class Intent_Recognition(Node):
                                 )
         
         print()
-        self.dynamic_intent_tools_dict = load_all_intent_models()
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
         self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
         self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
+        print(self.llm_with_tools.get_input_schema())
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_toolnames)} intent_tool(s).\033[0m")
         print()
 
         # Load plugins dynamically from the config file
-        self.plugins = load_plugins()
+        self.plugins = load_plugins(self.scenario)
         print(f"\033[1;38;5;208mLoaded {len(self.plugins)} processing plugin(s).\033[0m")
 
 
-    def execute_plugin_pipeline(self, db_driver, action_name, intent_parameters):
+    def execute_plugin_pipeline(self, db_adapter, action_name, intent_parameters):
         """
         Function to execute the loaded plugins with the appropriate parameters.
         """
-        # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
 
-        # Prepare the context for each plugin: db_driver, action_id, and specific parameters
         context = {
-            "db_driver": db_driver,
+            "db_adapter": db_adapter,  # Pass the adapter instead of the driver
             "action_name": action_name,
             "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
         }
-
         # Iterate over each loaded plugin (each wrapped function)
         for plugin_function in self.plugins:
             try:
@@ -111,10 +105,30 @@ class Intent_Recognition(Node):
         except:
             return None
 
+    def get_default_value(self, t: Any):
+        try:
+            origin = get_origin(t)
+            
+            if origin is Union:
+                # Filter out NoneType and keep the first non-None type
+                non_none_args = [arg for arg in get_args(t) if arg is not type(None)]
+                if non_none_args:
+                    t = non_none_args[0]
+            
+            origin = get_origin(t) or t
+            value = origin()
+            
+            if callable(value):
+                return value
+            return value
+        except Exception:
+            return None
+
     def check_undeclared_parameters(self, tool_class, tool_result):
         parameter_list = [(k, self.get_default_value(v.annotation)) for k,v in tool_class.model_fields.items()]
         for parameter, default_value in parameter_list:
-            if parameter not in tool_result:
+            if parameter not in tool_result or tool_result[parameter] is None:
+                print(f"\033[33mParameter {parameter} not found in tool result. Setting default value: {default_value}\033[0m")
                 tool_result[parameter] = default_value
         return tool_result
 
@@ -124,7 +138,13 @@ class Intent_Recognition(Node):
         user_input = msg.data.strip()
         try:
             # start_time = time.time()
-            llm_response = self.llm_with_tools.invoke(user_input)
+            llm_response = self.llm_with_tools.invoke(
+                [
+                    ("system", 'you have to understand the user intent. You have a set of tools at your disposal. if the user prompt is not related to the tools you should not answer'),
+                    ("human", user_input),
+                ]
+            )
+            print(llm_response)
             # print(f'\033[91m{time.time() - start_time}\033[0m')
             tool_calls = llm_response.tool_calls
         except BadRequestError as e:
@@ -132,7 +152,6 @@ class Intent_Recognition(Node):
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
-        print(f"\033[32m{llm_response}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
 
@@ -147,7 +166,7 @@ class Intent_Recognition(Node):
             tool_result = self.check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
             # execute post processing plugin pipeline 
-            self.execute_plugin_pipeline(self.driver, tool_name, tool_result)
+            self.execute_plugin_pipeline(self.db, tool_name, tool_result)
 
         intent_msg = Intent()
         intent_msg.user_input = user_input
@@ -156,6 +175,12 @@ class Intent_Recognition(Node):
 
         self.publisher.publish(intent_msg)
         self.get_logger().info('\033[32mPublished: "%s"\033[0m' % intent_msg)
+
+    def destroy_node(self):
+        # Clean up database connection when the node is destroyed
+        if hasattr(self, 'db'):
+            self.db.disconnect()
+        super().destroy_node()
 
 
 def main(args=None):

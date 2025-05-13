@@ -1,14 +1,23 @@
 import os
 import json
 from langchain.chat_models import init_chat_model
-from langchain_neo4j import Neo4jGraph
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-from common_msgs.msg import Intent
+from common_msgs.msg import Intent, InnerSpeech
+from pydantic import BaseModel, Field
 import ast
 from dotenv import load_dotenv
-import time 
+from db_adapters import DBFactory
+from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool, get_scenario_description
+from langchain_core.messages import SystemMessage, HumanMessage
+
+
+class InnerSeechOutputFormat(BaseModel):
+    """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
+
+    inner_speech: str = Field(description="Il tuo ragionamento")
+    can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
 
 
 # Load environment variables from .env file
@@ -26,6 +35,7 @@ class Inner_Speech(Node):
         self.in_topic = '/user_intent'
         self.user_input_topic = '/user_input_activation'
         self.query_generation_topic = '/query_generation'
+        self.inner_speech_explanation_topic = '/ex_inner_speech'
 
         self.subscription = self.create_subscription(
             Intent,
@@ -35,23 +45,18 @@ class Inner_Speech(Node):
         
         self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
         self.publisher_action_dispatch = self.create_publisher(Intent, self.query_generation_topic, 10)
+        self.publisher_inner_speech = self.create_publisher(InnerSpeech, self.inner_speech_explanation_topic, 10)
 
         print(f"\033[34mInner Speech Node started!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.user_input_topic}!!!\033[0m")
         print(f"\033[34mInitialized publishers to {self.query_generation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.uri = os.getenv("NEO4J_URI")
-        self.username = os.getenv("NEO4J_USERNAME")
-        self.password = os.getenv("NEO4J_PASSWORD")
+        self.db_type = os.getenv("DB_TYPE")
+        self.db = DBFactory.create_adapter(self.db_type)
+        self.schema = self.db.get_schema()
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")  # Replace with your workspace path if needed
-        self.source_dir = os.path.join(self.ws_dir, 'inner_speech', 'inner_speech')
-
-        self.graph = Neo4jGraph(self.uri, self.username, self.password)
-        self.schema = self.graph.schema
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 
@@ -59,16 +64,18 @@ class Inner_Speech(Node):
                                     temperature=self.llm_config['temperature'], 
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
+        self.structured_llm = self.llm.with_structured_output(InnerSeechOutputFormat)
         
-        self.action_name_to_required_parameters = {'AddToDatabase': ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi'],
-                                            'DishInfo': ['nome_piatto'],
-                                            'SubstituteDish': ['nome_utente', 'giorno', 'pasto', 'ha_piano_settimanale'],
-                                            'OutOfScope': []}  # Out of scope doesn't require any parameters
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mUsing {self.scenario}!\033[0m")
+        self.context_scenario = get_scenario_description(self.scenario)
+        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
+        self.action_name_to_required_parameters['OutOfScope'] = []
 
-        self.action_name_to_description = {'AddToDatabase': 'Aggiungere un nuovo utente alla base di conoscenza.',
-                                    'DishInfo': 'Dare informazioni a un utente riguardo uno specifico piatto.',
-                                    'SubstituteDish': "Proporre un pasto sostitutivo all'utente basandomi sulle sue esigenze alimentari e sul suo piano alimentare.",
-                                    'OutOfScope': 'Azione non pertinente.'} 
+        self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
+        self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'
 
 
     def listener_callback(self, intent_msg):
@@ -76,78 +83,57 @@ class Inner_Speech(Node):
 
         user_input = intent_msg.user_input
         action_name = intent_msg.action_name
-        parameters = ast.literal_eval(intent_msg.parameters)
+        parameters = json.loads(intent_msg.parameters)
 
         completed = True
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        if action_name == 'OutOfScope':
-            print(f"\033[34m" + "Action ID is 0, no action needed!" + "\033[0m")
-            completed = False
-            missing_parameters = []
-            available_actions = self.action_name_to_description.values()
-
-            answer_prompt = f"""
-                L'utente sta ponendo una domanda che non è rilevante per il sistema, 
-                quindi il sistema non è in grado di fornire una risposta all'utente.
-                Spiega all'utente che il sistema non è in grado di fornire una risposta.
-                
-                La domanda dell'utente è: {user_input}.
-                Le azioni disponibili sono: {available_actions}.
-
-                Fornire una spiegazione in italiano:"""
-            
-        else:
-            required_parameters = self.action_name_to_required_parameters[action_name]
-            missing_parameters = [param for param in required_parameters if param not in parameters]
-            missing_parameters.extend([
-                                    param for param in list(set(required_parameters) - set(missing_parameters)) 
-                                    if parameters[param] in [0, None, '']
-                                    ])
-            if missing_parameters:
-                completed = False 
-                print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
-                print(f"\033[34m" + "Incomplete answer, let's ask for more details" + "\033[0m")
-                
-                answer_prompt = f"""
-                Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {self.action_name_to_description[action_name]}.
-
-                La sua domanda è: {user_input}.
-                Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
-                L'azione non può essere completata perché mancano i seguenti parametri: {missing_parameters}.
-                Chiedi all'utente di fornire i parametri mancanti con una domanda formulata in linguaggio naturale.
-
-                Formula la tua risposta in italiano:"""
-
-        prompt = f"""
-            Riassumi questo in un paragrafo in linguaggio naturale come se fosse il tuo discorso interiore.
-            Non tralasciare alcun dettaglio.
-            
-            L'utente desidera eseguire l'azione {action_name}: {self.action_name_to_description[action_name]}.
-            La loro domanda è: {user_input}.
-            Il riconoscimento dell'intento ha estratto i seguenti parametri: {parameters}.
-            L'azione può essere completata: {completed}.
-            Parametri mancanti: {missing_parameters}
-            
-            Il tuo discorso interiore in italiano:"""
+        required_parameters = self.action_name_to_required_parameters[action_name]
+        missing_parameters = [param for param in required_parameters if param not in parameters]
+        missing_parameters.extend([
+                                param for param in list(set(required_parameters) - set(missing_parameters)) 
+                                if parameters[param] in [0, None, '']
+                                ])
+        
+        prompt = [  
+            SystemMessage(content=f"{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
+            HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
+                Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
+                Con i seguenti parametri: {parameters}.
+                L'azione può essere completata: {completed}.
+                Parametri mancanti: {missing_parameters}""") 
+        ]
 
         # start_time = time.time()
-        llm_response = self.llm.invoke(prompt)
+        llm_response = self.structured_llm.invoke(prompt)
+        print(f'\033[91m{llm_response}\033[0m')
         # print(f'\033[91m{time.time() - start_time}\033[0m')
 
         result = {}
         result['question'] = user_input
-        result['inner_speech'] = llm_response.content
+        result['inner_speech'] = llm_response.inner_speech
+        result['can_proceed'] = llm_response.can_proceed
         result_string = json.dumps(result)
 
         print("\033[32m"+result_string+"\033[0m")
 
+        if missing_parameters or action_name == 'OutOfScope' or not result['can_proceed']:
+            completed = False 
+            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+
+
+            IS_msg = InnerSpeech(
+                user_input=user_input, 
+                action_name=action_name, 
+                action_description=self.action_name_to_description[action_name], 
+                parameters=json.dumps(parameters), 
+                missing_parameters=missing_parameters)
+
         if not completed:
-            result['answer'] = self.llm.invoke(answer_prompt).content
-            response_dict = {'question':user_input, 'response':result['answer']}
-            response_string = json.dumps(response_dict)
-            self.publisher_user_input.publish(String(data=response_string))
-            self.get_logger().info('Published: "%s"' % response_string)
+            print(f"\033[34m" + "Incomplete or out of scope answer, let's ask for more details" + "\033[0m")
+
+            self.publisher_inner_speech.publish(IS_msg)
+            self.get_logger().info('Published {} on topic {}'.format(IS_msg, self.inner_speech_explanation_topic))
 
         else:
             print(f"\033[34m" + "Complete answer, we can procede!" + "\033[0m")

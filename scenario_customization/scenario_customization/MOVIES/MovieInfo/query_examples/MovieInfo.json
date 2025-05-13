@@ -1,0 +1,17 @@
+[
+  {
+      "question": "what was that movie where the child got into a school of wizards?",
+      "parameters": "{'details': ['a child got into a school of wizards']}",
+      "query": "A movie where a child got into a school of wizards"
+  },
+  {
+    "question": "i wanna find out the name of the movie of 1964 where a nanny comes to take care of a family. I think it was a musical and the director was Robert Stevenson.",
+    "parameters": "{'year': 1964, 'director': 'Robert Stevenson', 'genre': 'musical', 'details': ['a nanny comes to take care of a family']}",
+    "query": "A nanny comes to take care of a family in a musical movie directed by Robert Stevenson in 1964"
+  },
+  {
+    "question": "what is Moana about?",
+    "parameters": "{'title': 'Moana'}",
+    "query": "Moana"
+  }
+]

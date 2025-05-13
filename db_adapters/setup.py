@@ -1,8 +1,6 @@
 from setuptools import find_packages, setup
-import os 
-import glob
 
-package_name = 'intent_post_processing'
+package_name = 'db_adapters'
 
 setup(
     name=package_name,
