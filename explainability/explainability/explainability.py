@@ -64,9 +64,6 @@ class Explainability(Node):
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")
-        self.source_dir = os.path.join(self.ws_dir, 'explainability', 'explainability')
-
         self.db_type = os.getenv("DB_TYPE")
         self.db = DBFactory.create_adapter(self.db_type)
         self.schema = self.db.get_schema()
@@ -90,8 +87,8 @@ class Explainability(Node):
         self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
         self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
 
-        with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
-            self.examples['clingo'] = json.load(f)
+        # with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
+        #     self.examples['clingo'] = json.load(f)
 
         self.llm = init_chat_model(
                                     model=self.llm_config['model_name'], 

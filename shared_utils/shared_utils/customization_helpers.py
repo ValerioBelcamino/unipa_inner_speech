@@ -9,6 +9,36 @@ from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_bra
 import json
 import os 
 
+def create_scenario_tools():
+    scenarios = get_all_scenario_descriptions()
+    scenario_tools = {}
+    
+    for name, doc in scenarios.items():
+        supported_tasks = load_all_intent_models(name)
+
+        doc += '\nTask supportati:\n'
+        for task_name, task_class in supported_tasks.items():
+            doc += f'-{task_name}: {task_class.__doc__}'
+
+        cls = type(name, (BaseModel,), {'__doc__': doc})
+        scenario_tools[name] = cls
+    return scenario_tools
+
+def get_scenarios():
+    spec = importlib.util.find_spec("scenario_customization")
+    if spec is None or not spec.submodule_search_locations:
+        raise ImportError("Cannot locate scenario_customization package.")
+    package_dir = spec.submodule_search_locations[0]
+
+    base_path = Path(package_dir).parent.parent.parent.parent / 'share' / 'scenario_customization' / 'scenarios'
+    return os.listdir(base_path)    
+
+def get_all_scenario_descriptions():
+    scenarios = get_scenarios()
+    scenario_to_description = {}
+    for scen in scenarios:
+        scenario_to_description[scen] = get_scenario_description(scen)
+    return scenario_to_description 
 
 def get_scenario_description(scenario:str):
     spec = importlib.util.find_spec("scenario_customization")

@@ -44,9 +44,6 @@ class Intent_Recognition(Node):
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")
-        self.source_dir = os.path.join(self.ws_dir, 'intent_recognition', 'intent_recognition')
-
         # Initialize the database adapter
         self.db_type = os.getenv("DB_TYPE") 
         self.db = DBFactory.create_adapter(self.db_type)

@@ -3,7 +3,6 @@ import json
 # from .export_query_results import generate_pl_file, generate_csv_file
 from langchain.chat_models import init_chat_model
 from shared_utils.fewshot_helpers import prepare_few_shot_prompt
-from neo4j import GraphDatabase 
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
