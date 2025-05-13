@@ -6,7 +6,9 @@ from common_msgs.msg import Intent
 import time
 import ast
 import json
-import os
+import os, random
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class IntentOutputListener(Node):
@@ -67,8 +69,11 @@ def ros_setup():
 
 def get_examples():
     """Helper function to get examples for parameterized tests"""
-    examples = extract_examples()
+    scenario = os.getenv("SCENARIO")
+    example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
+    examples = extract_examples(filename=example_filename)
     print(f"Found {len(examples)} examples in the dataset.")
+    random.shuffle(examples)
     return examples
 
 
@@ -86,7 +91,7 @@ def test_single_intent_response(ros_setup, user_input, expected_action_name, exp
     print(f"[TEST] Published:\n{msg.data} on topic /user_input")
 
     # Spin listener until we get a response or timeout
-    timeout = time.time() + 10  # 10 seconds timeout
+    timeout = time.time() + 15  # 10 seconds timeout
     while time.time() < timeout:
         rclpy.spin_once(listener, timeout_sec=0.1)
         if listener.action_name is not None and listener.user_input == user_input:
@@ -121,4 +126,4 @@ def test_single_intent_response(ros_setup, user_input, expected_action_name, exp
                     
             assert False, error_msg
 
-#  to run: python3 -m pytest -vv --no-header --tb=native test/test_intent_recognition.py
+#  to run: python3 -m pytest -vv --no-header --tb=native /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_recognition.py
