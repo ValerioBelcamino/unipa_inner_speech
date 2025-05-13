@@ -1,0 +1,20 @@
+[
+    {
+        "user_input": "what time is the movie conclave on the 11 of may 2025?",
+        "queries": "SELECT time FROM timetable WHERE title = 'conclave' AND date = '2025-05-11' LIMIT 20;",
+        "results": "[(datetime.timedelta(seconds=59400),), (datetime.timedelta(seconds=68400),), (datetime.timedelta(seconds=77400),)]",
+        "explanation": "Il risultato mostra gli orari del film \"Conclave\" per l'11 maggio 2025. Gli orari sono:\n\n* 16:30\n* 19:00\n* 21:30\n\nSpero che questo ti sia stato utile!"
+    },
+    {
+        "user_input": "what time is the movie thunderbolts on the 1 of nov 2001?",
+        "queries": "SELECT time FROM timetable WHERE title = 'thunderbolts' AND date = '2001-11-1' LIMIT 20;",
+        "results": "",
+        "explanation": "Mi spiace, sembra che il film \"Thunderbolts\" non sia programmato per il 1 novembre 2001. Potresti voler controllare un'altra data o un altro film."
+    },
+    {
+        "user_input": "'tomorrow morning are there any movies in odeon?",
+        "queries": "SELECT DISTINCT title, time FROM timetable WHERE cinema = 'Circuito Odeon' AND date = '2025-05-08' AND time < '12:00' LIMIT 20",
+        "results": "",
+        "explanation": "Mi dispiace, ma non ci sono film programmati per domani mattina (8 maggio 2025) al cinema Odeon. Potresti voler controllare un'altra fascia oraria o un altro cinema."
+    }
+]

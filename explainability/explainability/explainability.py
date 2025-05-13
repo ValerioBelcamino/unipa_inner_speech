@@ -173,7 +173,7 @@ class Explainability(Node):
         missing_parameters = msg.missing_parameters
 
         answer_prompt = f"""
-                Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti nel seguire un corretto piano alimentare.
+                Tu sei un Robot di nome Pepper e devi supportare i tuoi utenti.
                 Chiedi all'utente maggiori dettagli per completare l'azione {action_name}: {action_description}.
 
                 La sua domanda è: {user_input}.

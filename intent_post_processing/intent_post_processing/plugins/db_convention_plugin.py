@@ -44,6 +44,8 @@ def param_to_lower(intent_parameters: dict, action_name: str):
                     # Replace spaces with underscores
                     # v = v.replace(' ', '_')
             intent_parameters[k] = v
+    
+    return intent_parameters
 
 
 def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_adapter):

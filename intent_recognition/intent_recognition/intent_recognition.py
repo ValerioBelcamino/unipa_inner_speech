@@ -63,6 +63,7 @@ class Intent_Recognition(Node):
         self.scenario = os.getenv("SCENARIO")
         print(f"\033[34mUsing {self.scenario}!\033[0m")
         self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
         self.dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
 
         self.llm_with_tools = self.llm.bind_tools(self.dynamic_intent_tools_dict.values())
@@ -79,15 +80,12 @@ class Intent_Recognition(Node):
         """
         Function to execute the loaded plugins with the appropriate parameters.
         """
-        # print(f"Executing plugin pipeline with action ID {action_id} and parameters {intent_parameters}")
 
-        # Prepare the context for each plugin: db_adapter, action_id, and specific parameters
         context = {
             "db_adapter": db_adapter,  # Pass the adapter instead of the driver
             "action_name": action_name,
             "intent_parameters": intent_parameters  # Adding the dynamic parameters extracted after LLM computation
         }
-
         # Iterate over each loaded plugin (each wrapped function)
         for plugin_function in self.plugins:
             try:
@@ -120,7 +118,7 @@ class Intent_Recognition(Node):
     def check_undeclared_parameters(self, tool_class, tool_result):
         parameter_list = [(k, self.get_default_value(v.annotation)) for k,v in tool_class.model_fields.items()]
         for parameter, default_value in parameter_list:
-            if parameter not in tool_result:
+            if parameter not in tool_result or tool_result[parameter] is None:
                 print(f"\033[33mParameter {parameter} not found in tool result. Setting default value: {default_value}\033[0m")
                 tool_result[parameter] = default_value
         return tool_result
@@ -145,7 +143,6 @@ class Intent_Recognition(Node):
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
-        print(f"\033[32m{llm_response}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self.dynamic_intent_toolnames]
 

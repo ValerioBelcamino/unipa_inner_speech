@@ -10,7 +10,7 @@ import ast
 from dotenv import load_dotenv
 from db_adapters import DBFactory
 from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool, get_scenario_description
-import time 
+from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class InnerSeechOutputFormat(BaseModel):
@@ -94,30 +94,15 @@ class Inner_Speech(Node):
                                 param for param in list(set(required_parameters) - set(missing_parameters)) 
                                 if parameters[param] in [0, None, '']
                                 ])
-        if missing_parameters or action_name == 'OutOfScope':
-            completed = False 
-            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
-
-
-            IS_msg = InnerSpeech(
-                user_input=user_input, 
-                action_name=action_name, 
-                action_description=self.action_name_to_description[action_name], 
-                parameters=json.dumps(parameters), 
-                missing_parameters=missing_parameters)
-
-        prompt = [
-                    ("human", f"""  La domande dell'utente è: {user_input}.
-                                    Il riconoscimenti dell'intento ha assegnato la seguente funzione {action_name}.
-                                    con i seguenti parametri: {parameters}.
-                                    L'azione può essere completata: {completed}.
-                                    Parametri mancanti: {missing_parameters}
-                                    Utilizza queste informazioni per generare il tuo dialogo interiore.
-                                    """
-                    ),
-                    ("system","{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."
-                     ),
-                ]
+        
+        prompt = [  
+            SystemMessage(content=f"{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
+            HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
+                Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
+                Con i seguenti parametri: {parameters}.
+                L'azione può essere completata: {completed}.
+                Parametri mancanti: {missing_parameters}""") 
+        ]
 
         # start_time = time.time()
         llm_response = self.structured_llm.invoke(prompt)
@@ -132,7 +117,19 @@ class Inner_Speech(Node):
 
         print("\033[32m"+result_string+"\033[0m")
 
-        if not completed or not result['can_proceed']:
+        if missing_parameters or action_name == 'OutOfScope' or not result['can_proceed']:
+            completed = False 
+            print(f"\033[34m" + "Missing parameters: " + str(missing_parameters) + "\033[0m")
+
+
+            IS_msg = InnerSpeech(
+                user_input=user_input, 
+                action_name=action_name, 
+                action_description=self.action_name_to_description[action_name], 
+                parameters=json.dumps(parameters), 
+                missing_parameters=missing_parameters)
+
+        if not completed:
             print(f"\033[34m" + "Incomplete or out of scope answer, let's ask for more details" + "\033[0m")
 
             self.publisher_inner_speech.publish(IS_msg)

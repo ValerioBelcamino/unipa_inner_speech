@@ -1,0 +1,17 @@
+[
+  {
+      "question": "Gimme all movies in english for this weekend.",
+      "parameters": "{'language': 'en', 'dates': ['2025-05-10','2025-05-11']}",
+      "query": "SELECT cinema, title, date, time FROM timetable WHERE language = 'en' AND date BETWEEN '2025-05-10' AND '2025-05-11'"
+  },
+  {
+      "question": "What's today in Odeon?",
+      "parameters": "{'cinema': 'Circuito Odeon', 'dates': ['2025-05-07']}",
+      "query": "SELECT title, language, time FROM timetable WHERE date = '2025-05-07' AND cinema = 'Circuito Odeon';"
+  },
+  {
+      "question": "Give me a list of all italian movies tomorrow evening.",
+      "parameters": "{'language': 'it', 'dates': ['2025-05-08'], 'time': ['18:00']}",
+      "query": "SELECT DISTINCT title, time, cinema FROM timetable WHERE language = 'it' AND date = '2025-05-08' AND time >= '18:00';"
+  }
+]

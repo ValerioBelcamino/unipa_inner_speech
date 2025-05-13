@@ -128,8 +128,7 @@ def load_all_scenario_dbs(scenario:str, default_db: str):
     for task, db_name in db_dict_names.items():
         db_dict[task] = DBFactory.create_adapter(db_name)
         schemas_dict[task] = db_dict[task].get_schema()
-        instructions_dict = db_dict[task].get_instructions(schemas_dict[task])
-
+        instructions_dict[task] = db_dict[task].get_prompt()
     return db_dict, schemas_dict, instructions_dict
 
 
@@ -168,15 +167,7 @@ def dynamic_iterative_load_examples(scenario: str, modality: str) -> Dict[str, l
         raise ImportError("Cannot locate scenario_customization package.")
     package_dir = spec.submodule_search_locations[0]
 
-    # print(package_dir)
-    # go from code installation path in lib to file installation folder in share
-
-    # from this 
-    # /home/belca/Desktop/ros2_humble_ws/src/install/scenario_customization/lib/python3.10/site-packages/scenario_customization
-    # to this 
-    # /home/belca/Desktop/ros2_humble_ws/src/install/scenario_customization/share/scenario_customization/scenarios/{SCENARIO}
     base_path = Path(package_dir).parent.parent.parent.parent / 'share' / 'scenario_customization' / 'scenarios' / scenario
-
     if not os.path.isdir(base_path):
         raise FileNotFoundError(f"Scenario folder not found: {base_path}")
 

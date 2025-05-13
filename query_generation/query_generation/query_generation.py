@@ -10,6 +10,7 @@ from common_msgs.msg import Intent, QueryOutput
 from dotenv import load_dotenv
 import ast 
 from shared_utils.customization_helpers import load_all_query_models, load_all_query_examples, load_all_scenario_dbs
+from db_adapters import DBFactory
 
 
 # Load environment variables from .env file
@@ -70,7 +71,6 @@ class Query_Generation(Node):
 
         self.dynamic_intent_tools_dict = load_all_query_models(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.dynamic_intent_tools_dict.values())} intent_tool(s).\033[0m")
-
         self.examples = load_all_query_examples(self.scenario)
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
         print()
@@ -97,7 +97,6 @@ class Query_Generation(Node):
         print(f"\033[34m{user_input=}\n {parameters=}\n{action_name=}\033[0m")
 
         instructions = self.instructions_dict[action_name]
-        instructions = self.instructions_dict[action_name]
 
         few_shot_prompt = prepare_few_shot_prompt(
                                                     instructions=instructions,
@@ -107,7 +106,6 @@ class Query_Generation(Node):
                                                     example_template=self.example_template,
                                                     input_variables=["question", "parameters"],
                                                     )
-
         llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
@@ -118,6 +116,7 @@ class Query_Generation(Node):
         if type(queries) == str:
             queries = [queries]
 
+        self.db = self.db_dict[action_name]
         query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
 
@@ -132,6 +131,13 @@ class Query_Generation(Node):
             else:
                 string_repr = string_repr + str(qr) + '\n'
         return string_repr
+    
+    
+    def query_execution(self, query_list):
+        query_results = []
+        for query in query_list:
+            query_results.append(self.db.execute_query(query))
+        return query_results
     
 
     def send_query_output(self, cypher, results, user_input, action_name):

@@ -18,24 +18,30 @@ def get_task_directories(base_dir: str):
 def get_all_scenarios_task_paths():
     """Wrapper that calls get_task_directories() for each scenario and returns full relative paths"""
     scenario_base = 'scenario_customization'
-    all_task_paths = {}
+    all_task_paths = []
+    all_scenarios = []
 
     for scenario in os.listdir(scenario_base):
+        if os.path.isdir(os.path.join(scenario_base, scenario)):
+            all_scenarios.append(scenario)
         scenario_path = os.path.join(scenario_base, scenario)
         if os.path.isdir(scenario_path):
             tasks = get_task_directories(scenario_path)
             for task in tasks:
                 relative_path = os.path.join(scenario, task)
-                all_task_paths[scenario] = relative_path
+                # if scenario not in all_task_paths:
+                #     all_task_paths[scenario] = []
+                all_task_paths.append(relative_path)
 
-    return all_task_paths
+    return all_task_paths, all_scenarios
 
 def build_data_files():
     """Builds data_files for all scenarios and their tasks"""
-    task_dirs = get_all_scenarios_task_paths()
+    clean_examples_directory()
+    all_tasks, all_scenarios = get_all_scenarios_task_paths()
     data_files = []
 
-    for task_rel_path in task_dirs.values():
+    for task_rel_path in all_tasks:
         query_examples = glob.glob(f'scenario_customization/{task_rel_path}/query_examples/*.json', recursive=True)
         explainability_examples = glob.glob(f'scenario_customization/{task_rel_path}/explainability_examples/*.json', recursive=True)
 
@@ -50,7 +56,7 @@ def build_data_files():
                 explainability_examples
             ))
 
-    for scenario in task_dirs.keys():
+    for scenario in all_scenarios:
         data_files.append((
                 os.path.join('share', package_name, 'scenarios', scenario),
                [ f'scenario_customization/{scenario}/plugin_config.yaml']
