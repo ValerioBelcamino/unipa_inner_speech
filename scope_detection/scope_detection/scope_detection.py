@@ -68,7 +68,7 @@ class Scope_Detection(Node):
             # start_time = time.time()
             llm_response = self.llm_with_tools.invoke(
                 [
-                    ("system", 'you have to understand the scope of the question provided by the user. You have a list of supported scenarios with their description and you have to select the most appropriate. if the user prompt is not related to the tools you should not answer'),
+                    ("system", 'you have to understand the scope of the question provided by the user. You have a list of supported scenarios with their description and you have to select the most appropriate. if the user prompt is not related to the tasks supported by any scenario you should not answer'),
                     ("human", user_input),
                 ]
             )

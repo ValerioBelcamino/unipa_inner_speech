@@ -14,6 +14,12 @@ def create_scenario_tools():
     scenario_tools = {}
     
     for name, doc in scenarios.items():
+        supported_tasks = load_all_intent_models(name)
+
+        doc += '\nTask supportati:\n'
+        for task_name, task_class in supported_tasks.items():
+            doc += f'-{task_name}: {task_class.__doc__}'
+
         cls = type(name, (BaseModel,), {'__doc__': doc})
         scenario_tools[name] = cls
     return scenario_tools
