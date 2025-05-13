@@ -2,6 +2,7 @@ from .db_adapter import DBAdapter
 from qdrant_client import QdrantClient
 from langchain_qdrant import QdrantVectorStore
 from langchain_mistralai import MistralAIEmbeddings
+from shared_utils.fewshot_helpers import escape_curly_braces
 
 
 class QdrantAdapter(DBAdapter):
@@ -54,6 +55,7 @@ class QdrantAdapter(DBAdapter):
     Rating: <float> (TMDb)
     Genres: <genres> 
     metadata={'source': 'TMDB', 'type': 'info', 'sql_db_title': <title>}"""
+        schema = escape_curly_braces(schema)
         return schema
         
     def get_prompt(self) -> str:

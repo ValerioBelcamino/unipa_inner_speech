@@ -58,16 +58,7 @@ class Query_Generation(Node):
         print(f"\033[34mInitialized publishers to {self.out_query_explanation}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.query_generation_topic}!!!\033[0m")
 
-        self.db_type = os.getenv("DB_TYPE") 
-        self.db = DBFactory.create_adapter(self.db_type)
-        self.schema = self.db.get_schema()
-
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
-        self.ws_dir = os.getenv("ROS2_WORKSPACE")
-        self.source_dir = os.path.join(self.ws_dir, 'query_generation', 'query_generation')
-
-        self.instructions = self.db.get_prompt()
 
         print()
         self.scenario = os.getenv("SCENARIO")
@@ -116,7 +107,6 @@ class Query_Generation(Node):
                                                     example_template=self.example_template,
                                                     input_variables=["question", "parameters"],
                                                     )
-
         llm_with_query = self.llm.with_structured_output(self.dynamic_intent_tools_dict[action_name])
         llm_cypher_chain = few_shot_prompt | llm_with_query
 
@@ -127,6 +117,7 @@ class Query_Generation(Node):
         if type(queries) == str:
             queries = [queries]
 
+        self.db = self.db_dict[action_name]
         query_results = self.query_execution(queries)
         query_results = self.prepare_results_string(query_results)
 
