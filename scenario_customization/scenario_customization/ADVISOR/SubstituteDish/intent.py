@@ -11,7 +11,7 @@ class SubstituteDish(BaseModel):
     nome_utente: str = Field(description="The name of the user in lowercase")
     ingredienti_rimossi: Optional[List[str]] = Field(description="Ingredients that the user wants to exclude", default=[])
     ingredienti_preferiti: Optional[List[str]] = Field(description="Ingredients that the user wants to include", default=[])
-    solo_questi_ingredienti: Optional[List[str]] = Field(description="User wants the dish to consist only of these ingredients. If you fill it, leave ingredienti_preferiti empty", default=[])
+    ingredienti_obbligatori_esclusivi: Optional[List[str]] = Field(description="Ingredients that the user *must* use and has explicitly said are the only ones available or acceptable (e.g., 'ho solo', 'puoi usare solo'). Use this field only when the user specifies that no other ingredients should be used. ", default=[])
     giorno: str = Field(description="Day of the week in italian when the user wants the dish", 
                         examples=['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'],
                         default='')

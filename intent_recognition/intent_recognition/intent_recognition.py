@@ -140,7 +140,22 @@ class Intent_Recognition(Node):
             # start_time = time.time()
             llm_response = self.llm_with_tools.invoke(
                 [
-                    ("system", 'you have to understand the user intent. You have a set of tools at your disposal. if the user prompt is not related to the tools you should not answer'),
+                    ("system", """
+                     You are tasked with identifying the correct intent from a set of available tools and extracting only the parameters explicitly provided by the user.
+
+You must not use external knowledge, assumptions, or inference to guess or complete missing information.
+
+If the user input is not relevant to any of the available tools, do not respond or assign an intent.
+
+Only fill tool parameters when the necessary information is clearly and explicitly included in the user input.
+
+Do not hallucinate.
+                     
+Do not fill gaps, or rephrase missing data.
+
+If a parameter is missing, ambiguous, or incomplete, leave it blank and do not attempt to infer or complete it.
+
+Follow these constraints strictly to ensure reliability and factual accuracy in tool usage."""),
                     ("human", user_input),
                 ]
             )

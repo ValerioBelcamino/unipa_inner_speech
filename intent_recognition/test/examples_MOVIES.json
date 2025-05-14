@@ -1,332 +1,287 @@
 [
-    {
-        "question": "raccontami una barzelletta", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+  {
+    "question": "raccontami una barzelletta", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "quanti anni ha giorgia meloni?", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "i carboidrati mi fanno ingrassare?", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "ho comprato un nuovo frigorifero ieri", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Il mio piatto preferito è il risotto ai funghi", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Penso che salterò la cena oggi", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Yesterday I watched pigeons in the zoo", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "My favourite TV series is Friends", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Watching netflix is a waste of time", 
+    "action_name": "OutOfScope",
+    "parameters": {}
+  },
+  {
+    "question": "Who directed the movie Inception released in 2010?",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "inception",
+      "director": "",
+      "genres": [],
+      "year": 2010,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Tell me about the French drama Amélie directed by Jean-Pierre Jeunet.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "amelie",
+      "director": "jean-pierre jeunet",
+      "genres": ["drama"],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": ["french"]
+    }
     },
     {
-        "question": "quanti anni ha giorgia meloni?", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "I want to know more about The Dark Knight, especially the actors and the rating.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "the dark knight",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "i carboidrati mi fanno ingrassare?", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Give me info about the 1994 movie Pulp Fiction directed by Quentin Tarantino.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "pulp fiction",
+      "director": "quentin tarantino",
+      "genres": [],
+      "year": 1994,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "ho comprato un nuovo frigorifero ieri", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "What genre is Interstellar and who are the main actors?",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "interstellar",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "Il mio piatto preferito è il risotto ai funghi", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Tell me about the Italian movie La Vita è Bella from 1997.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "la vita è bella",
+      "director": "",
+      "genres": [],
+      "year": 1997,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "Penso che salterò la cena oggi", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Who starred in Titanic and what was its duration?",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "titanic",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "Yesterday I watched pigeons in the zoo", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Can you tell me the rating and director of Parasite?",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "parasite",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "My favourite TV series is Friends", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "I'm looking for a sci-fi movie directed by Denis Villeneuve with a great rating — it's Dune.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "dune",
+      "director": "denis villeneuve",
+      "genres": ["sci-fi"],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": []
+    }
     },
     {
-        "question": "Watching netflix is a waste of time", 
-        "action_name": "OutOfScope",
-        "parameters": {}
+    "question": "Find me information on the animated film Spirited Away with a runtime of 125 minutes.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "spirited away",
+      "director": "",
+      "genres": ["animated"],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": ["runtime of 125 minutes"]
+    }
     },
     {
-        "question": "Who directed the movie Inception released in 2010?",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "inception",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 2010,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Tell me about the French drama Amélie directed by Jean-Pierre Jeunet.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "amelie",
-          "director": "jean-pierre jeunet",
-          "language": "fr",
-          "genres": ["drama"],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "I want to know more about The Dark Knight, especially the actors and the rating.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "the dark knight",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Give me info about the 1994 movie Pulp Fiction directed by Quentin Tarantino.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "pulp fiction",
-          "director": "quentin tarantino",
-          "language": "",
-          "genres": [],
-          "year": 1994,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "What genre is Interstellar and who are the main actors?",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "interstellar",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Tell me about the Italian movie La Vita è Bella from 1997.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "la vita è bella",
-          "director": "",
-          "language": "it",
-          "genres": [],
-          "year": 1997,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Who starred in Titanic and what was its duration?",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "titanic",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Can you tell me the rating and director of Parasite?",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "parasite",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "I'm looking for a sci-fi movie directed by Denis Villeneuve with a great rating — it's Dune.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "dune",
-          "director": "denis villeneuve",
-          "language": "",
-          "genres": ["sci-fi"],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "Find me information on the animated film Spirited Away with a runtime of 125 minutes.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "spirited away",
-          "director": "",
-          "language": "",
-          "genres": ["animated"],
-          "year": 0,
-          "actors": [],
-          "duration": 125,
-          "rating": 0.0,
-          "details": []
-        }
-      },
-      {
-        "question": "The movie was about a kid who went to a magic school and learned spells, it starred Daniel Radcliffe and was originally made in the UK.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "",
-          "director": "",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": ["daniel radcliffe"],
-          "duration": 0,
-          "rating": 0.0,
-          "details": ["a kid went to a magic school", "made in the uk"]
-        }
-      },
-      {
-        "question": "This film was about the Second World War and followed a group of soldiers landing in Normandy. It was directed by Steven Spielberg and originally released in the US.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "",
-          "director": "steven spielberg",
-          "language": "",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": ["the second world war", "soldiers landing in normandy", "released in the us"]
-        }
-      },
-      {
-        "question": "The movie was a Japanese animated film about a girl trapped in a spirit world, and it was directed by Hayao Miyazaki.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "",
-          "director": "hayao miyazaki",
-          "language": "ja",
-          "genres": ["animation"],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": ["girl trapped in a spirit world"]
-        }
-      },
-      {
-        "question": "It was a sci-fi film about space travel and black holes, starring Matthew McConaughey and released in 2014.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "",
-          "director": "",
-          "language": "",
-          "genres": ["sci-fi"],
-          "year": 2014,
-          "actors": ["matthew mcconaughey"],
-          "duration": 0,
-          "rating": 0.0,
-          "details": ["space travel", "black holes"]
-        }
-      },
-      {
-        "question": "The film was set in India and told the story of a young boy surviving on the streets of Mumbai; it won several Oscars and was originally in English.",
-        "action_name": "MovieInfo",
-        "parameters": {
-          "title": "",
-          "director": "",
-          "language": "en",
-          "genres": [],
-          "year": 0,
-          "actors": [],
-          "duration": 0,
-          "rating": 0.0,
-          "details": ["set in india", "young boy surviving in mumbai", "won several oscars"]
-        }
-      },
-      {
-        "question": "Are there any movies in english on 12th of May?",
-        "action_name": "TimetableInfo",
-        "parameters": {
-          "title": "",
-          "cinema": "",
-          "language": "en",
-          "dates": ["2025-05-12"],
-          "time": []
-        }
-      },
-      {
-        "question": "What is in Fiumara between 13 and 17 pm?",
-        "action_name": "TimetableInfo",
-        "parameters": {
-          "title": "",
-          "cinema": "Fiumara",
-          "language": "",
-          "dates": [],
-          "time": ["13:00", "17:00"]
-        }
-      },
-      {
-        "question": "What time can i watch Conclave on 13 or 14 of december 2026?",
-        "action_name": "TimetableInfo",
-        "parameters": {
-          "title": "conclave",
-          "cinema": "",
-          "language": "",
-          "dates": ["2026-12-13", "2026-12-14"],
-          "time": []
-        }
-      },
-      {
-        "question": "In which cinema there is a movie in Italian on 12th of May after lunchtime?",
-        "action_name": "TimetableInfo",
-        "parameters": {
-          "title": "",
-          "cinema": "",
-          "language": "it",
-          "dates": ["2025-05-12"],
-          "time": ["13:00"]
-        }
-      },
-      {
-        "question": "Is there interstellar in english in Ariston?",
-        "action_name": "TimetableInfo",
-        "parameters": {
-          "title": "interstellar",
-          "cinema": "Ariston",
-          "language": "en",
-          "dates": [],
-          "time": []
-        }
-      }
+    "question": "The movie was about a kid who went to a magic school and learned spells, it starred Daniel Radcliffe and was originally made in the UK.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": ["daniel radcliffe"],
+      "descriptive_movie_facts": ["a kid went to a magic school", "originally made in the uk"]
+    }
+    },
+    {
+    "question": "This film was about the Second World War and followed a group of soldiers landing in Normandy. It was directed by Steven Spielberg and originally released in the US.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "",
+      "director": "steven spielberg",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": ["second world war", "group of soldiers landing in normandy", "originally released in the us"]
+    }
+    },
+    {
+    "question": "The movie was a Japanese animated film about a girl trapped in a spirit world, and it was directed by Hayao Miyazaki.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "",
+      "director": "hayao miyazaki",
+      "genres": ["animated"],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": ["japanese animated film", "girl trapped in a spirit world"]
+    }
+    },
+    {
+    "question": "It was a sci-fi film about space travel and black holes, starring Matthew McConaughey and released in 2014.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "",
+      "director": "",
+      "genres": ["sci-fi"],
+      "year": 2014,
+      "actors": ["matthew mcconaughey"],
+      "descriptive_movie_facts": ["space travel", "black holes"]
+    }
+    },
+    {
+    "question": "The film was set in India and told the story of a young boy surviving on the streets of Mumbai; it won several Oscars and was originally in English.",
+    "action_name": "MovieInfo",
+    "parameters": {
+      "title": "",
+      "director": "",
+      "genres": [],
+      "year": 0,
+      "actors": [],
+      "descriptive_movie_facts": ["set in India", "story of a young boy surviving on the streets of Mumbai", "won several Oscars", "originally in English"]
+    }
+    },
+    {
+    "question": "Are there any movies in english on 12th of May?",
+    "action_name": "TimetableInfo",
+    "parameters": {
+      "title": "",
+      "cinema": "",
+      "language": "en",
+      "dates": ["2025-05-12"],
+      "time": []
+    }
+    },
+    {
+    "question": "What is in Fiumara between 13 and 17 pm?",
+    "action_name": "TimetableInfo",
+    "parameters": {
+      "title": "",
+      "cinema": "Fiumara",
+      "language": "",
+      "dates": [],
+      "time": ["13:00", "17:00"]
+    }
+    },
+    {
+    "question": "What time can i watch Conclave on 13 or 14 of december 2026?",
+    "action_name": "TimetableInfo",
+    "parameters": {
+      "title": "conclave",
+      "cinema": "",
+      "language": "",
+      "dates": ["2026-12-13", "2026-12-14"],
+      "time": []
+    }
+    },
+    {
+    "question": "In which cinema there is a movie in Italian on 12th of May after lunchtime?",
+    "action_name": "TimetableInfo",
+    "parameters": {
+      "title": "",
+      "cinema": "",
+      "language": "it",
+      "dates": ["2025-05-12"],
+      "time": ["12:00"]
+    }
+    },
+    {
+    "question": "Is there interstellar in english in Ariston?",
+    "action_name": "TimetableInfo",
+    "parameters": {
+      "title": "interstellar",
+      "cinema": "Ariston",
+      "language": "en",
+      "dates": [],
+      "time": []
+    }
+    }
 ]

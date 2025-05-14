@@ -2,23 +2,23 @@
     "examples": [
         {
             "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
-            "answer": "{'action_id': '3', 'nome_utente': 'Luca', 'ingredienti_rimossi': ['latticini'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'domenica', 'pasto': 'cena'}"
+            "answer": "{'action_id': '3', 'nome_utente': 'Luca', 'ingredienti_rimossi': ['latticini'], 'ingredienti_preferiti':[], 'ingredienti_obbligatori_esclusivi':[], 'giorno': 'domenica', 'pasto': 'cena'}"
         },
         {
             "question": "Ciao, sono Giulia. Puoi suggerirmi una cena senza frutta secca per mercoledì?",
-            "answer": "{'action_id': '3', 'nome_utente': 'Giulia', 'ingredienti_rimossi': ['frutta secca'], 'ingredienti_preferiti':[], 'solo_questi_ingredienti':[], 'giorno': 'mercoledì', 'pasto': 'cena'}"
+            "answer": "{'action_id': '3', 'nome_utente': 'Giulia', 'ingredienti_rimossi': ['frutta secca'], 'ingredienti_preferiti':[], 'ingredienti_obbligatori_esclusivi':[], 'giorno': 'mercoledì', 'pasto': 'cena'}"
         },
         {
             "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
-            "answer": "{'action_id': '3', 'nome_utente': 'Marco', 'ingredienti_rimossi': [], 'ingredienti_preferiti': ['pollo', 'riso'], 'solo_questi_ingredienti': [], 'giorno': 'giovedì', 'pasto': 'pranzo'}"
+            "answer": "{'action_id': '3', 'nome_utente': 'Marco', 'ingredienti_rimossi': [], 'ingredienti_preferiti': ['pollo', 'riso'], 'ingredienti_obbligatori_esclusivi': [], 'giorno': 'giovedì', 'pasto': 'pranzo'}"
         },
         {
             "question": "Ciao, sono Francesca. Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
-            "answer": "{'action_id': '3', 'nome_utente': 'Francesca', 'ingredienti_rimossi': ['pomodoro'], 'ingredienti_preferiti': ['salmone'], 'solo_questi_ingredienti': [], 'giorno': 'sabato', 'pasto': 'cena'}"
+            "answer": "{'action_id': '3', 'nome_utente': 'Francesca', 'ingredienti_rimossi': ['pomodoro'], 'ingredienti_preferiti': ['salmone'], 'ingredienti_obbligatori_esclusivi': [], 'giorno': 'sabato', 'pasto': 'cena'}"
         },
         {
             "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
-            "answer": "{'action_id': '3', 'nome_utente': 'Alessandro', 'ingredienti_rimossi': [], 'ingredienti_preferiti': [], 'solo_questi_ingredienti': ['uova', 'spinaci'], 'giorno': 'oggi', 'pasto': 'colazione'}"
+            "answer": "{'action_id': '3', 'nome_utente': 'Alessandro', 'ingredienti_rimossi': [], 'ingredienti_preferiti': [], 'ingredienti_obbligatori_esclusivi': ['uova', 'spinaci'], 'giorno': 'oggi', 'pasto': 'colazione'}"
         }
     ]
 }

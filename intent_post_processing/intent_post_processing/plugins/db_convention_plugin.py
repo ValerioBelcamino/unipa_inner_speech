@@ -33,12 +33,12 @@ def param_to_lower(intent_parameters: dict, action_name: str):
             if k == 'giorno':
                 v = unidecode(v)
 
-            if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'solo_questi_ingredienti']:
+            if k in ['ingredienti_rimossi', 'ingredienti_preferiti', 'ingredienti_obbligatori_esclusivi']:
                 for i in range(len(v)):
                     v[i] = v[i].lower()
                     # v[i] = v[i].replace(' ', '_')
             else:
-                if not k == 'ha_piano_settimanale':
+                if k != 'ha_piano_settimanale':
                     # Cast to lowercase
                     v = v.lower()
                     # Replace spaces with underscores
@@ -69,5 +69,4 @@ def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_adapter
         # Process the results directly from the adapter
         if results and len(results) > 0:
             intent_parameters["ha_piano_settimanale"] = results[0]["hasWeeklyPlan"]
-    
     return intent_parameters

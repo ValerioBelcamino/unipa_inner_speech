@@ -37,7 +37,7 @@ def get_next_meal(intent_parameters: dict, action_name: str) -> dict:
     # print(f"\033[95m[get_next_meal] parameters = {{'intent_parameters': {intent_parameters}, 'action_name': {action_name}}}\033[0m")
 
     # the day of the week is a valid parameter only for the meal preparation case, let's filter out other action_names
-    if action_name == 'SubstituteDish':
+    if action_name == 'SubstituteDish' and intent_parameters['pasto'] == '':
 
         current_time = datetime.now().time() #11:34:30.263342
 

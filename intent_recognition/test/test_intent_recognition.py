@@ -28,7 +28,7 @@ class IntentOutputListener(Node):
         self.get_logger().info('Received: "%s"\n' % intent_msg)
         self.user_input = intent_msg.user_input
         self.action_name = intent_msg.action_name
-        self.parameters = ast.literal_eval(intent_msg.parameters)
+        self.parameters = json.loads(intent_msg.parameters)
         
     def reset(self):
         self.user_input = None
@@ -96,7 +96,7 @@ def test_single_intent_response(ros_setup, user_input, expected_action_name, exp
         rclpy.spin_once(listener, timeout_sec=0.1)
         if listener.action_name is not None and listener.user_input == user_input:
             break
-    
+    time.sleep(1)  # Give some time for the listener to process the message
     # Make sure we received something
     if listener.user_input != user_input:
         assert False, f"Expected input: {user_input}, but got: {listener.user_input}"
