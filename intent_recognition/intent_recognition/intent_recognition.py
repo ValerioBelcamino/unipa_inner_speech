@@ -95,15 +95,6 @@ class Intent_Recognition(Node):
             except Exception as e:
                 print(f"Error executing plugin: {e}")
 
-    def get_default_value(self, t: Any):
-        try:
-            origin = get_origin(t) or t
-            value = origin()
-            if callable(value):
-                return value
-            return value
-        except:
-            return None
 
     def get_default_value(self, t: Any):
         try:
