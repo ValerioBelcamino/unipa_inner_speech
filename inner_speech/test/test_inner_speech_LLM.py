@@ -20,7 +20,7 @@ import asyncio
 # bleu = evaluate.load("bleu")
 # bertscore_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 # bertscore_model = AutoModel.from_pretrained("bert-base-uncased")
-bleurt = evaluate.load("bleurt", config_name="bleurt-base-128")
+# bleurt = evaluate.load("bleurt", config_name="bleurt-base-128")
 bertscore = evaluate.load("bertscore")
 
 class InnerSeechOutputFormat(BaseModel):
@@ -50,8 +50,8 @@ def compute_metrics(prediction: str, reference: str):
     bert_f1 = bertscore_result["f1"][0]  # F1 score from BERTScore
 
     # # BLEURT: Pretrained model trained on human ratings to score similarity (requires large model download).
-    bleurt_result = bleurt.compute(predictions=[prediction], references=[reference])
-    bleurt_score = bleurt_result["scores"][0]
+    # bleurt_result = bleurt.compute(predictions=[prediction], references=[reference])
+    # bleurt_score = bleurt_result["scores"][0]
 
     # return {
     #     "rouge1": rouge_result["rouge1"],
@@ -63,7 +63,7 @@ def compute_metrics(prediction: str, reference: str):
 
     return {
         "bert_f1": bert_f1,
-        "bleurt": bleurt_score
+        # "bleurt": bleurt_score
     }
 
 
@@ -178,7 +178,7 @@ def test_my_groq_chain(examples_input):
 
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
-    t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
+    # t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
     # t.log_feedback(key="rougeL", score=round(metrics["rougeL"], 3))
     # t.log_feedback(key="bleu", score=round(metrics["bleu"], 3))
     # t.log_feedback(key="cosine_similarity", score=round(metrics["cosine_similarity"], 3))
