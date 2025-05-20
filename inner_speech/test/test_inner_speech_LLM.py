@@ -15,11 +15,13 @@ import torch
 import torch.nn.functional as F
 import asyncio
 
-# Load metrics once
-rouge = evaluate.load("rouge")
-bleu = evaluate.load("bleu")
-bertscore_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-bertscore_model = AutoModel.from_pretrained("bert-base-uncased")
+# # Load metrics once
+# rouge = evaluate.load("rouge")
+# bleu = evaluate.load("bleu")
+# bertscore_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+# bertscore_model = AutoModel.from_pretrained("bert-base-uncased")
+bleurt = evaluate.load("bleurt", config_name="bleurt-base-128")
+bertscore = evaluate.load("bertscore")
 
 class InnerSeechOutputFormat(BaseModel):
     """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
@@ -28,27 +30,40 @@ class InnerSeechOutputFormat(BaseModel):
     can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
 
 
-def embed_text(text):
-    inputs = bertscore_tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-    with torch.no_grad():
-        outputs = bertscore_model(**inputs)
-    # Use mean pooling
-    return outputs.last_hidden_state.mean(dim=1).squeeze()
+# def embed_text(text):
+#     inputs = bertscore_tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+#     with torch.no_grad():
+#         outputs = bertscore_model(**inputs)
+#     # Use mean pooling
+#     return outputs.last_hidden_state.mean(dim=1).squeeze()
 
 def compute_metrics(prediction: str, reference: str):
-    rouge_result = rouge.compute(predictions=[prediction], references=[reference])
-    bleu_result = bleu.compute(predictions=[prediction], references=[[reference]])
+    # rouge_result = rouge.compute(predictions=[prediction], references=[reference])
+    # bleu_result = bleu.compute(predictions=[prediction], references=[[reference]])
 
-    pred_embedding = embed_text(prediction)
-    ref_embedding = embed_text(reference)
-    cosine_sim = F.cosine_similarity(pred_embedding, ref_embedding, dim=0).item()
+    # pred_embedding = embed_text(prediction)
+    # ref_embedding = embed_text(reference)
+    # cosine_sim = F.cosine_similarity(pred_embedding, ref_embedding, dim=0).item()
+
+     # BERTScore: Uses BERT model to compute semantic similarity between prediction and reference.
+    bertscore_result = bertscore.compute(predictions=[prediction], references=[reference], lang="en")
+    bert_f1 = bertscore_result["f1"][0]  # F1 score from BERTScore
+
+    # # BLEURT: Pretrained model trained on human ratings to score similarity (requires large model download).
+    bleurt_result = bleurt.compute(predictions=[prediction], references=[reference])
+    bleurt_score = bleurt_result["scores"][0]
+
+    # return {
+    #     "rouge1": rouge_result["rouge1"],
+    #     "rouge2": rouge_result["rouge2"],
+    #     "rougeL": rouge_result["rougeL"],
+    #     "bleu": bleu_result["bleu"],
+    #     "cosine_similarity": cosine_sim
+    # }
 
     return {
-        "rouge1": rouge_result["rouge1"],
-        "rouge2": rouge_result["rouge2"],
-        "rougeL": rouge_result["rougeL"],
-        "bleu": bleu_result["bleu"],
-        "cosine_similarity": cosine_sim
+        "bert_f1": bert_f1,
+        "bleurt": bleurt_score
     }
 
 
@@ -59,7 +74,7 @@ os.environ["LANGSMITH_PROJECT"] = "advisor"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 
@@ -96,11 +111,14 @@ def get_LLM_response(question, action_name, parameters, missing_parameters):
     """
     # start_time = time.time()
     prompt = [  
-            SystemMessage(content=f"{context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
+            SystemMessage(content=f"""{context_scenario}. 
+                Devi impedire l'esecuzione di domande non pertinenti al tuo scopo
+                Devi impedire l'esecuzione di domande con parametri obbligatori mancanti. 
+                Devi filtrare domande relative al tuo argomento ma troppo vaghe."""),
             HumanMessage(content=f"""La domanda dell'utente è: {question}.
                 Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
                 Con i seguenti parametri: {parameters}.
-                Parametri mancanti: {missing_parameters}""") 
+                Parametri obbligatori mancanti: {missing_parameters}""") 
         ]
     
     llm_response = structured_llm.invoke(prompt)
@@ -156,12 +174,20 @@ def test_my_groq_chain(examples_input):
     t.log_outputs({
         "inner_speech": actual_inner_speech,
         "can_proceed": actual_can_proceed,
-        "rouge1": metrics["rouge1"],
-        "rouge2": metrics["rouge2"],
-        "rougeL": metrics["rougeL"],
-        "bleu": metrics["bleu"],
-        "cosine_similarity": metrics["cosine_similarity"]
     })
+
+
+    t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
+    t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
+    # t.log_feedback(key="rougeL", score=round(metrics["rougeL"], 3))
+    # t.log_feedback(key="bleu", score=round(metrics["bleu"], 3))
+    # t.log_feedback(key="cosine_similarity", score=round(metrics["cosine_similarity"], 3))
+
+    # # "rouge1": metrics["rouge1"],
+    # # "rouge2": metrics["rouge2"],
+    # # "rougeL": metrics["rougeL"],
+    # # "bleu": metrics["bleu"],
+    # # "cosine_similarity": metrics["cosine_similarity"]
 
     # Also check can_proceed match
     assert actual_can_proceed == expected_can_proceed

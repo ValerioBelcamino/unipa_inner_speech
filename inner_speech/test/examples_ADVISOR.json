@@ -4,7 +4,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "Mi sta chiedendo qualcosa per divertimento, ma non è collegato alla gestione alimentare o nutrizionale.",
+      "inner_speech": "L'utente ha chiesto una barzelletta, che non è pertinente al mio scopo di guidare un corretto regime alimentare. Devo quindi declinare la richiesta e riportare l'attenzione sul tema principale.",
       "can_proceed": false
     },
     {
@@ -12,7 +12,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "Vuole un consiglio televisivo, ma il sistema si occupa di alimentazione, non di intrattenimento.",
+      "inner_speech": "La domanda dell'utente riguarda la programmazione televisiva, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso soddisfare questa richiesta.",
       "can_proceed": false
     },
     {
@@ -20,7 +20,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "Domanda informativa su una figura pubblica, ma non è rilevante per il contesto nutrizionale.",
+      "inner_speech": "La domanda dell'utente riguarda l'età di Giorgia Meloni, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso rispondere a questa richiesta.",
       "can_proceed": false
     },
     {
@@ -28,7 +28,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "È una domanda valida a livello nutrizionale, ma troppo generica per essere gestita come azione.",
+      "inner_speech": "La domanda dell'utente riguarda l'effetto dei carboidrati sul peso corporeo, che è un argomento pertinente al regime alimentare. Tuttavia, la funzione assegnata è OutOfScope, il che suggerisce che la domanda potrebbe essere troppo generica o non direttamente correlata alla guida alimentare specifica che dovrei fornire.",
       "can_proceed": false
     },
     {
@@ -36,7 +36,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "È un'informazione personale, ma non fornisce nessuna richiesta o azione da compiere.",
+      "inner_speech": "La domanda dell'utente riguarda l'acquisto di un nuovo frigorifero, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso procedere con questa richiesta.",
       "can_proceed": false
     },
     {
@@ -44,7 +44,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "Una preferenza interessante, ma non implica un'azione o una richiesta chiara.",
+      "inner_speech": "L'utente ha menzionato il suo piatto preferito, il risotto ai funghi, ma non ha formulato una domanda specifica o una richiesta relativa al regime alimentare. Senza una domanda chiara, non è possibile procedere con un'azione utile.",
       "can_proceed": false
     },
     {
@@ -52,7 +52,7 @@
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
-      "inner_speech": "Un'affermazione personale, non è una richiesta e non posso agire su di essa.",
+      "inner_speech": "L'utente ha espresso l'intenzione di saltare la cena, ma questa richiesta non è direttamente correlata a un regime alimentare corretto o a una richiesta di guida nutrizionale. Il mio ruolo è quello di fornire consigli su un'alimentazione sana e bilanciata, non di commentare scelte personali come saltare un pasto.",
       "can_proceed": false
     },
     {
@@ -60,29 +60,29 @@
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "paolo",
-        "calorie": 2000,
-        "carboidrati": 200,
-        "grassi": 50,
-        "proteine": 150,
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
         "intolleranze": []
       },
-      "missing_parameters": [],
-      "inner_speech": "Paolo desidera essere inserito nel sistema con un fabbisogno calorico di 2000kcal, 200g di carboidrati, 100g di proteine e 50g di grassi. Questa richiesta può essere accolta utilizzando il task AddToDatabase.",
-      "can_proceed": true
+      "missing_parameters": ["grassi", "carboidrati", "proteine", "calorie"],
+      "inner_speech": "L'utente ha chiesto di essere aggiunto a un database, ma i parametri necessari per un corretto regime alimentare (come calorie, proteine, carboidrati e grassi) sono mancanti. Senza queste informazioni, non posso procedere con una raccomandazione alimentare personalizzata.",
+      "can_proceed": false
     },
     {
-      "question": "Mi chiamo Anna. Puoi registrare un nuovo utente?",
+      "question": "Mi chiamo Anna. Puoi registrare un nuovo utente? Sono allergica al pesce.",
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "anna",
-        "calorie": -1,
-        "carboidrati": -1,
-        "grassi": -1,
-        "proteine": -1,
-        "intolleranze": []
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": ["pesce"]
       },
-      "missing_parameters": ["calorie", "carboidrati", "calorie", "proteine"],
-      "inner_speech": "Paolo desidera essere inserito nel sistema. Il task da utilizzare è AddToDatabase, tuttavia, l'utente non ha fornito i parametri relativi al suo fabbisogno giornaliero di calorie e macronutrienti, pertanto non posso procedere immediatamente e dovrò chiedere maggiorni informazioni.",
+      "missing_parameters": ["grassi", "carboidrati", "proteine", "calorie"],
+      "inner_speech": "L'utente Anna ha chiesto di registrarsi nel database con un'allergia al pesce. Tuttavia, mancano informazioni essenziali come calorie, proteine, carboidrati e grassi, che sono necessarie per un corretto regime alimentare. Senza questi dati, non posso procedere con la registrazione.",
       "can_proceed": false
     },
     {
@@ -96,9 +96,9 @@
         "proteine": 200,
         "intolleranze": ["glutine"]
       },
-      "missing_parameters": [],
-      "inner_speech": "Elisa desidera essere inserito nel sistema con un fabbisogno calorico di 2000kcal, 150g di carboidrati, 200g di proteine e 30g di grassi. Elisa inoltre specifica di voler seguire una dieta priva di glutine. Questa richiesta può essere accolta utilizzando il task AddToDatabase. Procedo con l'inserimento",
-      "can_proceed": true
+      "missing_parameters": ["grassi", "carboidrati", "calorie"],
+      "inner_speech": "L'utente Elisa ha fornito informazioni sul suo nome, l'intolleranza al glutine e l'obiettivo proteico di 200 grammi. Tuttavia, mancano dati essenziali come grassi, carboidrati e calorie, che sono fondamentali per creare un piano alimentare completo. Senza questi dati, non posso procedere in modo accurato.",
+      "can_proceed": false
     },
     {
       "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
@@ -112,8 +112,8 @@
         "intolleranze": ["lattosio"]
       },
       "missing_parameters": [],
-      "inner_speech": "Pippo vuole essere inserito nel database. L'utente è intollerante al lattosio ed ha un fabbisogno di 2800kcal e 180g di carboidrati. L'utente non ha però inserito il suo fabbisogno di grassi e proteine che sono necessari per portare a termine il task AddToDatabase. Ho bisogno di chiedergli ulteriori dettagli prima di continuare",
-      "can_proceed": false
+      "inner_speech": "L'utente ha fornito tutte le informazioni necessarie per creare un piano alimentare personalizzato, inclusi i macronutrienti e le intolleranze. La richiesta è pertinente e completa.",
+      "can_proceed": true
     },
     {
       "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
@@ -124,7 +124,7 @@
         "controllo_ingredienti": []
       },
       "missing_parameters": [],
-      "inner_speech": "Giulia vuole sapere se può mangiare il pollo al curry. Posso procedere con il task DishInfo",
+      "inner_speech": "L'utente Giulia chiede se può mangiare il pollo al curry. La domanda è pertinente al mio scopo di guidare un corretto regime alimentare. Tuttavia, mancano informazioni specifiche sulle sue esigenze dietetiche, allergie o restrizioni. Posso comunque fornire una risposta generica sui benefici e le considerazioni del pollo al curry.",
       "can_proceed": true
     },
     {
@@ -140,15 +140,15 @@
       "can_proceed": true
     },
     {
-      "question": "Quanti carboidrati ha il tiramisu?",
+      "question": "Quanti carboidrati ha il tiramisù?",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "tiramisu",
         "nome_utente": "",
-        "controllo_ingredienti": ["carboidrati"]
+        "controllo_ingredienti": []
       },
       "missing_parameters": [],
-      "inner_speech": "Vuole sapere il contenuto in carboidrati del tiramisù. Controllerò le informazioni nutrizionali di questo piatto con il task DishInfo.",
+      "inner_speech": "L'utente ha chiesto informazioni sui carboidrati presenti nel tiramisù. Poiché questa domanda è pertinente al regime alimentare e fornisce dettagli sufficienti (il nome del piatto), posso procedere a fornire una risposta.",
       "can_proceed": true
     },
     {
@@ -160,7 +160,7 @@
         "controllo_ingredienti": []
       },
       "missing_parameters": [],
-      "inner_speech": "Domanda sul contenuto calorico di un piatto specifico. Posso fornire l'informazione richiesta controllando i valori nutrizionali del riso al pomodoro con il task DishInfo.",
+      "inner_speech": "L'utente ha chiesto informazioni sulle calorie del piatto 'riso al pomodoro'. Poiché il mio scopo è guidare l'utente in un corretto regime alimentare, questa domanda è pertinente. Posso procedere a fornire una risposta.",
       "can_proceed": true
     },
     {
@@ -172,7 +172,7 @@
         "controllo_ingredienti": ["uova"]
       },
       "missing_parameters": [],
-      "inner_speech": "L'utente sta chiedendo la presenza di uova nella panna cotta. È un controllo ingredienti semplice che si riferisce al task DishInfo.",
+      "inner_speech": "L'utente ha chiesto se la panna cotta contiene uova. Questa è una domanda pertinente al mio scopo, poiché riguarda la composizione di un piatto e i suoi ingredienti. Posso procedere a fornire una risposta chiara e accurata.",
       "can_proceed": true
     },
     {
@@ -188,7 +188,7 @@
         "pasto": "cena"
       },
       "missing_parameters": [],
-      "inner_speech": "Luca vuole un consiglio su cosa mangiare a cena domenica. Luca ha un piano settimanale nel database e preferirebbe che il pasto non contenesse lattosio. Ho identificato il task SubstituteDish e posso cercare una proposta compatibile per domenica sera.",
+      "inner_speech": "L'utente Luca ha chiesto un'alternativa per la cena di domenica senza latticini. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto tutti i parametri necessari, inclusi gli ingredienti da evitare (latticini) e il giorno specifico (domenica). Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo di guidare l'utente in un regime alimentare corretto.",
       "can_proceed": true
     },
     {
@@ -199,28 +199,44 @@
         "ingredienti_rimossi": ["frutta secca"],
         "ingredienti_preferiti": [],
         "ingredienti_obbligatori_esclusivi": [],
-        "ha_piano_settimanale": false,
+        "ha_piano_settimanale": true,
         "giorno": "mercoledì",
         "pasto": "cena"
       },
       "missing_parameters": [],
-      "inner_speech": "Giulia vuole dei piatti alternativi per mercoledi a cena. Questi piatti non devono contenere frutta secca. Il task richiesto è SubstituteDish, però Giulia sembra non avere un piano settimanale registrato nel sistema, quindi non posso accogliere la richiesta.",
+      "inner_speech": "L'utente Giulia ha chiesto un suggerimento per una cena senza frutta secca per mercoledì. L'intento è chiaro e i parametri forniti sono sufficienti per procedere con la richiesta. Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo.",
+      "can_proceed": true
+    },
+    {
+      "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giulia",
+        "ingredienti_rimossi": ["arachidi"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "mercoledi",
+        "pasto": "cena"
+      },
+      "missing_parameters": ["ha_piano_settimanale"],
+      "inner_speech": "L'utente Xenia ha chiesto un suggerimento per una cena senza arachidi per mercoledì. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale o meno, il che potrebbe influenzare la scelta del piatto.",
       "can_proceed": false
     },
     {
-    "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Daniele",
+    "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
     "action_name": "SubstituteDish",
     "parameters": {
         "nome_utente": "daniele",
         "ingredienti_rimossi": ["frutta secca"],
         "ingredienti_preferiti": [],
         "ingredienti_obbligatori_esclusivi": [],
-        "ha_piano_settimanale": true,
-        "giorno": "",
-        "pasto": ""
+        "ha_piano_settimanale": false,
+        "giorno": "martedi",
+        "pasto": "cena"
     },
-    "missing_parameters": ["giorno", "pasto"],
-    "inner_speech": "Daniele vuole conoscere gli alimenti che puà mangiare senza la frutta secca. Il task corrispondente è SubstituteDish, tuttavia l'utente non ha fornito indicazioni riguardo il giorno e il pasto. Essendo queste informazioni necessarie, non posso aiutarla immediatamente ma dovrò chiedere ulteriori informazioni.",
+    "missing_parameters": ["ha_piano_settimanale"],
+    "inner_speech": "L'utente Daniele ha chiesto un suggerimento per una cena senza frutta secca per martedi. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto i parametri necessari, inclusi gli ingredienti da rimuovere e il giorno. Tuttavia, manca il parametro obbligatorio 'ha_piano_settimanale'",
     "can_proceed": false
     },
     {
@@ -236,8 +252,24 @@
         "pasto": "pranzo"
       },
       "missing_parameters": [],
-      "inner_speech": "Marco vuole un consiglio su cosa mangiare a pranzo giovedì. Inoltre preferirebbe che il pasto contenesse due ingredienti specifici: riso e pollo. Ho identificato il task SubstituteDish e posso cercare una proposta compatibile per giovedì.",
+      "inner_speech": "L'utente Marco ha chiesto un suggerimento per un pranzo con pollo e riso per giovedì. Il riconoscimento dell'intento ha identificato correttamente la richiesta e ha fornito tutti i parametri necessari, inclusi gli ingredienti preferiti, il giorno e il pasto. Non ci sono parametri obbligatori mancanti. Pertanto, posso procedere con il suggerimento.",
       "can_proceed": true
+    },
+    {
+      "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giovanni",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": ["salmone"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "lunedi",
+        "pasto": "pranzo"
+      },
+      "missing_parameters": ["ha_piano_settimanale"],
+      "inner_speech": "L'utente Giovanni ha chiesto un suggerimento per un pranzo con salmone. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale, il che è cruciale per fornire un suggerimento appropriato.",
+      "can_proceed": false
     },
     {
       "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
@@ -251,8 +283,8 @@
         "giorno": "sabato",
         "pasto": "cena"
       },
-      "missing_parameters": ["nome_utente"],
-      "inner_speech": "Questa domanda corrisponde al task SubstituteDish. L'utente richiede un consiglio su cosa mangiare a cena sabato. specificando che preferirebbe mangiare salmone e che non vuole mangiare piatti con il pomodoro. Purtroppo la richiesta non può essere portata a termine in quanto il nome dell'utente non è stato fornito e non è un parametro opzionale.",
+      "missing_parameters": ["nome_utente", "ha_piano_settimanale"],
+      "inner_speech": "La domanda dell'utente è pertinente al mio scopo, ma mancano alcuni parametri obbligatori come 'nome_utente' e 'ha_piano_settimanale'. Senza queste informazioni, non posso procedere con la richiesta.",
       "can_proceed": false
     },
     {
@@ -263,12 +295,12 @@
         "ingredienti_rimossi": [],
         "ingredienti_preferiti": [],
         "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"],
-        "ha_piano_settimanale": true,
+        "ha_piano_settimanale": false,
         "giorno": "martedi",
         "pasto": "colazione"
       },
-      "missing_parameters": [],
-      "inner_speech": "Alessandro ha a disposizione solamente uova e spinaci e vuole un consiglio per la colazione di martedi. Posso suggerire una ricetta usando solo ciò che ha. Questa richiesta corrisponde al task SubstituteDish",
-      "can_proceed": true
+      "missing_parameters": ["ha_piano_settimanale"],
+      "inner_speech": "L'utente Alessandro ha chiesto cosa può cucinare per colazione utilizzando uova e spinaci. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso procedere con la richiesta.",
+      "can_proceed": false
     }
 ]

@@ -16,7 +16,7 @@ from typing import Any, get_origin, get_args, Union
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
 

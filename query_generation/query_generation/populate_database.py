@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
 dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 uri = os.getenv("NEO4J_URI")
 username = os.getenv("NEO4J_USERNAME")
