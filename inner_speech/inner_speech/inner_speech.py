@@ -85,7 +85,6 @@ class Inner_Speech(Node):
         action_name = intent_msg.action_name
         parameters = json.loads(intent_msg.parameters)
 
-        completed = True
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
         required_parameters = self.action_name_to_required_parameters[action_name]
@@ -100,7 +99,6 @@ class Inner_Speech(Node):
             HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
                 Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
                 Con i seguenti parametri: {parameters}.
-                L'azione può essere completata: {completed}.
                 Parametri mancanti: {missing_parameters}""") 
         ]
 

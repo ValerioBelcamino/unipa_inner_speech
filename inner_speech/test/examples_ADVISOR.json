@@ -1,0 +1,274 @@
+[
+    {
+      "question": "raccontami una barzelletta",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "Mi sta chiedendo qualcosa per divertimento, ma non è collegato alla gestione alimentare o nutrizionale.",
+      "can_proceed": false
+    },
+    {
+      "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "Vuole un consiglio televisivo, ma il sistema si occupa di alimentazione, non di intrattenimento.",
+      "can_proceed": false
+    },
+    {
+      "question": "quanti anni ha giorgia meloni?",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "Domanda informativa su una figura pubblica, ma non è rilevante per il contesto nutrizionale.",
+      "can_proceed": false
+    },
+    {
+      "question": "i carboidrati mi fanno ingrassare?",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "È una domanda valida a livello nutrizionale, ma troppo generica per essere gestita come azione.",
+      "can_proceed": false
+    },
+    {
+      "question": "ho comprato un nuovo frigorifero ieri",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "È un'informazione personale, ma non fornisce nessuna richiesta o azione da compiere.",
+      "can_proceed": false
+    },
+    {
+      "question": "Il mio piatto preferito è il risotto ai funghi",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "Una preferenza interessante, ma non implica un'azione o una richiesta chiara.",
+      "can_proceed": false
+    },
+    {
+      "question": "Penso che salterò la cena oggi",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "Un'affermazione personale, non è una richiesta e non posso agire su di essa.",
+      "can_proceed": false
+    },
+    {
+      "question": "ciao puoi aggiungermi in database? sono paolo",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "paolo",
+        "calorie": 2000,
+        "carboidrati": 200,
+        "grassi": 50,
+        "proteine": 150,
+        "intolleranze": []
+      },
+      "missing_parameters": [],
+      "inner_speech": "Paolo desidera essere inserito nel sistema con un fabbisogno calorico di 2000kcal, 200g di carboidrati, 100g di proteine e 50g di grassi. Questa richiesta può essere accolta utilizzando il task AddToDatabase.",
+      "can_proceed": true
+    },
+    {
+      "question": "Mi chiamo Anna. Puoi registrare un nuovo utente?",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "anna",
+        "calorie": -1,
+        "carboidrati": -1,
+        "grassi": -1,
+        "proteine": -1,
+        "intolleranze": []
+      },
+      "missing_parameters": ["calorie", "carboidrati", "calorie", "proteine"],
+      "inner_speech": "Paolo desidera essere inserito nel sistema. Il task da utilizzare è AddToDatabase, tuttavia, l'utente non ha fornito i parametri relativi al suo fabbisogno giornaliero di calorie e macronutrienti, pertanto non posso procedere immediatamente e dovrò chiedere maggiorni informazioni.",
+      "can_proceed": false
+    },
+    {
+      "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "elisa",
+        "calorie": 1800,
+        "carboidrati": 150,
+        "grassi": 30,
+        "proteine": 200,
+        "intolleranze": ["glutine"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "Elisa desidera essere inserito nel sistema con un fabbisogno calorico di 2000kcal, 150g di carboidrati, 200g di proteine e 30g di grassi. Elisa inoltre specifica di voler seguire una dieta priva di glutine. Questa richiesta può essere accolta utilizzando il task AddToDatabase. Procedo con l'inserimento",
+      "can_proceed": true
+    },
+    {
+      "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "pippo",
+        "calorie": 2800,
+        "carboidrati": 180,
+        "grassi": 80,
+        "proteine": 150,
+        "intolleranze": ["lattosio"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "Pippo vuole essere inserito nel database. L'utente è intollerante al lattosio ed ha un fabbisogno di 2800kcal e 180g di carboidrati. L'utente non ha però inserito il suo fabbisogno di grassi e proteine che sono necessari per portare a termine il task AddToDatabase. Ho bisogno di chiedergli ulteriori dettagli prima di continuare",
+      "can_proceed": false
+    },
+    {
+      "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "pollo al curry",
+        "nome_utente": "giulia",
+        "controllo_ingredienti": []
+      },
+      "missing_parameters": [],
+      "inner_speech": "Giulia vuole sapere se può mangiare il pollo al curry. Posso procedere con il task DishInfo",
+      "can_proceed": true
+    },
+    {
+      "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "pasta alla carbonara",
+        "nome_utente": "luca",
+        "controllo_ingredienti": ["lattosio"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "Luca chiede una verifica su un ingrediente specifico in un piatto. Devo attivare il task DishInfo per controllare se la pasta alla carbonara contiene il lattosio.",
+      "can_proceed": true
+    },
+    {
+      "question": "Quanti carboidrati ha il tiramisu?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "tiramisu",
+        "nome_utente": "",
+        "controllo_ingredienti": ["carboidrati"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "Vuole sapere il contenuto in carboidrati del tiramisù. Controllerò le informazioni nutrizionali di questo piatto con il task DishInfo.",
+      "can_proceed": true
+    },
+    {
+      "question": "è calorico il riso al pomodoro?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "riso al pomodoro",
+        "nome_utente": "",
+        "controllo_ingredienti": []
+      },
+      "missing_parameters": [],
+      "inner_speech": "Domanda sul contenuto calorico di un piatto specifico. Posso fornire l'informazione richiesta controllando i valori nutrizionali del riso al pomodoro con il task DishInfo.",
+      "can_proceed": true
+    },
+    {
+      "question": "La panna cotta contiene uova?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "panna cotta",
+        "nome_utente": "",
+        "controllo_ingredienti": ["uova"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente sta chiedendo la presenza di uova nella panna cotta. È un controllo ingredienti semplice che si riferisce al task DishInfo.",
+      "can_proceed": true
+    },
+    {
+      "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "luca",
+        "ingredienti_rimossi": ["latticini"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "domenica",
+        "pasto": "cena"
+      },
+      "missing_parameters": [],
+      "inner_speech": "Luca vuole un consiglio su cosa mangiare a cena domenica. Luca ha un piano settimanale nel database e preferirebbe che il pasto non contenesse lattosio. Ho identificato il task SubstituteDish e posso cercare una proposta compatibile per domenica sera.",
+      "can_proceed": true
+    },
+    {
+      "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giulia",
+        "ingredienti_rimossi": ["frutta secca"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "mercoledì",
+        "pasto": "cena"
+      },
+      "missing_parameters": [],
+      "inner_speech": "Giulia vuole dei piatti alternativi per mercoledi a cena. Questi piatti non devono contenere frutta secca. Il task richiesto è SubstituteDish, però Giulia sembra non avere un piano settimanale registrato nel sistema, quindi non posso accogliere la richiesta.",
+      "can_proceed": false
+    },
+    {
+    "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Daniele",
+    "action_name": "SubstituteDish",
+    "parameters": {
+        "nome_utente": "daniele",
+        "ingredienti_rimossi": ["frutta secca"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "",
+        "pasto": ""
+    },
+    "missing_parameters": ["giorno", "pasto"],
+    "inner_speech": "Daniele vuole conoscere gli alimenti che puà mangiare senza la frutta secca. Il task corrispondente è SubstituteDish, tuttavia l'utente non ha fornito indicazioni riguardo il giorno e il pasto. Essendo queste informazioni necessarie, non posso aiutarla immediatamente ma dovrò chiedere ulteriori informazioni.",
+    "can_proceed": false
+    },
+    {
+      "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "marco",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": ["pollo", "riso"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "giovedi",
+        "pasto": "pranzo"
+      },
+      "missing_parameters": [],
+      "inner_speech": "Marco vuole un consiglio su cosa mangiare a pranzo giovedì. Inoltre preferirebbe che il pasto contenesse due ingredienti specifici: riso e pollo. Ho identificato il task SubstituteDish e posso cercare una proposta compatibile per giovedì.",
+      "can_proceed": true
+    },
+    {
+      "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "",
+        "ingredienti_rimossi": ["pomodoro"],
+        "ingredienti_preferiti": ["salmone"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "sabato",
+        "pasto": "cena"
+      },
+      "missing_parameters": ["nome_utente"],
+      "inner_speech": "Questa domanda corrisponde al task SubstituteDish. L'utente richiede un consiglio su cosa mangiare a cena sabato. specificando che preferirebbe mangiare salmone e che non vuole mangiare piatti con il pomodoro. Purtroppo la richiesta non può essere portata a termine in quanto il nome dell'utente non è stato fornito e non è un parametro opzionale.",
+      "can_proceed": false
+    },
+    {
+      "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "alessandro",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"],
+        "ha_piano_settimanale": true,
+        "giorno": "martedi",
+        "pasto": "colazione"
+      },
+      "missing_parameters": [],
+      "inner_speech": "Alessandro ha a disposizione solamente uova e spinaci e vuole un consiglio per la colazione di martedi. Posso suggerire una ricetta usando solo ciò che ha. Questa richiesta corrisponde al task SubstituteDish",
+      "can_proceed": true
+    }
+]
