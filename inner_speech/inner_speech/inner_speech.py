@@ -24,9 +24,10 @@ class InnerSeechOutputFormat(BaseModel):
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
 dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 dotconfig_path = os.path.join(BASE_DIR, ".config")
 load_dotenv(dotconfig_path)
+
 
 class Inner_Speech(Node):
     def __init__(self):
@@ -85,7 +86,6 @@ class Inner_Speech(Node):
         action_name = intent_msg.action_name
         parameters = json.loads(intent_msg.parameters)
 
-        completed = True
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
         required_parameters = self.action_name_to_required_parameters[action_name]
@@ -96,12 +96,14 @@ class Inner_Speech(Node):
                                 ])
         
         prompt = [  
-            SystemMessage(content=f"{self.context_scenario}. Devi impedire l'esecuzione di domande non pertinenti al tuo scopo."),
+            SystemMessage(content=f"""{self.context_scenario}. 
+                Devi impedire l'esecuzione di domande non pertinenti al tuo scopo
+                Devi impedire l'esecuzione di domande con parametri obbligatori mancanti. 
+                Devi filtrare domande relative al tuo argomento ma troppo vaghe."""),
             HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
                 Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
                 Con i seguenti parametri: {parameters}.
-                L'azione può essere completata: {completed}.
-                Parametri mancanti: {missing_parameters}""") 
+                Parametri obbligatori mancanti: {missing_parameters}""") 
         ]
 
         # start_time = time.time()
@@ -116,6 +118,8 @@ class Inner_Speech(Node):
         result_string = json.dumps(result)
 
         print("\033[32m"+result_string+"\033[0m")
+
+        completed = True
 
         if missing_parameters or action_name == 'OutOfScope' or not result['can_proceed']:
             completed = False 

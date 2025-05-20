@@ -5,7 +5,7 @@ import os
 # Load environment variables from .env file
 BASE_DIR = "/home/belca/Desktop/ros2_humble_ws/src"
 dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path, override=True)
 
 uri = os.getenv("NEO4J_URI")
 username = os.getenv("NEO4J_USERNAME")
