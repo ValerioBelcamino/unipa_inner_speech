@@ -1,0 +1,114 @@
+[
+  {
+    "question": "Quanti carboidrati ha il tiramisù?",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs"],
+    "results": [{"carbs": 45}],
+    "explanation": "Ciao Giulia, il tiramisù contiene 45 grammi di carboidrati. Se stai seguendo una dieta, potresti voler tenerne conto. Vuoi sapere qualcos'altro sul tiramisù o su altre opzioni alimentari?"
+  },
+  {
+    "question": "è calorico il riso al pomodoro?",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
+    "results": [],
+    "explanation": "Ciao! Mi dispiace, ma non ho trovato informazioni sulle calorie del riso al pomodoro. Non posso darti una risposta precisa sulla sua valenza calorica. Se vuoi, posso cercare informazioni su un'altra pietanza o aiutarti con qualcos'altro!"
+  },
+  {
+    "question": "è calorico il tiramisù?",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
+    "results": [{"dish": "tiramisu", "calories": 420, "proteins": 8, "fats": 25, "carbs": 45}],
+    "explanation": "Ciao! Il tiramisu contiene 420 calorie, con 25 grammi di grassi, 45 grammi di carboidrati e 8 grammi di proteine. Quindi, sì, il tiramisu è un dolce abbastanza calorico. Se stai seguendo una dieta, potresti voler considerare di consumarlo con moderazione."
+  },
+  {
+    "question": "La panna cotta contiene uova?",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"],
+    "results": [{"dish": "tiramisu", "calories": 420, "proteins": 8, "fats": 25, "carbs": 45}],
+    "explanation": "Ciao! La tua domanda è se la panna cotta contiene uova. Dopo aver eseguito la query, non ho trovato alcun risultato che indichi la presenza di uova nella panna cotta. Quindi, la risposta è no, la panna cotta non contiene uova."
+  },
+  {
+    "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+  "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
+  "action_name": "SubstituteDish",
+  "queries": [],
+  "results": [],
+  "explanation": ""
+  },
+  {
+    "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
+    "action_name": "AddToDatabase",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+    "action_name": "AddToDatabase",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+    "action_name": "DishInfo",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  },
+  {
+    "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+    "action_name": "DishInfo",
+    "queries": [],
+    "results": [],
+    "explanation": ""
+  }
+]

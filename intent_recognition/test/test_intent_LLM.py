@@ -1,8 +1,6 @@
-import pytest, os, json, sys
-from langsmith import testing as t
-filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, filepath)
 from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
+from langsmith import testing as t
+import pytest, os, json
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"

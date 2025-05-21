@@ -1,0 +1,233 @@
+[
+    {
+      "question": "ciao puoi aggiungermi in database? sono paolo",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "paolo",
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": []
+      },
+      "queries": ["grassi", "carboidrati", "proteine", "calorie"],
+      "results": "L'utente ha chiesto di essere aggiunto a un database, ma i parametri necessari per un corretto regime alimentare (come calorie, proteine, carboidrati e grassi) sono mancanti. Senza queste informazioni, non posso procedere con una raccomandazione alimentare personalizzata."
+    },
+    {
+      "question": "Mi chiamo Anna. Puoi registrare un nuovo utente? Sono allergica al pesce.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "anna",
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": ["pesce"]
+      },
+      "queries": ["grassi", "carboidrati", "proteine", "calorie"],
+      "results": "L'utente Anna ha chiesto di registrarsi nel database con un'allergia al pesce. Tuttavia, mancano informazioni essenziali come calorie, proteine, carboidrati e grassi, che sono necessarie per un corretto regime alimentare. Senza questi dati, non posso procedere con la registrazione."
+    },
+    {
+      "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "elisa",
+        "calorie": 1800,
+        "carboidrati": 150,
+        "grassi": 30,
+        "proteine": 200,
+        "intolleranze": ["glutine"]
+      },
+      "queries": ["grassi", "carboidrati", "calorie"],
+      "results": "L'utente Elisa ha fornito informazioni sul suo nome, l'intolleranza al glutine e l'obiettivo proteico di 200 grammi. Tuttavia, mancano dati essenziali come grassi, carboidrati e calorie, che sono fondamentali per creare un piano alimentare completo. Senza questi dati, non posso procedere in modo accurato."
+    },
+    {
+      "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "pippo",
+        "calorie": 2800,
+        "carboidrati": 180,
+        "grassi": 80,
+        "proteine": 150,
+        "intolleranze": ["lattosio"]
+      },
+      "queries": [],
+      "results": "L'utente ha fornito tutte le informazioni necessarie per creare un piano alimentare personalizzato, inclusi i macronutrienti e le intolleranze. La richiesta è pertinente e completa."
+    },
+    {
+      "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "pollo al curry",
+        "nome_utente": "giulia",
+        "controllo_ingredienti": []
+      },
+      "queries": [],
+      "results": "L'utente Giulia chiede se può mangiare il pollo al curry. La domanda è pertinente al mio scopo di guidare un corretto regime alimentare. Tuttavia, mancano informazioni specifiche sulle sue esigenze dietetiche, allergie o restrizioni. Posso comunque fornire una risposta generica sui benefici e le considerazioni del pollo al curry."
+    },
+    {
+      "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "pasta alla carbonara",
+        "nome_utente": "luca",
+        "controllo_ingredienti": ["lattosio"]
+      },
+      "queries": [],
+      "results": "Luca chiede una verifica su un ingrediente specifico in un piatto. Devo attivare il task DishInfo per controllare se la pasta alla carbonara contiene il lattosio."
+    },
+    {
+      "question": "Quanti carboidrati ha il tiramisù?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "tiramisu",
+        "nome_utente": "",
+        "controllo_ingredienti": []
+      },
+      "queries": [],
+      "results": "L'utente ha chiesto informazioni sui carboidrati presenti nel tiramisù. Poiché questa domanda è pertinente al regime alimentare e fornisce dettagli sufficienti (il nome del piatto), posso procedere a fornire una risposta."
+    },
+    {
+      "question": "è calorico il riso al pomodoro?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "riso al pomodoro",
+        "nome_utente": "",
+        "controllo_ingredienti": []
+      },
+      "queries": [],
+      "results": "L'utente ha chiesto informazioni sulle calorie del piatto 'riso al pomodoro'. Poiché il mio scopo è guidare l'utente in un corretto regime alimentare, questa domanda è pertinente. Posso procedere a fornire una risposta."
+    },
+    {
+      "question": "La panna cotta contiene uova?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "panna cotta",
+        "nome_utente": "",
+        "controllo_ingredienti": ["uova"]
+      },
+      "queries": [],
+      "results": "L'utente ha chiesto se la panna cotta contiene uova. Questa è una domanda pertinente al mio scopo, poiché riguarda la composizione di un piatto e i suoi ingredienti. Posso procedere a fornire una risposta chiara e accurata."
+    },
+    {
+      "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "luca",
+        "ingredienti_rimossi": ["latticini"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "domenica",
+        "pasto": "cena"
+      },
+      "queries": [],
+      "results": "L'utente Luca ha chiesto un'alternativa per la cena di domenica senza latticini. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto tutti i parametri necessari, inclusi gli ingredienti da evitare (latticini) e il giorno specifico (domenica). Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo di guidare l'utente in un regime alimentare corretto."
+    },
+    {
+      "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giulia",
+        "ingredienti_rimossi": ["frutta secca"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "mercoledì",
+        "pasto": "cena"
+      },
+      "queries": [],
+      "results": "L'utente Giulia ha chiesto un suggerimento per una cena senza frutta secca per mercoledì. L'intento è chiaro e i parametri forniti sono sufficienti per procedere con la richiesta. Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo."
+    },
+    {
+      "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giulia",
+        "ingredienti_rimossi": ["arachidi"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "mercoledi",
+        "pasto": "cena"
+      },
+      "queries": ["ha_piano_settimanale"],
+      "results": "L'utente Xenia ha chiesto un suggerimento per una cena senza arachidi per mercoledì. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale o meno, il che potrebbe influenzare la scelta del piatto."
+    },
+    {
+    "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
+    "action_name": "SubstituteDish",
+    "parameters": {
+        "nome_utente": "daniele",
+        "ingredienti_rimossi": ["frutta secca"],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "martedi",
+        "pasto": "cena"
+    },
+    "queries": ["ha_piano_settimanale"],
+    "results": "L'utente Daniele ha chiesto un suggerimento per una cena senza frutta secca per martedi. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto i parametri necessari, inclusi gli ingredienti da rimuovere e il giorno. Tuttavia, manca il parametro obbligatorio 'ha_piano_settimanale'"
+    },
+    {
+      "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "marco",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": ["pollo", "riso"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "giovedi",
+        "pasto": "pranzo"
+      },
+      "queries": [],
+      "results": "L'utente Marco ha chiesto un suggerimento per un pranzo con pollo e riso per giovedì. Il riconoscimento dell'intento ha identificato correttamente la richiesta e ha fornito tutti i parametri necessari, inclusi gli ingredienti preferiti, il giorno e il pasto. Non ci sono parametri obbligatori mancanti. Pertanto, posso procedere con il suggerimento."
+    },
+    {
+      "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "giovanni",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": ["salmone"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "lunedi",
+        "pasto": "pranzo"
+      },
+      "queries": ["ha_piano_settimanale"],
+      "results": "L'utente Giovanni ha chiesto un suggerimento per un pranzo con salmone. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale, il che è cruciale per fornire un suggerimento appropriato."
+    },
+    {
+      "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "",
+        "ingredienti_rimossi": ["pomodoro"],
+        "ingredienti_preferiti": ["salmone"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": false,
+        "giorno": "sabato",
+        "pasto": "cena"
+      },
+      "queries": ["nome_utente", "ha_piano_settimanale"],
+      "results": "La domanda dell'utente è pertinente al mio scopo, ma mancano alcuni parametri obbligatori come 'nome_utente' e 'ha_piano_settimanale'. Senza queste informazioni, non posso procedere con la richiesta."
+    },
+    {
+      "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "alessandro",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"],
+        "ha_piano_settimanale": false,
+        "giorno": "martedi",
+        "pasto": "colazione"
+      },
+      "queries": ["ha_piano_settimanale"],
+      "results": "L'utente Alessandro ha chiesto cosa può cucinare per colazione utilizzando uova e spinaci. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso procedere con la richiesta."
+    }
+]

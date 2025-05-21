@@ -1,4 +1,4 @@
-from inner_speech.inner_speech_llm import InnerSpeech_LLM
+from explainability.explainability_llm import QueryExplanation_LLM
 from langsmith import testing as t
 import torch.nn.functional as F
 import pytest, os, json
@@ -58,14 +58,14 @@ os.environ["LANGSMITH_PROJECT"] = "advisor"
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 
 
-IS_LLM = InnerSpeech_LLM('inner_speech')
+IS_LLM = QueryExplanation_LLM('explainability')
 
 
-def get_LLM_response_wrap(question, action_name, parameters, missing_parameters):
+def get_LLM_response_wrap(question, action_name, queries, results):
     """
     Function to get the LLM response for a given user input.
     """
-    return IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters)
+    return IS_LLM.get_LLM_response(question, action_name, queries, results)
 
 
 def extract_examples(filename='examples.json'):
@@ -77,10 +77,9 @@ def extract_examples(filename='examples.json'):
     processed_data = [(
                         example["question"], 
                         example["action_name"], 
-                        example["parameters"], 
-                        example["missing_parameters"], 
-                        example["inner_speech"], 
-                        example["can_proceed"]) for example in data]
+                        example["queries"], 
+                        example["results"], 
+                        example["explanation"]) for example in data]
     return processed_data
 
 
@@ -92,7 +91,7 @@ def get_examples():
     return examples
 
 # Order is 
-# question, action_name, parameters, missing_parameters, inner_speech, can_proceed
+# question, action_name, queries, results, explanation
 examples = get_examples()
 print(examples)
 
@@ -109,7 +108,7 @@ def test_my_groq_chain(examples_input):
         "can_proceed": expected_can_proceed
     })
 
-    # Call your Groq chain w/ question, action_name, parameters, missing_parameters
+    # Call your Groq chain w/ question, action_name, queries, results
     outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
     
     actual_inner_speech = outputs["inner_speech"]

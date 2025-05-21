@@ -1,9 +1,9 @@
-import json
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
-from common_msgs.msg import Intent, InnerSpeech
 from inner_speech.inner_speech_llm import InnerSpeech_LLM
+from common_msgs.msg import Intent, InnerSpeech
+from std_msgs.msg import String
+from rclpy.node import Node
+import rclpy
+import json
 
 
 class Inner_Speech(Node):

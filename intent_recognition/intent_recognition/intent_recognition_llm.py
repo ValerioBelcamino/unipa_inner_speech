@@ -1,3 +1,4 @@
+from shared_utils.customization_helpers import load_all_intent_models
 from langchain_core.messages import SystemMessage, HumanMessage
 from intent_post_processing.loader import load_plugins
 from shared_utils.llm_helpers import LLM_Initializer
@@ -41,10 +42,16 @@ def check_undeclared_parameters(tool_class, tool_result):
 class IntentRecognition_LLM(LLM_Initializer):
 
     def __init__(self, node_name:str):
-        super().__init__(node_name, use_intent_tools = True)
+        super().__init__(node_name)
+
+        # Load all pydantic intent tools
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
+        self._dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
+        print(f"\033[1;38;5;207mLoaded {len(self._dynamic_intent_toolnames)} intent_tool(s).\033[0m")
 
         # Bind the tools to the LLM call
-        self._llm = self._llm.bind_tools(self._dynamic_intent_tools_dict.values())
+        self._llm = self._llm.bind_tools(self.dynamic_intent_tools_dict.values())
         print(self._llm.get_input_schema())
         print(f"\033[1;38;5;207mBound the tools to the LLM.\033[0m")
         print()
@@ -88,6 +95,7 @@ class IntentRecognition_LLM(LLM_Initializer):
                         Only fill tool parameters when the necessary information is clearly and explicitly included in the user input.
                         Do not hallucinate.
                         Do not fill gaps, or rephrase missing data.
+                        If a question seems to be correlated to the current topic, but it is too vague and doesn't directly refer to a tool, don't answer!
                         If a parameter is missing, ambiguous, or incomplete, leave it blank and do not attempt to infer or complete it.
                         Follow these constraints strictly to ensure reliability and factual accuracy in tool usage."""
                     )),
@@ -115,7 +123,7 @@ class IntentRecognition_LLM(LLM_Initializer):
             tool_result = tool_calls[0]['args']
 
                 # defaults missing parameters to '' or None
-            tool_result = check_undeclared_parameters(self._dynamic_intent_tools_dict[tool_name], tool_result)
+            tool_result = check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
                 # execute post processing plugin pipeline 
             self.execute_plugin_pipeline(tool_name, tool_result)
