@@ -2,37 +2,37 @@
   {
     "question": "Quanti carboidrati ha il tiramisù?",
     "action_name": "DishInfo",
-    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs"],
-    "results": [{"carbs": 45}],
+    "queries": "['MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs']",
+    "results": "[{'carbs': 45}]",
     "explanation": "Ciao Giulia, il tiramisù contiene 45 grammi di carboidrati. Se stai seguendo una dieta, potresti voler tenerne conto. Vuoi sapere qualcos'altro sul tiramisù o su altre opzioni alimentari?"
   },
   {
     "question": "è calorico il riso al pomodoro?",
     "action_name": "DishInfo",
-    "queries": ["MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
-    "results": [],
+    "queries": "['MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs']",
+    "results": "[]",
     "explanation": "Ciao! Mi dispiace, ma non ho trovato informazioni sulle calorie del riso al pomodoro. Non posso darti una risposta precisa sulla sua valenza calorica. Se vuoi, posso cercare informazioni su un'altra pietanza o aiutarti con qualcos'altro!"
   },
   {
     "question": "è calorico il tiramisù?",
     "action_name": "DishInfo",
-    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
-    "results": [{"dish": "tiramisu", "calories": 420, "proteins": 8, "fats": 25, "carbs": 45}],
+    "queries": "['MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs']",
+    "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
     "explanation": "Ciao! Il tiramisu contiene 420 calorie, con 25 grammi di grassi, 45 grammi di carboidrati e 8 grammi di proteine. Quindi, sì, il tiramisu è un dolce abbastanza calorico. Se stai seguendo una dieta, potresti voler considerare di consumarlo con moderazione."
   },
   {
     "question": "La panna cotta contiene uova?",
     "action_name": "DishInfo",
-    "queries": ["MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"],
-    "results": [{"dish": "tiramisu", "calories": 420, "proteins": 8, "fats": 25, "carbs": 45}],
+    "queries": "['MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains']",
+    "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
     "explanation": "Ciao! La tua domanda è se la panna cotta contiene uova. Dopo aver eseguito la query, non ho trovato alcun risultato che indichi la presenza di uova nella panna cotta. Quindi, la risposta è no, la panna cotta non contiene uova."
   },
   {
     "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
     "action_name": "SubstituteDish",
-    "queries": [],
-    "results": [],
-    "explanation": ""
+    "queries": "['MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;', 'MATCH (p:Person {name: 'luca'}), (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['latticini']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'latticini'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC']",
+    "results": "[{'USER_ALLERGIES': 'uova'}]\n[{'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'ravioli di ricotta', 'calorie': 380, 'carboidrati': 50, 'proteine': 15, 'grassi': 12, 'already_assigned': False}, {'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': False}, {'piatto': 'pasta al pomodoro', 'calorie': 450, 'carboidrati': 60, 'proteine': 10, 'grassi': 15, 'already_assigned': False}]",
+    "explanation": "Ciao Luca! Considerando che sei allergico alle uova, ti consiglio una cena alternativa senza latticini per domenica. Una buona opzione potrebbe essere i gamberi alla griglia, che hanno solo 200 calorie, 1 grammo di carboidrati, 25 grammi di proteine e 10 grammi di grassi. Questo piatto è già stato assegnato a te per la cena di domenica, quindi dovrebbe essere una scelta sicura. Se preferisci qualcos'altro, potresti considerare l'insalata di tonno o la bistecca di manzo, che sono entrambe opzioni senza latticini e uova. Evita invece i ravioli di ricotta e il risotto ai funghi perché contengono latticini. Spero che questo ti aiuti a scegliere una cena sana e sicura!"
   },
   {
     "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
