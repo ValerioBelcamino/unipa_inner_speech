@@ -1,32 +1,9 @@
-import os
 import json
-from langchain.chat_models import init_chat_model
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import Intent, InnerSpeech
-from pydantic import BaseModel, Field
-import ast
-from dotenv import load_dotenv
-from db_adapters import DBFactory
-from shared_utils.customization_helpers import load_all_intent_models, list_required_parameters_by_tool, get_scenario_description
-from langchain_core.messages import SystemMessage, HumanMessage
-
-
-class InnerSeechOutputFormat(BaseModel):
-    """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
-
-    inner_speech: str = Field(description="Il tuo ragionamento")
-    can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
-
-
-# Load environment variables from .env file
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../../../../unipa_inner_speech"))
-dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path, override=True)
-dotconfig_path = os.path.join(BASE_DIR, ".config")
-load_dotenv(dotconfig_path)
+from inner_speech.inner_speech_llm import InnerSpeech_LLM
 
 
 class Inner_Speech(Node):
@@ -53,31 +30,8 @@ class Inner_Speech(Node):
         print(f"\033[34mInitialized publishers to {self.query_generation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.db_type = os.getenv("DB_TYPE")
-        self.db = DBFactory.create_adapter(self.db_type)
-        self.schema = self.db.get_schema()
-
-        self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
-
-        self.llm = init_chat_model(
-                                    model=self.llm_config['model_name'], 
-                                    model_provider=self.llm_config['model_provider'], 
-                                    temperature=self.llm_config['temperature'], 
-                                    api_key=os.getenv("GROQ_API_KEY")
-                                )
-        self.structured_llm = self.llm.with_structured_output(InnerSeechOutputFormat)
+        self.IS_LLM = InnerSpeech_LLM(node_name = self.node_name)
         
-        self.scenario = os.getenv("SCENARIO")
-        print(f"\033[34mUsing {self.scenario}!\033[0m")
-        self.context_scenario = get_scenario_description(self.scenario)
-        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
-        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
-        self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
-        self.action_name_to_required_parameters['OutOfScope'] = []
-
-        self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
-        self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'
-
 
     def listener_callback(self, intent_msg):
         self.get_logger().info('Received: "%s"\n' % intent_msg)
@@ -88,33 +42,15 @@ class Inner_Speech(Node):
 
         print(f"\033[34m" + "Parameters: " + str(parameters) + "\033[0m")
 
-        required_parameters = self.action_name_to_required_parameters[action_name]
+        required_parameters = self.IS_LLM.action_name_to_required_parameters[action_name]
         missing_parameters = [param for param in required_parameters if param not in parameters]
         missing_parameters.extend([
                                 param for param in list(set(required_parameters) - set(missing_parameters)) 
                                 if parameters[param] in [0, None, '']
                                 ])
         
-        prompt = [  
-            SystemMessage(content=f"""{self.context_scenario}. 
-                Devi impedire l'esecuzione di domande non pertinenti al tuo scopo
-                Devi impedire l'esecuzione di domande con parametri obbligatori mancanti. 
-                Devi filtrare domande relative al tuo argomento ma troppo vaghe."""),
-            HumanMessage(content=f"""La domanda dell'utente è: {user_input}.
-                Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
-                Con i seguenti parametri: {parameters}.
-                Parametri obbligatori mancanti: {missing_parameters}""") 
-        ]
 
-        # start_time = time.time()
-        llm_response = self.structured_llm.invoke(prompt)
-        print(f'\033[91m{llm_response}\033[0m')
-        # print(f'\033[91m{time.time() - start_time}\033[0m')
-
-        result = {}
-        result['question'] = user_input
-        result['inner_speech'] = llm_response.inner_speech
-        result['can_proceed'] = llm_response.can_proceed
+        result = self.IS_LLM.get_LLM_response(user_input, action_name, parameters, missing_parameters)
         result_string = json.dumps(result)
 
         print("\033[32m"+result_string+"\033[0m")
@@ -129,7 +65,7 @@ class Inner_Speech(Node):
             IS_msg = InnerSpeech(
                 user_input=user_input, 
                 action_name=action_name, 
-                action_description=self.action_name_to_description[action_name], 
+                action_description=self.IS_LLM.action_name_to_description[action_name], 
                 parameters=json.dumps(parameters), 
                 missing_parameters=missing_parameters)
 
