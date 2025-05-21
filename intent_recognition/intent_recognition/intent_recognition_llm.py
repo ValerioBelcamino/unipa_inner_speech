@@ -38,7 +38,7 @@ def check_undeclared_parameters(tool_class, tool_result):
 
 
 
-class InnerSpeech_LLM(LLM_Initializer):
+class IntentRecognition_LLM(LLM_Initializer):
 
     def __init__(self, node_name:str):
         super().__init__(node_name, use_intent_tools = True)

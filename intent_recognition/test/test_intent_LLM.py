@@ -2,12 +2,14 @@ import pytest, os, json, sys
 from langsmith import testing as t
 filepath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, filepath)
-from intent_recognition.llm import get_LLM_response
+from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "advisor"
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
+
+IR_LLM = IntentRecognition_LLM('intent_recognition')
 
 def f1_measure(expected, actual):
     tp = sum(1 for key in expected if actual.get(key) == expected[key])
@@ -51,7 +53,7 @@ def test_my_groq_chain(question):
     })
 
     # Call your Groq chain
-    actual_intent, actual_parameters = get_LLM_response(question)
+    actual_intent, actual_parameters = IR_LLM.get_LLM_response(question)
 
     t.log_outputs({
         "action_name": actual_intent,
@@ -69,7 +71,7 @@ def test_my_groq_chain(question):
         f1_score = f1_measure(expected_parameters, actual_parameters)
         t.log_feedback(
             key="Entities F1 Score",
-            score=f1_score
+            score=round(f1_score, 3)
         )
 
     # Assert the intent name
@@ -82,3 +84,4 @@ def test_my_groq_chain(question):
 
 # to run:
 # LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
+# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py

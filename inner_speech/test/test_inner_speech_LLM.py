@@ -1,19 +1,11 @@
-import pytest, os, json, random, ast
+import pytest, os, json
 from langsmith import testing as t
-from dotenv import load_dotenv
-from shared_utils.customization_helpers import load_all_intent_models, get_scenario_description
-from intent_post_processing.loader import load_plugins
-from langchain.chat_models import init_chat_model
-from typing import Any, get_origin, get_args, Union
-from db_adapters import DBFactory
-from pydantic import BaseModel, Field
-from langchain.evaluation.parsing.base import JsonEqualityEvaluator
 from langchain_core.messages import SystemMessage, HumanMessage
 import evaluate
-from transformers import AutoTokenizer, AutoModel
-import torch
 import torch.nn.functional as F
 import asyncio
+from inner_speech.inner_speech_llm import InnerSpeech_LLM
+
 
 # # Load metrics once
 # rouge = evaluate.load("rouge")
@@ -22,12 +14,6 @@ import asyncio
 # bertscore_model = AutoModel.from_pretrained("bert-base-uncased")
 # bleurt = evaluate.load("bleurt", config_name="bleurt-base-128")
 bertscore = evaluate.load("bertscore")
-
-class InnerSeechOutputFormat(BaseModel):
-    """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
-
-    inner_speech: str = Field(description="Il tuo ragionamento")
-    can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
 
 
 # def embed_text(text):
@@ -71,63 +57,20 @@ os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "advisor"
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../../../unipa_inner_speech"))
-dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path, override=True)
-dotconfig_path = os.path.join(BASE_DIR, ".config")
-load_dotenv(dotconfig_path)
-
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 
-llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))['inner_speech']
-
-llm = init_chat_model(
-        model=llm_config['model_name'], 
-        model_provider=llm_config['model_provider'], 
-        temperature=llm_config['temperature'], 
-        api_key=os.getenv("GROQ_API_KEY")
-    )
-
-scenario = os.getenv("SCENARIO")
-print(f"\033[34mUsing {scenario}!\033[0m")
-context_scenario = get_scenario_description(scenario)
-print(f"\033[34mDesciription: {context_scenario}\033[0m")
-dynamic_intent_tools_dict = load_all_intent_models(scenario)
-print(f"\033[34mLoaded {dynamic_intent_tools_dict} intent_tool(s).\033[0m")
-dynamic_intent_toolnames = [dit.__name__ for dit in dynamic_intent_tools_dict.values()]
-
-db_type = os.getenv("DB_TYPE") 
-db = DBFactory.create_adapter(db_type)
-
-structured_llm = llm.with_structured_output(InnerSeechOutputFormat)
-print(f"\033[1;38;5;208mLoaded {structured_llm}.\033[0m")
 
 
 
-def get_LLM_response(question, action_name, parameters, missing_parameters):
+IS_LLM = InnerSpeech_LLM('inner_speech')
+
+
+def get_LLM_response_wrap(question, action_name, parameters, missing_parameters):
     """
     Function to get the LLM response for a given user input.
     """
-    # start_time = time.time()
-    prompt = [  
-            SystemMessage(content=f"""{context_scenario}. 
-                Devi impedire l'esecuzione di domande non pertinenti al tuo scopo
-                Devi impedire l'esecuzione di domande con parametri obbligatori mancanti. 
-                Devi filtrare domande relative al tuo argomento ma troppo vaghe."""),
-            HumanMessage(content=f"""La domanda dell'utente è: {question}.
-                Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
-                Con i seguenti parametri: {parameters}.
-                Parametri obbligatori mancanti: {missing_parameters}""") 
-        ]
-    
-    llm_response = structured_llm.invoke(prompt)
-    print(f'\033[91m{llm_response}\033[0m')
+    return IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters)
 
-    return {
-        "inner_speech": llm_response.inner_speech,
-        "can_proceed": llm_response.can_proceed
-    }
 
 def extract_examples(filename='examples.json'):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -164,7 +107,7 @@ def test_my_groq_chain(examples_input):
     })
 
     # Call your Groq chain w/ question, action_name, parameters, missing_parameters
-    outputs = get_LLM_response(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]

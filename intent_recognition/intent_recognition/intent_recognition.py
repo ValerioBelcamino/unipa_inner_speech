@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from common_msgs.msg import Intent
-from intent_recognition.intent_recognition_llm import InnerSpeech_LLM
+from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
 
 
 
@@ -26,7 +26,7 @@ class Intent_Recognition(Node):
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
-        self.IR_LLM = InnerSpeech_LLM(node_name = self.node_name)
+        self.IR_LLM = IntentRecognition_LLM(node_name = self.node_name)
 
 
     def listener_callback(self, msg):
