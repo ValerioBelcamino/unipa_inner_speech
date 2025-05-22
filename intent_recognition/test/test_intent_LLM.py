@@ -75,10 +75,29 @@ def test_my_groq_chain(question):
     # Assert the intent name
     assert actual_intent == expected_intent, f"Expected {expected_intent}, got {actual_intent}"
 
-    # Assert the parameters
-    if expected_parameters:
-        for key, expected in expected_parameters.items():
-            assert actual_parameters.get(key) == expected, f"Expected {key} : {expected}, got {actual_parameters.get(key)}"
+    errors = []
 
+    # Assert the parameters
+    # Compare expected and actual parameters, collect differences
+    for key in expected_parameters:
+        expected_value = expected_parameters.get(key)
+        actual_value = actual_parameters.get(key)
+        if key not in actual_parameters:
+            errors.append(f"{key}: expected {expected_value}, got <missing>")
+        elif actual_value != expected_value:
+            errors.append(f"{key}: expected {expected_value}, got {actual_value}")
+
+    # Check for extra parameters in actual that are not expected
+    for key in actual_parameters:
+        if key not in expected_parameters:
+            actual_value = actual_parameters.get(key)
+            errors.append(f"{key}: expected <not present>, got {actual_value}")
+
+    if errors:
+        t.log_feedback(
+            key="Parameter Errors",
+            value="\n".join(errors)
+        )
+        assert False, f"Errors in parameters:\n{errors}"
 # to run:
 # LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
