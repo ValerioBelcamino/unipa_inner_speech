@@ -2,6 +2,7 @@ from inner_speech.inner_speech_llm import InnerSpeech_LLM
 from langsmith import testing as t
 import pytest, os, json
 import evaluate
+import ast
 
 IS_LLM = InnerSpeech_LLM('inner_speech')
 
@@ -16,14 +17,15 @@ def compute_metrics(prediction: str, reference: str):
         "bert_f1": bert_f1
     }
 
+node_name = "inner_speech" 
+IS_LLM = InnerSpeech_LLM(node_name)
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGSMITH_PROJECT"] = "advisor"
+os.environ["LANGSMITH_PROJECT"] = f'{os.getenv("SCENARIO")}:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 
 
-IS_LLM = InnerSpeech_LLM('inner_speech')
 
 
 def extract_examples(filename='examples.json'):

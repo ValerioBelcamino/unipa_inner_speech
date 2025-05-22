@@ -3,6 +3,7 @@ from langsmith import testing as t
 # import torch.nn.functional as F
 import pytest, os, json
 import evaluate
+import ast
 
 
 # # Load metrics once
@@ -51,14 +52,13 @@ def compute_metrics(prediction: str, reference: str):
     }
 
 
+node_name = "explainability"
+IS_LLM = QueryExplanation_LLM(node_name)
+
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGSMITH_PROJECT"] = "advisor"
-
+os.environ["LANGSMITH_PROJECT"] = f'{os.getenv("SCENARIO")}:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-
-
-IS_LLM = QueryExplanation_LLM('explainability')
 
 
 def extract_examples(filename='examples.json'):
