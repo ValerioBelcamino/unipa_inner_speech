@@ -2,113 +2,148 @@
   {
     "question": "Quanti carboidrati ha il tiramisù?",
     "action_name": "DishInfo",
-    "queries": "['MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs']",
+    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs"],
     "results": "[{'carbs': 45}]",
     "explanation": "Ciao Giulia, il tiramisù contiene 45 grammi di carboidrati. Se stai seguendo una dieta, potresti voler tenerne conto. Vuoi sapere qualcos'altro sul tiramisù o su altre opzioni alimentari?"
   },
   {
     "question": "è calorico il riso al pomodoro?",
     "action_name": "DishInfo",
-    "queries": "['MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs']",
+    "queries": ["MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
     "results": "[]",
     "explanation": "Ciao! Mi dispiace, ma non ho trovato informazioni sulle calorie del riso al pomodoro. Non posso darti una risposta precisa sulla sua valenza calorica. Se vuoi, posso cercare informazioni su un'altra pietanza o aiutarti con qualcos'altro!"
   },
   {
     "question": "è calorico il tiramisù?",
     "action_name": "DishInfo",
-    "queries": "['MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs']",
+    "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
     "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
     "explanation": "Ciao! Il tiramisu contiene 420 calorie, con 25 grammi di grassi, 45 grammi di carboidrati e 8 grammi di proteine. Quindi, sì, il tiramisu è un dolce abbastanza calorico. Se stai seguendo una dieta, potresti voler considerare di consumarlo con moderazione."
   },
   {
     "question": "La panna cotta contiene uova?",
     "action_name": "DishInfo",
-    "queries": "['MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains']",
+    "queries": ["MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"],
     "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
     "explanation": "Ciao! La tua domanda è se la panna cotta contiene uova. Dopo aver eseguito la query, non ho trovato alcun risultato che indichi la presenza di uova nella panna cotta. Quindi, la risposta è no, la panna cotta non contiene uova."
   },
   {
     "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
     "action_name": "SubstituteDish",
-    "queries": "['MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;', 'MATCH (p:Person {name: 'luca'}), (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['latticini']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'latticini'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC']",
+    "queries": ["MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;", "MATCH (p:Person {name: 'luca'}), (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['latticini']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'latticini'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": "[{'USER_ALLERGIES': 'uova'}]\n[{'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'ravioli di ricotta', 'calorie': 380, 'carboidrati': 50, 'proteine': 15, 'grassi': 12, 'already_assigned': False}, {'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': False}, {'piatto': 'pasta al pomodoro', 'calorie': 450, 'carboidrati': 60, 'proteine': 10, 'grassi': 15, 'already_assigned': False}]",
     "explanation": "Ciao Luca! Considerando che sei allergico alle uova, ti consiglio una cena alternativa senza latticini per domenica. Una buona opzione potrebbe essere i gamberi alla griglia, che hanno solo 200 calorie, 1 grammo di carboidrati, 25 grammi di proteine e 10 grammi di grassi. Questo piatto è già stato assegnato a te per la cena di domenica, quindi dovrebbe essere una scelta sicura. Se preferisci qualcos'altro, potresti considerare l'insalata di tonno o la bistecca di manzo, che sono entrambe opzioni senza latticini e uova. Evita invece i ravioli di ricotta e il risotto ai funghi perché contengono latticini. Spero che questo ti aiuti a scegliere una cena sana e sicura!"
   },
   {
     "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
     "action_name": "SubstituteDish",
-    "queries": [],
-    "results": [],
-    "explanation": ""
+    "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'frutta secca'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'mercoledi', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
+    "results": "[{'USER_ALLERGIES': 'glutine'}, {'USER_ALLERGIES': 'frutta secca'}]\n[{'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'tiramisu', 'calorie': 420, 'carboidrati': 45, 'proteine': 8, 'grassi': 25, 'already_assigned': False}]",
+    "explanation": "Ciao Giulia! Considerando le tue allergie, ti consiglio di evitare la frutta secca. Per mercoledì, ti suggerisco il risotto ai funghi, che non contiene frutta secca e non è associato a nessuna delle tue allergie note. Tuttavia, se preferisci qualcos'altro, potresti considerare anche i gamberi alla griglia o l'insalata di tonno, che sono entrambi senza frutta secca e non sembrano presentare rischi per le tue allergie. Spero che questo ti sia stato utile!"
   },
   {
     "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Xenia! Grazie per avermi chiesto di suggerirti una cena senza arachidi per mercoledì. Per poterti aiutare al meglio, vorrei sapere se hai un piano alimentare settimanale o se ci sono altre preferenze o restrizioni alimentari che dovresti seguire. Hai un piano alimentare settimanale o ci sono altri ingredienti che devi evitare o che preferisci? Questo mi aiuterà a darti una risposta più personalizzata e adatta alle tue esigenze."
   },
   {
   "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
   "action_name": "SubstituteDish",
   "queries": [],
   "results": [],
-  "explanation": ""
+  "explanation": "Ciao Daniele! Grazie per avermi chiesto di suggerirti una cena senza frutta secca per martedì. Per poterti aiutare al meglio, vorrei sapere se hai un piano alimentare settimanale o se ci sono altre preferenze o restrizioni alimentari che dovresti seguire. In particolare, mi chiedevo se hai un piano alimentare già stabilito per la settimana o se preferisci che io ti suggerisca qualcosa di generico. Potresti gentilmente fornirmi questa informazione in modo che io possa darti una risposta più personalizzata?"
   },
   {
     "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
     "action_name": "SubstituteDish",
-    "queries": [],
+    "queries": ["MATCH (p:Person {name: 'marco'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'marco'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pollo'})} AND EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'riso'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Marco, purtroppo non ho trovato un piatto con pollo e riso adatto a te per giovedì, poiché non ci sono opzioni che escludano il lattosio, a cui sei allergico. Posso aiutarti a cercare altre opzioni?"
   },
   {
     "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Giovanni! Sono felice di aiutarti a trovare un pranzo con salmone che ti piaccia. Tuttavia, per poterti suggerire un'opzione personalizzata, ho bisogno di sapere un po' di più sulle tue esigenze. Hai un piano alimentare settimanale o delle restrizioni dietetiche che dovrei considerare? Ad esempio, sei vegetariano, vegano, o hai delle allergie alimentari? Queste informazioni mi aiuteranno a darti un consiglio più preciso e adatto alle tue esigenze. Puoi aiutarmi a capire meglio le tue preferenze?"
+  },
+  {
+    "question": "Ciao, sono Giulia. Puoi suggerirmi un pranzo con salmone?",
+    "action_name": "SubstituteDish",
+    "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'salmone'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
+    "results": [],
+    "explanation": "Ciao, sono Giulia. Puoi suggerirmi un pranzo con salmone?', 'response': 'Ciao Giulia, ti suggerisco un pranzo con salmone, ma prima vorrei dirti che sei allergica al glutine e alla frutta secca. Purtroppo, non ho trovato un piatto con salmone che sia adatto alle tue esigenze. Posso suggerirti altri piatti che non contengano glutine e frutta secca?"
+  },
+  {
+    "question": "Ciao, sono Giulia. Puoi suggerirmi un pranzo senza pesce?",
+    "action_name": "SubstituteDish",
+    "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pesce'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
+    "results": "[{'USER_ALLERGIES': 'glutine'}, {'USER_ALLERGIES': 'frutta secca'}]\n[{'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': True}, {'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'tiramisu', 'calorie': 420, 'carboidrati': 45, 'proteine': 8, 'grassi': 25, 'already_assigned': False}]",
+    "explanation": "Ciao, sono Giulia. Puoi suggerirmi un pranzo senza pesce?', 'response': 'Ciao Giulia! Sono felice di aiutarti a trovare un pranzo senza pesce. \n\nInnanzitutto, ho verificato le tue allergie e ho trovato che sei allergica al glutine e alla frutta secca. \n\nPoi, ho cercato tra i piatti disponibili quelli che non contengono pesce e che non sono incompatibili con le tue allergie. \n\nEcco alcune opzioni che potrebbero essere adatte per te: \n\n- Bistecca di manzo (380 calorie, 0 carboidrati, 40 proteine, 25 grassi)\n- Cappuccino (70 calorie, 5 carboidrati, 3 proteine, 4 grassi)\n- Tiramisù (420 calorie, 45 carboidrati, 8 proteine, 25 grassi)\n\nTuttavia, ti consiglio di evitare il tiramisù poiché potrebbe contenere glutine. \n\nSpero che queste opzioni ti siano utili! Se hai altre domande o preferenze, non esitare a chiedere."
   },
   {
     "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao! Grazie per avermi chiesto di suggerirti una cena con salmone per sabato. Per poterti aiutare al meglio, ho bisogno di sapere un po' di più sulle tue preferenze e necessità.\nIn particolare, vorrei sapere se hai un piano alimentare settimanale che devo tenere in considerazione mentre ti suggerisco la cena. Inoltre, potresti gentilmente dirmi il tuo nome, così posso rivolgermi a te in modo più personale?\nQueste informazioni mi aiuteranno a fornirti una risposta più precisa e personalizzata. Grazie per la tua collaborazione!"
   },
   {
     "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Alessandro! Grazie per avermi contattato. Sono felice di aiutarti a trovare una ricetta per la colazione con gli ingredienti che hai a disposizione, ovvero uova e spinaci.\nTuttavia, per poterti fornire una proposta personalizzata, avrei bisogno di sapere se hai un piano alimentare settimanale o delle restrizioni dietetiche specifiche. Questo mi aiuterebbe a capire se ci sono particolari esigenze da considerare nella scelta della ricetta.\nPotresti gentilmente dirmi se hai un piano alimentare settimanale o se ci sono particolari restrizioni dietetiche che devo considerare? Ad esempio, sei vegetariano, vegano, hai allergie alimentari o altre esigenze specifiche? Questo mi aiuterà a fornirti una proposta più adatta alle tue esigenze."
+  },
+  {
+    "question": "Ciao, sono Sofia. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+    "action_name": "SubstituteDish",
+    "queries": ["MATCH (p:Person {name: 'sofia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'sofia'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE NOT i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'colazione'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
+    "results": "[{'USER_ALLERGIES': 'pesce'}, {'USER_ALLERGIES': 'crostacei'}]\n[{'piatto': 'frittata di spinaci', 'calorie': 270 'carboidrati': 5, 'proteine': 21, 'grassi': 20, 'already_assigned': False}]",
+    "explanation": "Ciao Sofia, considerando che hai solo uova e spinaci in frigo e che sei allergica al pesce e ai crostacei, una possibile opzione per la colazione potrebbe essere una frittata di uova e spinaci. Questo piatto non contiene ingredienti a cui sei allergica e utilizza solo gli ingredienti che hai a disposizione. Spero che questo ti sia stato utile!"
   },
   {
     "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
     "action_name": "AddToDatabase",
     "queries": [],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Elisa! Grazie per avermi fornito alcune informazioni sulla tua dieta. Per poterti aggiungere al sistema e fornirti consigli personalizzati, ho bisogno di sapere alcuni dettagli in più.\nIn particolare, mi servirebbero informazioni sui tuoi fabbisogni di calorie, carboidrati e grassi. Potresti dirmi quanto è il tuo fabbisogno giornaliero di calorie? E per quanto riguarda i carboidrati e i grassi, ci sono delle quantità specifiche che cerchi di raggiungere o evitare?\nQueste informazioni mi aiuteranno a comprendere meglio le tue esigenze e a fornirti consigli più personalizzati e efficaci. Grazie per la tua collaborazione!"
   },
   {
-    "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+    "question": "Sono Gigi, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
     "action_name": "AddToDatabase",
-    "queries": [],
-    "results": [],
-    "explanation": ""
+    "queries": ["CREATE (p:Person {name: 'gigi', calories:2800, proteins:150, carbs:180, fats:80}) MERGE (a:Allergen {name: 'lattosio'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 180, 'fats': 80, 'proteins': 150, 'name': 'gigi', 'calories': 2800}, 'allergene': {'name': 'lattosio'}}]",
+    "explanation": "Ciao Gigi! Sono felice di aiutarti a gestire il tuo regime alimentare. Ho creato un profilo per te con le tue esigenze nutrizionali: 2800kcal, 180g di carboidrati, 150g di proteine e 80g di grassi. Inoltre, ho registrato la tua intolleranza al lattosio. Ora sei inserito nel sistema e posso aiutarti a trovare ricette adatte alle tue esigenze e allergie. Come posso aiutarti oggi?"
   },
   {
     "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
     "action_name": "DishInfo",
-    "queries": [],
+    "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'pollo al curry'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"],
     "results": [],
-    "explanation": ""
+    "explanation": "Ciao Giulia! Il pollo al curry non sembra contenere allergeni a cui sei sensibile. Non ci sono rischi noti per te, quindi puoi mangiarlo senza preoccupazioni!"
   },
   {
-    "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+    "question": "Sono Luca, posso mangiare la pasta alla carbonara?",
     "action_name": "DishInfo",
-    "queries": [],
-    "results": [],
-    "explanation": ""
+    "queries": ["MATCH (p:Person {name: 'luca'}) MATCH (d:Dish {name: 'pasta alla carbonara'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"],
+    "results": "[{'dish': 'pasta alla carbonara', 'ingredients': ['uova', 'pasta', 'parmigiano'], 'dish_allergens': ['uova', 'glutine', 'lattosio'], 'user_allergens': ['uova'], 'risks_for_user': ['uova']}]",
+    "explanation": "Ciao Luca, la pasta alla carbonara contiene uova, che è un allergene per te. Purtroppo, non è adatto a te a causa della tua allergia alle uova. Ti consiglio di evitare questo piatto per sicurezza."
+  },
+  {
+    "question": "Sono Giulia, volevo sapere se la pasta alla carbonara contiene lattosio",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'pasta alla carbonara'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name)] AS ingredients, [name IN COLLECT(DISTINCT a.name)] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"],
+    "results": "[{'dish': 'pasta alla carbonara', 'dish_allergens': ['lattosio', 'uova', 'pasta', 'parmigiano', 'glutine'], 'user_allergies': ['glutine', 'frutta secca'], 'risks_for_user': ['glutine]}]",
+    "explanation": "Ciao Giulia, la pasta alla carbonara contiene lattosio, ma non sembra che tu sia allergica a questo ingrediente. I tuoi allergeni noti sono glutine e frutta secca, quindi pertanto è meglio se non mangi questo piatto in ogni caso perché contiene glutine! Dovresti evitare questo piatto!"
+  },
+  {
+    "question": "Sono Giulia, volevo sapere se il cappuccino contiene lattosio",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'cappuccino'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"],
+    "results": "[{'dish': 'cappuccino', 'dish_allergens': ['lattosio'], 'user_allergies': ['glutine', 'frutta secca'], 'risks_for_user': []}]",
+    "explanation": "Ciao Giulia, il cappuccino contiene lattosio, ma non sembra che tu abbia allergie a questo ingrediente. Quindi, per te il cappuccino non rappresenta un rischio. Puoi berlo senza preoccupazioni!"
   }
 ]

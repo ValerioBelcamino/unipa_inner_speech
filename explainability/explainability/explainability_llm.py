@@ -36,9 +36,6 @@ class QueryExplanation_LLM(LLM_Initializer):
                                                     input_variables=["user_input", "queries", "results"],
                                                     )
         
-        print(f"\033[34m{user_input=}, {queries=}, {results=}\033[0m")
-
-
         formatted_prompt = few_shot_prompt.format(
                                         user_input = user_input, 
                                         queries = queries, 
@@ -50,11 +47,9 @@ class QueryExplanation_LLM(LLM_Initializer):
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
-            result = {}
-            result['error'] = e
             return e
         
-        return {'question':user_input, 'response':llm_response}
+        return llm_response
 
 
 class InnerSpeechExplanation_LLM(LLM_Initializer):
