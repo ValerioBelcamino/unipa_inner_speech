@@ -115,13 +115,15 @@ class Explainability(Node):
         action_name = msg.action_name
         action_description = msg.action_description
         missing_parameters = msg.missing_parameters
+        inner_speech = msg.inner_speech
 
         response = self.ISEXP_LLM.get_LLM_response(
                                                     user_input, 
                                                     action_name, 
                                                     action_description, 
                                                     parameters, 
-                                                    missing_parameters
+                                                    missing_parameters,
+                                                    inner_speech
                                                     )
 
         response_dict = {'question':user_input, 'response':response}
