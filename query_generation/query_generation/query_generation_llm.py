@@ -2,8 +2,8 @@ from shared_utils.customization_helpers import load_all_scenario_dbs, load_all_q
 from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from shared_utils.llm_helpers import LLM_Initializer
 from groq import BadRequestError
+import time
 import os
-
 
 
 class QueryGeneration_LLM(LLM_Initializer):
@@ -53,8 +53,9 @@ class QueryGeneration_LLM(LLM_Initializer):
         try: 
             print(user_input)
             print(parameters)
+            initial_time = time.time()
             llm_response = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
-            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+            llm_response_time = initial_time - time.time()
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")

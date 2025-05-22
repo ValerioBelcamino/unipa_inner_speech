@@ -4,6 +4,7 @@ from shared_utils.llm_helpers import LLM_Initializer
 from pydantic import BaseModel, Field
 from groq import BadRequestError
 import textwrap
+import time
 
 
 class InnerSeechOutputFormat(BaseModel):
@@ -64,8 +65,9 @@ class InnerSpeech_LLM(LLM_Initializer):
                 ))
         ]
         try:
+            initial_time = time.time()
             llm_response = self._llm.invoke(prompt)
-            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+            llm_response_time = time.time() - initial_time
             print(f'\033[91m{llm_response}\033[0m')
             
             result = {}
