@@ -67,6 +67,7 @@ class Inner_Speech(Node):
                 action_name=action_name, 
                 action_description=self.IS_LLM.action_name_to_description[action_name], 
                 parameters=json.dumps(parameters), 
+                inner_speech=result['inner_speech'],
                 missing_parameters=missing_parameters)
 
         if not completed:

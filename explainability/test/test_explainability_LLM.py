@@ -1,6 +1,6 @@
 from explainability.explainability_llm import QueryExplanation_LLM
 from langsmith import testing as t
-import torch.nn.functional as F
+# import torch.nn.functional as F
 import pytest, os, json
 import evaluate
 
@@ -61,13 +61,6 @@ os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 IS_LLM = QueryExplanation_LLM('explainability')
 
 
-def get_LLM_response_wrap(question, action_name, queries, results):
-    """
-    Function to get the LLM response for a given user input.
-    """
-    return IS_LLM.get_LLM_response(question, action_name, queries, results)
-
-
 def extract_examples(filename='examples.json'):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     full_path = os.path.join(dir_path, filename)
@@ -79,6 +72,7 @@ def extract_examples(filename='examples.json'):
                         example["action_name"], 
                         example["queries"], 
                         example["results"], 
+                        example["inner_speech"],
                         example["explanation"]) for example in data]
     return processed_data
 
@@ -88,39 +82,45 @@ def get_examples():
     scenario = os.getenv("SCENARIO")
     example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
     examples = extract_examples(filename=example_filename)
-    return examples
+
+    query_examples, is_examples = [], []
+
+    for e in examples:
+        if len(e[2]) == 0 and len(e[2]) == 0:
+            is_examples.append(e)
+        else:
+            query_examples.append(e)
+    return query_examples, is_examples
 
 # Order is 
-# question, action_name, queries, results, explanation
-examples = get_examples()
-print(examples)
+# question, action_name, queries, results, inner_speech, explanation
+query_examples, is_examples = get_examples()
+print(query_examples)
+print(len(query_examples))
+print(is_examples)
+print(len(is_examples))
 
 
-@pytest.mark.parametrize("examples_input", examples)
+@pytest.mark.parametrize("examples_input", query_examples)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
 def test_my_groq_chain(examples_input):
-    expected_inner_speech = examples_input[-2]
-    expected_can_proceed = examples_input[-1]
+    expected_explanation = examples_input[-1]
 
     # Log to LangSmith
     t.log_reference_outputs({
-        "inner_speech": expected_inner_speech,
-        "can_proceed": expected_can_proceed
+        "explanation": expected_explanation,
     })
 
     # Call your Groq chain w/ question, action_name, queries, results
-    outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    actual_explanation, total_time = IS_LLM.get_LLM_response(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
     
-    actual_inner_speech = outputs["inner_speech"]
-    actual_can_proceed = outputs["can_proceed"]
-
-    metrics = compute_metrics(actual_inner_speech, expected_inner_speech)
+    metrics = compute_metrics(actual_explanation, expected_explanation)
 
     t.log_outputs({
-        "inner_speech": actual_inner_speech,
-        "can_proceed": actual_can_proceed,
+        "inner_speech": actual_explanation,
     })
 
+    t.log_feedback(key="total_time", score=round(total_time, 3))
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
     # t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
@@ -134,8 +134,6 @@ def test_my_groq_chain(examples_input):
     # # "bleu": metrics["bleu"],
     # # "cosine_similarity": metrics["cosine_similarity"]
 
-    # Also check can_proceed match
-    assert actual_can_proceed == expected_can_proceed
 
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
+# LANGSMITH_TEST_SUITE="Explainability" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py

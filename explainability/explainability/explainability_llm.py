@@ -23,7 +23,7 @@ class QueryExplanation_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, queries=None, results=None):
+    def get_LLM_response(self, user_input, action_name=None, queries=None, results=None, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -35,7 +35,7 @@ class QueryExplanation_LLM(LLM_Initializer):
                                                     example_template=self.query_example_template,
                                                     input_variables=["user_input", "queries", "results"],
                                                     )
-        
+
         formatted_prompt = few_shot_prompt.format(
                                         user_input = user_input, 
                                         queries = queries, 
@@ -43,13 +43,19 @@ class QueryExplanation_LLM(LLM_Initializer):
                                         )
         
         try:
-            llm_response = self._llm.invoke(formatted_prompt).content
+            llm_response = self._llm.invoke(formatted_prompt)
+            llm_response_content = llm_response.content
+            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
-            return e
+            llm_response_content = e
+            llm_response_time = -1
         
-        return llm_response
+        if return_time:
+            return llm_response_content, llm_response_time
+        else:
+            return llm_response_content
 
 
 class InnerSpeechExplanation_LLM(LLM_Initializer):
@@ -59,7 +65,7 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, action_description=None, parameters=None, missing_parameters=None):
+    def get_LLM_response(self, user_input, action_name=None, action_description=None, parameters=None, missing_parameters=None, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -77,11 +83,18 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
             Formula la tua risposta in italiano:""")
         
         try:
-            llm_response = self._llm.invoke(prompt).content
+            llm_response = self._llm.invoke(prompt)
+            llm_response_content = llm_response.content
+            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
-            return e
+            llm_response_content = e
+            llm_response_time = -1
         
-        return llm_response
+        if return_time:
+            return llm_response_content, llm_response_time
+        else:
+            return llm_response_content
 

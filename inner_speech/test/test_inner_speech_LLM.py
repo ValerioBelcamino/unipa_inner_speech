@@ -21,14 +21,9 @@ os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "advisor"
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-os.environ["LANGSMITH_TEST_SUITE"] = "Inner Speech Tests"
 
 
-def get_LLM_response_wrap(question, action_name, parameters, missing_parameters):
-    """
-    Function to get the LLM response for a given user input.
-    """
-    return IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters)
+IS_LLM = InnerSpeech_LLM('inner_speech')
 
 
 def extract_examples(filename='examples.json'):
@@ -75,7 +70,9 @@ def test_my_groq_chain(question):
     action_name = input2params[question]["action_name"]
     parameters = input2params[question]["parameters"]
     missing_parameters = input2params[question]["missing_parameters"]
-    outputs = get_LLM_response_wrap(question, action_name, parameters, missing_parameters)
+    outputs, total_time = IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters, return_time=True)
+
+    t.log_feedback(key="total_time", score=round(total_time, 3))
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]
