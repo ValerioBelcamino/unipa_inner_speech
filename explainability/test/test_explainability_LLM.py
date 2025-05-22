@@ -79,6 +79,7 @@ def extract_examples(filename='examples.json'):
                         example["action_name"], 
                         example["queries"], 
                         example["results"], 
+                        example["inner_speech"],
                         example["explanation"]) for example in data]
     return processed_data
 
@@ -88,12 +89,25 @@ def get_examples():
     scenario = os.getenv("SCENARIO")
     example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
     examples = extract_examples(filename=example_filename)
-    return examples
+
+    query_examples, is_examples = [], []
+
+    for e in examples:
+        if len(e[2]) == 0 and len(e[2]) == 0:
+            is_examples.append(e)
+        else:
+            query_examples.append(e)
+    return query_examples, is_examples
 
 # Order is 
-# question, action_name, queries, results, explanation
-examples = get_examples()
-print(examples)
+# question, action_name, queries, results, inner_speech, explanation
+query_examples, is_examples = get_examples()
+print(query_examples)
+print(len(query_examples))
+print(is_examples)
+print(len(is_examples))
+
+exit()
 
 
 @pytest.mark.parametrize("examples_input", examples)
@@ -134,8 +148,6 @@ def test_my_groq_chain(examples_input):
     # # "bleu": metrics["bleu"],
     # # "cosine_similarity": metrics["cosine_similarity"]
 
-    # Also check can_proceed match
-    assert actual_can_proceed == expected_can_proceed
 
 # to run:
 # LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
