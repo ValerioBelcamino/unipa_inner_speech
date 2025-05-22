@@ -1,6 +1,6 @@
 from explainability.explainability_llm import QueryExplanation_LLM
 from langsmith import testing as t
-import torch.nn.functional as F
+# import torch.nn.functional as F
 import pytest, os, json
 import evaluate
 
@@ -107,32 +107,24 @@ print(len(query_examples))
 print(is_examples)
 print(len(is_examples))
 
-exit()
 
-
-@pytest.mark.parametrize("examples_input", examples)
+@pytest.mark.parametrize("examples_input", query_examples)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
 def test_my_groq_chain(examples_input):
-    expected_inner_speech = examples_input[-2]
-    expected_can_proceed = examples_input[-1]
+    expected_explanation = examples_input[-1]
 
     # Log to LangSmith
     t.log_reference_outputs({
-        "inner_speech": expected_inner_speech,
-        "can_proceed": expected_can_proceed
+        "explanation": expected_explanation,
     })
 
     # Call your Groq chain w/ question, action_name, queries, results
-    outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    actual_explanation = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
     
-    actual_inner_speech = outputs["inner_speech"]
-    actual_can_proceed = outputs["can_proceed"]
-
-    metrics = compute_metrics(actual_inner_speech, expected_inner_speech)
+    metrics = compute_metrics(actual_explanation, expected_explanation)
 
     t.log_outputs({
-        "inner_speech": actual_inner_speech,
-        "can_proceed": actual_can_proceed,
+        "inner_speech": actual_explanation,
     })
 
 
@@ -150,4 +142,4 @@ def test_my_groq_chain(examples_input):
 
 
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
+# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py
