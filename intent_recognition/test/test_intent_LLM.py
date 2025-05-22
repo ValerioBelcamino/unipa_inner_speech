@@ -2,12 +2,13 @@ from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
 from langsmith import testing as t
 import pytest, os, json
 
+IR_LLM = IntentRecognition_LLM('intent_recognition')
+
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "advisor"
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-
-IR_LLM = IntentRecognition_LLM('intent_recognition')
+os.environ["LANGSMITH_TEST_SUITE"] = "Intent Recognition Tests"
 
 def f1_measure(expected, actual):
     tp = sum(1 for key in expected if actual.get(key) == expected[key])
@@ -29,14 +30,13 @@ def get_examples():
     """Helper function to get examples for parameterized tests"""
     scenario = os.getenv("SCENARIO")
     example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
-    examples = extract_examples(filename=example_filename)
-    print(f"Found {len(examples)} examples in the dataset.")
-    inputs, intents, parameters = zip(*examples)
-    input2intents = dict(zip(inputs, intents))
-    input2parameters = dict(zip(inputs, parameters))
-    return inputs, input2intents, input2parameters
+    examples = extract_examples(filename=example_filename)    
+    return examples
 
-inputs, input2intents, input2parameters = get_examples()
+examples = get_examples()
+inputs, intents, parameters = zip(*examples)
+input2intents = dict(zip(inputs, intents))
+input2parameters = dict(zip(inputs, parameters))
 
 @pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
@@ -99,6 +99,6 @@ def test_my_groq_chain(question):
             value="\n".join(errors)
         )
         assert False, f"Errors in parameters:\n{errors}"
+
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
+# pytest /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py

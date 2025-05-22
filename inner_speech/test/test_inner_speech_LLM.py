@@ -1,64 +1,27 @@
 from inner_speech.inner_speech_llm import InnerSpeech_LLM
 from langsmith import testing as t
-import torch.nn.functional as F
 import pytest, os, json
 import evaluate
 
+IS_LLM = InnerSpeech_LLM('inner_speech')
 
 # # Load metrics once
-# rouge = evaluate.load("rouge")
-# bleu = evaluate.load("bleu")
-# bertscore_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-# bertscore_model = AutoModel.from_pretrained("bert-base-uncased")
-# bleurt = evaluate.load("bleurt", config_name="bleurt-base-128")
 bertscore = evaluate.load("bertscore")
 
-
-# def embed_text(text):
-#     inputs = bertscore_tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
-#     with torch.no_grad():
-#         outputs = bertscore_model(**inputs)
-#     # Use mean pooling
-#     return outputs.last_hidden_state.mean(dim=1).squeeze()
-
 def compute_metrics(prediction: str, reference: str):
-    # rouge_result = rouge.compute(predictions=[prediction], references=[reference])
-    # bleu_result = bleu.compute(predictions=[prediction], references=[[reference]])
-
-    # pred_embedding = embed_text(prediction)
-    # ref_embedding = embed_text(reference)
-    # cosine_sim = F.cosine_similarity(pred_embedding, ref_embedding, dim=0).item()
-
-     # BERTScore: Uses BERT model to compute semantic similarity between prediction and reference.
-    bertscore_result = bertscore.compute(predictions=[prediction], references=[reference], lang="en")
+    bertscore_result = bertscore.compute(predictions=[prediction], references=[reference], lang="it")
     bert_f1 = bertscore_result["f1"][0]  # F1 score from BERTScore
 
-    # # BLEURT: Pretrained model trained on human ratings to score similarity (requires large model download).
-    # bleurt_result = bleurt.compute(predictions=[prediction], references=[reference])
-    # bleurt_score = bleurt_result["scores"][0]
-
-    # return {
-    #     "rouge1": rouge_result["rouge1"],
-    #     "rouge2": rouge_result["rouge2"],
-    #     "rougeL": rouge_result["rougeL"],
-    #     "bleu": bleu_result["bleu"],
-    #     "cosine_similarity": cosine_sim
-    # }
-
     return {
-        "bert_f1": bert_f1,
-        # "bleurt": bleurt_score
+        "bert_f1": bert_f1
     }
 
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = "advisor"
-
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-
-
-IS_LLM = InnerSpeech_LLM('inner_speech')
+os.environ["LANGSMITH_TEST_SUITE"] = "Inner Speech Tests"
 
 
 def get_LLM_response_wrap(question, action_name, parameters, missing_parameters):
@@ -74,14 +37,8 @@ def extract_examples(filename='examples.json'):
 
     with open(full_path, 'r') as file:
         data = json.load(file)
-    processed_data = [(
-                        example["question"], 
-                        example["action_name"], 
-                        example["parameters"], 
-                        example["missing_parameters"], 
-                        example["inner_speech"], 
-                        example["can_proceed"]) for example in data]
-    return processed_data
+
+    return data
 
 
 def get_examples():
@@ -91,17 +48,22 @@ def get_examples():
     examples = extract_examples(filename=example_filename)
     return examples
 
-# Order is 
-# question, action_name, parameters, missing_parameters, inner_speech, can_proceed
 examples = get_examples()
-print(examples)
+inputs = [example["question"] for example in examples]
+input2params = {example["question"]: {
+    "action_name": example["action_name"], 
+    "parameters": example["parameters"],
+    "missing_parameters": example["missing_parameters"]} for example in examples}
+input2output = {example["question"]: {
+    "inner_speech": example["inner_speech"], 
+    "can_proceed": example["can_proceed"]} for example in examples}
 
 
-@pytest.mark.parametrize("examples_input", examples)
+@pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
-def test_my_groq_chain(examples_input):
-    expected_inner_speech = examples_input[-2]
-    expected_can_proceed = examples_input[-1]
+def test_my_groq_chain(question):
+    expected_inner_speech = input2output[question]["inner_speech"]
+    expected_can_proceed = input2output[question]["can_proceed"]
 
     # Log to LangSmith
     t.log_reference_outputs({
@@ -110,33 +72,25 @@ def test_my_groq_chain(examples_input):
     })
 
     # Call your Groq chain w/ question, action_name, parameters, missing_parameters
-    outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    action_name = input2params[question]["action_name"]
+    parameters = input2params[question]["parameters"]
+    missing_parameters = input2params[question]["missing_parameters"]
+    outputs = get_LLM_response_wrap(question, action_name, parameters, missing_parameters)
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]
-
-    metrics = compute_metrics(actual_inner_speech, expected_inner_speech)
 
     t.log_outputs({
         "inner_speech": actual_inner_speech,
         "can_proceed": actual_can_proceed,
     })
 
+    metrics = compute_metrics(actual_inner_speech, expected_inner_speech)
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
-    # t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
-    # t.log_feedback(key="rougeL", score=round(metrics["rougeL"], 3))
-    # t.log_feedback(key="bleu", score=round(metrics["bleu"], 3))
-    # t.log_feedback(key="cosine_similarity", score=round(metrics["cosine_similarity"], 3))
-
-    # # "rouge1": metrics["rouge1"],
-    # # "rouge2": metrics["rouge2"],
-    # # "rougeL": metrics["rougeL"],
-    # # "bleu": metrics["bleu"],
-    # # "cosine_similarity": metrics["cosine_similarity"]
 
     # Also check can_proceed match
     assert actual_can_proceed == expected_can_proceed
 
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
+# pytest /home/kimary/unipa/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
