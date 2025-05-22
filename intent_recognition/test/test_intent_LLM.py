@@ -1,13 +1,16 @@
 from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
 from langsmith import testing as t
 import pytest, os, json
+import ast
+
+node_name = "intent_recognition" 
+IR_LLM = IntentRecognition_LLM(node_name)
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGSMITH_PROJECT"] = "advisor"
+os.environ["LANGSMITH_PROJECT"] = f'{os.getenv("SCENARIO")}:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 
-IR_LLM = IntentRecognition_LLM('intent_recognition')
 
 def f1_measure(expected, actual):
     tp = sum(1 for key in expected if actual.get(key) == expected[key])
