@@ -90,31 +90,36 @@ class Neo4jAdapter(DBAdapter):
         parameters = parameters or {}
         query_results = []
         
-        with self.driver.session() as session:
-            result = session.run(query, parameters)
-            
-            for record in result:
-                recdict = {}
-                for key, value in record.items():
-                    if isinstance(value, list):
-                        # It's a collected list of nodes
-                        sublist = []
-                        for item in value:
-                            if hasattr(item, "items"):
-                                subdict = {k: v for k, v in item.items()}
-                                sublist.append(subdict)
-                            else:
-                                sublist.append(item)  # fallback if not a node
-                        recdict[key] = sublist
-                    elif hasattr(value, "items"):
-                        # It's a single node
-                        subdict = {k: v for k, v in value.items()}
-                        recdict[key] = subdict
-                    else:
-                        recdict[key] = value  # fallback for primitives
-                query_results.append(recdict)
+        try:
+            with self.driver.session() as session:
+                result = session.run(query, parameters)
                 
+                for record in result:
+                    recdict = {}
+                    for key, value in record.items():
+                        if isinstance(value, list):
+                            # It's a collected list of nodes
+                            sublist = []
+                            for item in value:
+                                if hasattr(item, "items"):
+                                    subdict = {k: v for k, v in item.items()}
+                                    sublist.append(subdict)
+                                else:
+                                    sublist.append(item)  # fallback if not a node
+                            recdict[key] = sublist
+                        elif hasattr(value, "items"):
+                            # It's a single node
+                            subdict = {k: v for k, v in value.items()}
+                            recdict[key] = subdict
+                        else:
+                            recdict[key] = value  # fallback for primitives
+                    query_results.append(recdict)
+                
+        except Exception as e:
+            return f"Query failed: {str(e)}"
+
         return query_results
+    
     
     def get_schema(self) -> str:
         """
