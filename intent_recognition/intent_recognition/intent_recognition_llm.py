@@ -82,7 +82,7 @@ class IntentRecognition_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class
-    def get_LLM_response(self, user_input):
+    def get_LLM_response(self, user_input, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -106,12 +106,14 @@ class IntentRecognition_LLM(LLM_Initializer):
             llm_response = self._llm.invoke(prompt)
             print(llm_response)
             tool_calls = llm_response.tool_calls
+            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
             tool_calls = llm_response['tool_calls']
+            llm_response_time = -1
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self._dynamic_intent_toolnames]
 
@@ -128,5 +130,8 @@ class IntentRecognition_LLM(LLM_Initializer):
                 # execute post processing plugin pipeline 
             self.execute_plugin_pipeline(tool_name, tool_result)
 
-        return tool_name, tool_result
+        if return_time:
+            return tool_name, tool_result, llm_response_time
+        else:
+            return tool_name, tool_result
 

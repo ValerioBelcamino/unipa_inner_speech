@@ -6,7 +6,6 @@ from groq import BadRequestError
 import textwrap
 
 
-
 class InnerSeechOutputFormat(BaseModel):
     """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
 
@@ -39,7 +38,7 @@ class InnerSpeech_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None):
+    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -66,6 +65,7 @@ class InnerSpeech_LLM(LLM_Initializer):
         ]
         try:
             llm_response = self._llm.invoke(prompt)
+            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
             print(f'\033[91m{llm_response}\033[0m')
             
             result = {}
@@ -77,7 +77,10 @@ class InnerSpeech_LLM(LLM_Initializer):
             print(f"\033[31mError: {e}\033[0m")
             result = {}
             result['error'] = e
-            return e
+            llm_response_time = -1
 
-        return result
+        if return_time:
+            return result, llm_response_time
+        else:
+            return result
 

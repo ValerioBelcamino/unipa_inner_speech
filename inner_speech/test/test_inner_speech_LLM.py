@@ -110,7 +110,9 @@ def test_my_groq_chain(examples_input):
     })
 
     # Call your Groq chain w/ question, action_name, parameters, missing_parameters
-    outputs = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    outputs, total_time = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
+
+    t.log_feedback(key="total_time", score=round(total_time, 3))
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]
@@ -139,4 +141,4 @@ def test_my_groq_chain(examples_input):
     assert actual_can_proceed == expected_can_proceed
 
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
+# LANGSMITH_TEST_SUITE="Inner Speech" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py

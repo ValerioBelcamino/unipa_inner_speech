@@ -119,7 +119,7 @@ def test_my_groq_chain(examples_input):
     })
 
     # Call your Groq chain w/ question, action_name, queries, results
-    actual_explanation = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3])
+    actual_explanation, total_time = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
     
     metrics = compute_metrics(actual_explanation, expected_explanation)
 
@@ -127,6 +127,7 @@ def test_my_groq_chain(examples_input):
         "inner_speech": actual_explanation,
     })
 
+    t.log_feedback(key="total_time", score=round(total_time, 3))
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
     # t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
@@ -142,4 +143,4 @@ def test_my_groq_chain(examples_input):
 
 
 # to run:
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py
+# LANGSMITH_TEST_SUITE="Explainability" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py

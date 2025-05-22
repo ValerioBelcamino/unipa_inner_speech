@@ -51,12 +51,14 @@ def test_my_groq_chain(question):
     })
 
     # Call your Groq chain
-    actual_intent, actual_parameters = IR_LLM.get_LLM_response(question)
+    actual_intent, actual_parameters, total_time = IR_LLM.get_LLM_response(question, return_time=True)
 
     t.log_outputs({
         "action_name": actual_intent,
         "parameters": actual_parameters
     })
+
+    t.log_feedback(key="total_time", score=round(total_time, 3))
 
     t.log_feedback(
         key="Intent Accuracy",
@@ -82,4 +84,4 @@ def test_my_groq_chain(question):
 
 # to run:
 # LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/kimary/unipa/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
-# LANGSMITH_TEST_SUITE="Groq LLM Intent Tests" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
+# LANGSMITH_TEST_SUITE="Intent Recognition" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/intent_recognition/test/test_intent_LLM.py
