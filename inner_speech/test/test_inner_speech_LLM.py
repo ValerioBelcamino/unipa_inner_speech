@@ -61,13 +61,6 @@ os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
 IS_LLM = InnerSpeech_LLM('inner_speech')
 
 
-def get_LLM_response_wrap(question, action_name, parameters, missing_parameters):
-    """
-    Function to get the LLM response for a given user input.
-    """
-    return IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters)
-
-
 def extract_examples(filename='examples.json'):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     full_path = os.path.join(dir_path, filename)
@@ -110,7 +103,7 @@ def test_my_groq_chain(examples_input):
     })
 
     # Call your Groq chain w/ question, action_name, parameters, missing_parameters
-    outputs, total_time = get_LLM_response_wrap(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
+    outputs, total_time = IS_LLM.get_LLM_response(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
 
     t.log_feedback(key="total_time", score=round(total_time, 3))
     
