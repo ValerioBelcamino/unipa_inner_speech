@@ -112,7 +112,7 @@ class IntentRecognition_LLM(LLM_Initializer):
             print(f"\033[31mError: {e}\033[0m")
             llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
             llm_response = ast.literal_eval(llm_response)
-            tool_calls = llm_response['tool_calls']
+            tool_calls = llm_response.tool_calls
             llm_response_time = -1
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self._dynamic_intent_toolnames]
