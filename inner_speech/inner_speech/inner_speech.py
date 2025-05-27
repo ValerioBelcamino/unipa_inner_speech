@@ -12,6 +12,7 @@ class Inner_Speech(Node):
         super().__init__(f'{self.node_name}_node')
         self.in_topic = '/user_intent'
         self.user_input_topic = '/user_input_activation'
+        self.out_of_scope_topic = '/out_of_scope'
         self.query_generation_topic = '/query_generation'
         self.inner_speech_explanation_topic = '/ex_inner_speech'
 
@@ -22,6 +23,7 @@ class Inner_Speech(Node):
             10)
         
         self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
+        self.publisher_out_of_scope = self.create_publisher(InnerSpeech, self.out_of_scope_topic, 10)
         self.publisher_action_dispatch = self.create_publisher(Intent, self.query_generation_topic, 10)
         self.publisher_inner_speech = self.create_publisher(InnerSpeech, self.inner_speech_explanation_topic, 10)
 
@@ -69,6 +71,13 @@ class Inner_Speech(Node):
                 parameters=json.dumps(parameters), 
                 inner_speech=result['inner_speech'],
                 missing_parameters=missing_parameters)
+            
+        if action_name == 'OutOfScope' or (not missing_parameters and not result['can_proceed']):
+            print(f"\033[34m" + "Let's call Scope Detection!" + "\033[0m")
+            out_of_scope_msg = InnerSpeech()
+            out_of_scope_msg.user_input = user_input
+            out_of_scope_msg.inner_speech = result['inner_speech']
+            self.publisher_out_of_scope.publish(out_of_scope_msg)
 
         if not completed:
             print(f"\033[34m" + "Incomplete or out of scope answer, let's ask for more details" + "\033[0m")
