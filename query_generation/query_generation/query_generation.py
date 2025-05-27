@@ -1,7 +1,7 @@
 from query_generation.query_generation_llm import QueryGeneration_LLM
 # from .export_query_results import generate_pl_file, generate_csv_file
 from common_msgs.msg import Intent, QueryOutput
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from rclpy.node import Node
 import rclpy
 import json
@@ -14,6 +14,7 @@ class Query_Generation(Node):
         self.query_generation_topic = '/query_generation'
         self.out_clingo_topic = '/clingo_start'
         self.out_query_explanation = '/ex_queries'
+        self.change_scenario_topic = '/change_scenario'
 
         self.query_generation_listener = self.create_subscription(
             Intent,
@@ -21,6 +22,13 @@ class Query_Generation(Node):
             self.query_generation_callback,
             10
         )
+
+        self.listener_change_scenario = self.create_subscription(
+            String,
+            self.change_scenario_topic,
+            self.change_scenario_callback,
+            10)
+        
 
         self.publisher_clingo_start = self.create_publisher(
                                                             Bool, 
@@ -42,7 +50,12 @@ class Query_Generation(Node):
 
         self.QueryGen_LLM = QueryGeneration_LLM(node_name = self.node_name)
 
+
+    def change_scenario_callback(self, msg):
+        self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
+        self.QueryGen_LLM.change_scenario()
         
+
     def query_generation_callback(self, intent_msg):
         self.get_logger().info('Received: "%s" __ query_generation_callback\n')
 

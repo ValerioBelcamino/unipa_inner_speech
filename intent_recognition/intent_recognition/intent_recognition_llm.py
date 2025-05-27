@@ -135,3 +135,26 @@ class IntentRecognition_LLM(LLM_Initializer):
         else:
             return tool_name, tool_result
 
+
+    def change_scenario(self, new_scenario):
+        '''Updates the llm class to handle a different scenario'''
+
+        # Update the scenario and its description
+        self.update_scenario(new_scenario)
+
+        # Reload intent tools, binds them again and update the plugin pipeline 
+        # Load all pydantic intent tools
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
+        self._dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
+        print(f"\033[1;38;5;207mLoaded {len(self._dynamic_intent_toolnames)} intent_tool(s).\033[0m")
+
+        # Bind the tools to the LLM call
+        self._llm = self._llm.bind_tools(self.dynamic_intent_tools_dict.values())
+        print(self._llm.get_input_schema())
+        print(f"\033[1;38;5;207mBound the tools to the LLM.\033[0m")
+        print()
+
+        # Load plugins dynamically from the config file
+        self._plugins = load_plugins(self.scenario)
+        print(f"\033[1;38;5;208mLoaded {len(self._plugins)} processing plugin(s).\033[0m")

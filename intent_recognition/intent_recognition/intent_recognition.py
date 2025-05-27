@@ -13,12 +13,20 @@ class Intent_Recognition(Node):
         super().__init__(f'{self.node_name}_node')
         self.in_topic = '/user_input'
         self.out_topic = '/user_intent'
+        self.change_scenario_topic = '/change_scenario'
 
         self.subscription = self.create_subscription(
             String,
             self.in_topic,
             self.listener_callback,
             10)
+        
+        self.listener_change_scenario = self.create_subscription(
+            String,
+            self.change_scenario_topic,
+            self.change_scenario_callback,
+            10)
+        
 
         self.publisher = self.create_publisher(Intent, self.out_topic, 10)
 
@@ -27,6 +35,11 @@ class Intent_Recognition(Node):
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
         self.IR_LLM = IntentRecognition_LLM(node_name = self.node_name)
+
+
+    def change_scenario_callback(self, msg):
+        self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
+        self.IR_LLM.change_scenario()
 
 
     def listener_callback(self, msg):

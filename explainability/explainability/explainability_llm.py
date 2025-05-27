@@ -3,6 +3,7 @@ from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from shared_utils.llm_helpers import LLM_Initializer
 from groq import BadRequestError
 import textwrap
+import os
 
 
 
@@ -16,10 +17,6 @@ class QueryExplanation_LLM(LLM_Initializer):
         print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
         print()
 
-        # QUERY EXPLAINABILITY LLM VARIABLES
-        self.query_instructions = f"{self.context_scenario}. Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
-        self.query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
-        self.query_example_template = "User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
@@ -27,12 +24,18 @@ class QueryExplanation_LLM(LLM_Initializer):
         """
         Function to get the LLM response for a given user input.
         """
+
+        # LLM prompts and template
+        query_instructions = f"{self.context_scenario}. Data una richiesta e la sua traduzione in query con i relativi risultati, devi spiegare all'utente il processo decisionale ed il risulato."
+        query_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico.\nUser Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: "
+        query_example_template = "User Input: {user_input}\nQueries: {queries}\nQuery Results: {results}\nExplanation: {explanation}"
+
         few_shot_prompt = prepare_few_shot_prompt(
-                                                    instructions=self.query_instructions,
-                                                    suffix=self.query_suffix, 
+                                                    instructions=query_instructions,
+                                                    suffix=query_suffix, 
                                                     examples=self.examples[action_name],
                                                     example_variables=["user_input", "queries", "results", "explanation"],
-                                                    example_template=self.query_example_template,
+                                                    example_template=query_example_template,
                                                     input_variables=["user_input", "queries", "results"],
                                                     )
 
@@ -56,6 +59,20 @@ class QueryExplanation_LLM(LLM_Initializer):
             return llm_response_content, llm_response_time
         else:
             return llm_response_content
+
+
+    def change_scenario(self, new_scenario):
+        '''Updates the llm class to handle a different scenario'''
+
+        # Update the scenario and its description
+        self.update_scenario(new_scenario)
+
+        # Reload examples 
+        self.examples = load_all_explainability_examples(self.scenario)
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()
+
+
 
 
 class InnerSpeechExplanation_LLM(LLM_Initializer):

@@ -43,8 +43,7 @@ class ScopeDetection_LLM(LLM_Initializer):
         prompt = [  
             SystemMessage(content=
                 textwrap.dedent(
-                    f"""{self.context_scenario}. 
-                    You are the Scope Detection module of the architecture and you have to select the most appropriate scenario given a user request.
+                    f"""You are the Scope Detection module of the architecture and you have to select the most appropriate scenario given a user request.
                     You have at your disposal:
                     -The inner speech reasoning provided by the previous module 
                     -The list of all the available scenarios together with their supported tasks

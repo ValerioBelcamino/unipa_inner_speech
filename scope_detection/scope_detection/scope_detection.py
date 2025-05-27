@@ -20,7 +20,7 @@ class Scope_Detection(Node):
             10)
 
 
-        self.publisher = self.create_publisher(String, self.out_topic, 10)
+        self.change_scenario_publisher = self.create_publisher(String, self.out_topic, 10)
 
         print(f"\033[34mIntent Recognition Node started!!!\033[0m")
         # print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
@@ -37,16 +37,11 @@ class Scope_Detection(Node):
 
         tool_name = self.SD_LLM.get_LLM_response(user_input, inner_speech)
 
-        intent_msg = String(data=tool_name)
+        change_scenario_msg = String(data=tool_name)
 
-        self.publisher.publish(intent_msg)
-        self.get_logger().info('\033[32mPublished: "%s"\033[0m' % intent_msg)
+        self.change_scenario_publisher.publish(change_scenario_msg)
+        self.get_logger().info('\033[32mPublished: "%s"\033[0m' % change_scenario_msg)
 
-    def destroy_node(self):
-        # Clean up database connection when the node is destroyed
-        if hasattr(self, 'db'):
-            self.db.disconnect()
-        super().destroy_node()
 
 
 def main(args=None):

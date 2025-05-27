@@ -6,12 +6,14 @@ import rclpy
 import json
 
 
+
 class Explainability(Node):
     def __init__(self):
         self.node_name = 'explainability'
         super().__init__(f'{self.node_name}_node')
         self.inner_speech_explanation_topic = '/ex_inner_speech'
         self.user_input_topic = '/user_input_activation'
+        self.change_scenario_topic = '/change_scenario'
 
         self.query_explanation_topic = '/ex_queries'
         self.clingo_explanation_topic = '/ex_clingo'
@@ -35,6 +37,13 @@ class Explainability(Node):
             self.inner_speech_explanation_topic,
             self.inner_speech_explanation_callback,
             10)
+        
+        self.listener_change_scenario = self.create_subscription(
+            String,
+            self.change_scenario_topic,
+            self.change_scenario_callback,
+            10)
+        
 
         
         self.robot_dialogue_publisher = self.create_publisher(String, self.robot_dialogue_topic, 10)
@@ -64,6 +73,10 @@ class Explainability(Node):
         #     | StrOutputParser()
         # )
 
+    def change_scenario_callback(self, msg):
+        self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
+        self.QueryEXP_LLM.change_scenario(msg.data)
+        
 
     def query_explanation_callback(self, msg):
         action_name = msg.action_name

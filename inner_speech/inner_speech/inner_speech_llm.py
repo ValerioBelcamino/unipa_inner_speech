@@ -86,3 +86,25 @@ class InnerSpeech_LLM(LLM_Initializer):
         else:
             return result
 
+
+    def change_scenario(self, new_scenario):
+        '''Updates the llm class to handle a different scenario'''
+
+        # Update the scenario and its description
+        self.update_scenario(new_scenario)
+
+        # Reload intent tools and required parameters
+        
+        # Load all pydantic intent tools
+        self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
+        print(f"\033[34mLoaded {self.dynamic_intent_tools_dict} intent_tool(s).\033[0m")
+        self._dynamic_intent_toolnames = [dit.__name__ for dit in self.dynamic_intent_tools_dict.values()]
+        print(f"\033[1;38;5;207mLoaded {len(self._dynamic_intent_toolnames)} intent_tool(s).\033[0m")
+
+        # Use the list of pydantic intent_tools to list the required parameters
+        self.action_name_to_required_parameters = list_required_parameters_by_tool(self.dynamic_intent_tools_dict)
+        self.action_name_to_required_parameters['OutOfScope'] = []
+
+        # Create a dictionary of descriptions for each pydantic intent_tool
+        self.action_name_to_description = {k:v.__doc__ for k,v in self.dynamic_intent_tools_dict.items()}
+        self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'

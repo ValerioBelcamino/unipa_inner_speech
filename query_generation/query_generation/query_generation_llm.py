@@ -1,4 +1,5 @@
-from shared_utils.customization_helpers import load_all_scenario_dbs, load_all_query_examples, load_all_query_models
+from shared_utils.customization_helpers import load_all_scenario_dbs, disconnect_and_delete_dbs
+from shared_utils.customization_helpers import load_all_query_examples, load_all_query_models
 from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from shared_utils.llm_helpers import LLM_Initializer
 from groq import BadRequestError
@@ -66,3 +67,28 @@ class QueryGeneration_LLM(LLM_Initializer):
             return llm_response, llm_response_time
         else:
             return llm_response
+        
+        
+    def change_scenario(self, new_scenario):
+        '''Updates the llm class to handle a different scenario'''
+
+        # Update the scenario and its description
+        self.update_scenario(new_scenario)
+
+        # Reload query gen tools the examples and the dbs
+
+        # Load all the pydantic query generation tools
+        self.dynamic_query_tools_dict = load_all_query_models(self.scenario)
+        print(f"\033[1;38;5;207mLoaded {len(self.dynamic_query_tools_dict.values())} intent_tool(s).\033[0m")
+
+        # Load a dictionary of DBs
+        self.default_db_type = os.getenv("DB_TYPE")
+        disconnect_and_delete_dbs(self.db_dict)
+        print(f"\033[34mDisconnected all DBs!\033[0m")
+        self.db_dict, self.schemas_dict, self.instructions_dict = load_all_scenario_dbs(self.scenario, self.default_db_type)
+        print(f"\033[34mDB Dict: {self.db_dict}!\033[0m")
+
+        # Load examples
+        self.examples = load_all_query_examples(self.scenario)
+        print(f"\033[1;38;5;207mLoaded {len(self.examples.keys())} example file(s).\033[0m")
+        print()

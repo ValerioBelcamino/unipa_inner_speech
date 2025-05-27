@@ -52,3 +52,12 @@ class LLM_Initializer(ABC):
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")
 
+
+    def update_scenario(self, new_scenario):
+        # Update the environmental variable
+        os.environ['SCENARIO'] = new_scenario
+        # Update the scenario and its description
+        self.scenario = os.getenv("SCENARIO")
+        print(f"\033[34mChanging scenario to: {self.scenario}!\033[0m")
+        self.context_scenario = get_scenario_description(self.scenario)
+        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")

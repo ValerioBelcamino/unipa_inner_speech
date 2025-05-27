@@ -15,11 +15,18 @@ class Inner_Speech(Node):
         self.out_of_scope_topic = '/out_of_scope'
         self.query_generation_topic = '/query_generation'
         self.inner_speech_explanation_topic = '/ex_inner_speech'
+        self.change_scenario_topic = '/change_scenario'
 
         self.subscription = self.create_subscription(
             Intent,
             self.in_topic,
             self.listener_callback,
+            10)
+        
+        self.listener_change_scenario = self.create_subscription(
+            String,
+            self.change_scenario_topic,
+            self.change_scenario_callback,
             10)
         
         self.publisher_user_input = self.create_publisher(String, self.user_input_topic, 10)
@@ -34,6 +41,11 @@ class Inner_Speech(Node):
 
         self.IS_LLM = InnerSpeech_LLM(node_name = self.node_name)
         
+
+    def change_scenario_callback(self, msg):
+        self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
+        self.IS_LLM.change_scenario()
+
 
     def listener_callback(self, intent_msg):
         self.get_logger().info('Received: "%s"\n' % intent_msg)
