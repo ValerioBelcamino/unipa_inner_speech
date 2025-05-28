@@ -1,4 +1,4 @@
-from inner_speech.inner_speech_llm import InnerSpeech_LLM
+from scope_detection.scope_detection_llm import ScopeDetection_LLM
 from langsmith import testing as t
 import pytest, os, json
 import evaluate
@@ -17,7 +17,7 @@ def compute_metrics(prediction: str, reference: str):
     }
 
 node_name = "inner_speech" 
-IS_LLM = InnerSpeech_LLM(node_name)
+SD_LLM = ScopeDetection_LLM(node_name)
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -47,48 +47,44 @@ def get_examples():
 examples = get_examples()
 inputs = [example["question"] for example in examples]
 input2params = {example["question"]: {
-    "action_name": example["action_name"], 
-    "parameters": example["parameters"],
-    "missing_parameters": example["missing_parameters"]} for example in examples}
+    "inner_speech": example["inner_speech"]} for example in examples}
 input2output = {example["question"]: {
-    "inner_speech": example["inner_speech"], 
-    "can_proceed": example["can_proceed"]} for example in examples}
+    "reason": example["reason"], 
+    "scenario": example["scenario"]} for example in examples}
 
 
 @pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
 def test_my_groq_chain(question):
-    expected_inner_speech = input2output[question]["inner_speech"]
-    expected_can_proceed = input2output[question]["can_proceed"]
+    expected_reason = input2output[question]["reason"]
+    expected_scenario = input2output[question]["scenario"]
 
     # Log to LangSmith
     t.log_reference_outputs({
-        "inner_speech": expected_inner_speech,
-        "can_proceed": expected_can_proceed
+        "reason": expected_reason,
+        "scenario": expected_scenario
     })
 
     # Call your Groq chain w/ question, action_name, parameters, missing_parameters
-    action_name = input2params[question]["action_name"]
-    parameters = input2params[question]["parameters"]
-    missing_parameters = input2params[question]["missing_parameters"]
-    outputs, total_time = IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters, return_time=True)
+    inner_speech = input2params[question]["inner_speech"]
+    outputs, total_time = SD_LLM.get_LLM_response(question, inner_speech, return_time=True)
 
     t.log_feedback(key="total_time", score=round(total_time, 3))
     
-    actual_inner_speech = outputs["inner_speech"]
-    actual_can_proceed = outputs["can_proceed"]
+    actual_reason = outputs["reason"]
+    actual_scenario = outputs["scenario"]
 
     t.log_outputs({
-        "inner_speech": actual_inner_speech,
-        "can_proceed": actual_can_proceed,
+        "inner_speech": actual_reason,
+        "can_proceed": actual_scenario,
     })
 
-    metrics = compute_metrics(actual_inner_speech, expected_inner_speech)
+    metrics = compute_metrics(actual_reason, expected_reason)
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
 
     # Also check can_proceed match
-    assert actual_can_proceed == expected_can_proceed
+    assert actual_scenario == expected_scenario
 
 # to run:
-# pytest /home/kimary/unipa/src/unipa_inner_speech/inner_speech/test/test_inner_speech_LLM.py
+# pytest /home/kimary/unipa/src/unipa_inner_speech/inner_speech/test/test_scope_detection_LLM.py

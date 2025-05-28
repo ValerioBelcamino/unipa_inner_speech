@@ -37,7 +37,7 @@ class Scope_Detection(Node):
 
         tool_name = self.SD_LLM.get_LLM_response(user_input, inner_speech)
 
-        change_scenario_msg = String(data=tool_name)
+        change_scenario_msg = String(data=tool_name['scenario'])
 
         self.change_scenario_publisher.publish(change_scenario_msg)
         self.get_logger().info('\033[32mPublished: "%s"\033[0m' % change_scenario_msg)

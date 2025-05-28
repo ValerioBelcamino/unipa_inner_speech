@@ -59,6 +59,7 @@ class ScopeDetection_LLM(LLM_Initializer):
                 ))
         ]
 
+        results = {}
         try:
             initial_time = time.time()
             llm_response = self._llm.invoke(prompt)
@@ -66,6 +67,7 @@ class ScopeDetection_LLM(LLM_Initializer):
             print(f'\033[91m{llm_response}\033[0m')
             tool_result = llm_response.tool_calls[0]['args']
             print(f"\033[34mReason: {tool_result['reason']}\033[0m")
+
 
             tool_calls = llm_response.tool_calls
         except BadRequestError as e:
@@ -84,7 +86,9 @@ class ScopeDetection_LLM(LLM_Initializer):
         else:
             tool_name = tool_calls[0]['name']
 
+        results['scenario'] = tool_name
+        results['reason'] = tool_result['reason']
         if return_time:
-            return tool_name, llm_response_time
+            return results, llm_response_time
         else:
-            return tool_name
+            return results
