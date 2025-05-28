@@ -70,3 +70,32 @@ def print_top_pairs(matrix, metric_name, labels, top_k=5):
 
 print_top_pairs(cosine_sim_matrix, "Cosine Similarity", labels)
 # print_top_pairs(bertscore_f1_matrix, "BERTScore F1", labels)
+
+def max_weight_subset_greedy(W, N):
+    M = W.shape[0]
+    degrees = W.sum(axis=1)
+    selected = []
+
+    # Start with node with max degree
+    current = np.argmax(degrees)
+    selected.append(current)
+
+    while len(selected) < N:
+        candidates = [i for i in range(M) if i not in selected]
+        best_candidate = None
+        best_increase = -np.inf
+
+        for c in candidates:
+            # sum of weights between c and nodes in selected
+            increase = sum(W[c, s] for s in selected)
+            if increase > best_increase:
+                best_increase = increase
+                best_candidate = c
+
+        selected.append(best_candidate)
+
+    return selected
+
+print(labels)
+subset = max_weight_subset_greedy(cosine_sim_matrix, 4)
+print("Selected nodes:", [labels[s] for s in subset])
