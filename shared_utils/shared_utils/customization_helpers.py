@@ -131,6 +131,11 @@ def load_all_scenario_dbs(scenario:str, default_db: str):
         instructions_dict[task] = db_dict[task].get_prompt()
     return db_dict, schemas_dict, instructions_dict
 
+def disconnect_and_delete_dbs(db_dict):
+    for db in db_dict:
+        db.disconnect()
+    db_dict.clear()
+
 
 def is_optional(annotation):
     return get_origin(annotation) is Union and type(None) in get_args(annotation)
