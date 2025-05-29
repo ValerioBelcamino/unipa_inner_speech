@@ -81,7 +81,12 @@ def clean_examples_directory():
         if os.path.exists(possible_dir):
             install_dir = dir
             break
-    
+
+    # Check if the install directory was found
+    if install_dir is None:
+        # raise EnvironmentError(f"Installation directory for package '{package_name}' not found in AMENT_PREFIX_PATH.")
+        return
+
     # Find the correct installation directory for your package
     examples_dir = os.path.join(install_dir, 'share', package_name, 'scenarios')
 
