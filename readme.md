@@ -128,3 +128,106 @@ This approach helps isolate issues and gives more control during integration and
 
 
 
+## Customizing the Architecture
+### Important: For a complete walkthrough of how to define new scenarios, actions, and tools — including how to add new DB adapters — refer to the 📄 [Customization Guide](docs/customizing_the_architecture.md). Here we provide a general overview of how the system works.
+
+This architecture is designed to support **multiple domains**, each defined as a *scenario* with:
+
+- A natural language **description** of the assistant's role
+- A set of **supported actions**
+- One or more **knowledge bases** (default and optional)
+
+---
+
+### Defining a Scenario
+
+A scenario is a specific use case that frames the assistant's behavior.
+
+**Example scenario for diet suggestions ADVISOR**:  
+> *"You are an AI assistant helping a user follow a proper diet plan."*
+
+#### 🧠 Supported Actions
+
+Each action is defined using a **Pydantic model**. Actions include:
+- A docstring describing what the action does
+- Parameters with:
+  - Type
+  - Description
+  - Optional default value
+  - Whether the parameter is mandatory
+
+**Example**: `AddToDatabase` action for the diet scenario
+
+```python
+class AddToDatabase(BaseModel):
+    """A new user asks you to add them to the database. 
+    Extract necessary information from the user message. 
+    Do not generate any new information, use only what user provided for you."""
+
+    nome_utente: str = Field(description="The name of the user in lowercase")
+    calorie: int = Field(description="How many calories user should eat per day", default=0)
+    proteine: int = Field(description="How many grams of protein user should eat per day", default=0)
+    carboidrati: int = Field(description="How many carbohydrates user should eat per day", default=0)
+    grassi: int = Field(description="How many fats user should eat per day", default=0)
+    intolleranze: Optional[List[str]] = Field(description="User's intollerances", default='')
+
+mandatory_parameters = ['nome_utente', 'calorie', 'proteine', 'carboidrati', 'grassi']
+```
+
+Each action has an associated **query generation tool**, as well as example files to improve the query and answer generation process.
+
+---
+
+### Databases and the Adapter Pattern
+
+Each scenario includes a **default knowledge base**, typically a database that the assistant queries to gather or verify information.
+
+We use an **adapter design pattern** to abstract away the database implementation, currently supporting:
+
+- `Neo4j`
+- `MySQL`
+- `Qdrant` (vector search)
+
+Besides the default DB, specific tools can also depend on **additional databases** as needed.
+
+---
+
+### 🎬 Example: MOVIES Scenario
+
+> *"You are an AI assistant helping a user explore a database of movies and cinema showtimes."*
+
+#### 🗃️ Default Database: MySQL (for timetables)
+
+```python
+class TimetableInfo(BaseModel):
+    """User asks you to find a timetable for a movie. 
+    Extract relevant information from the user input and return it in a structured format."""
+
+    title: Optional[str] = Field(description="Movie title in lowercase")
+    cinema: Optional[str] = Field(description="Name of the cinema in Genova in Title Case", default='', examples=['UCI Fiumara', 'Circuito Odeon'])
+    language: Optional[str] = Field(description="Language of the movie, using ISO 639-1 codes", default='', examples=['it', 'en'])
+    dates: Optional[List[str]] = Field(description="List of dates of the screening in the format YYYY-MM-DD", default=[])
+    time: Optional[List[str]] = Field(description="List of times of the screening in the format HH:MM", default=[])
+```
+
+#### 📚 Additional DB: Qdrant (for movie metadata)
+
+Used by tools like `MovieInfo`, which extract descriptive movie data.
+
+```python
+class MovieInfo(BaseModel):
+    """User asks you to give them information about a specific movie.
+    Extract details of the movie to query a vector database with semantic similarity."""
+
+    title: Optional[str] = Field(description="Movie title in lowercase only ASCII characters", default='')
+    director: Optional[str] = Field(description="The name of the movie director in lowercase", default='')
+    genres: Optional[List[str]] = Field(description="The genres of the movie", default='', examples=['action', 'comedy', 'drama'])
+    year: Optional[int] = Field(description="The year of the movie", default=0)
+    actors: Optional[List[str]] = Field(description="The actors of the movie in lowercase", default=[])
+    descriptive_movie_facts: Optional[List[str]] = Field(description="Additional descriptive facts about the movie itself", default=[])
+```
+
+This tool uses **cosine similarity** on the vectorized representation of user input to retrieve the most relevant movie content from a Qdrant DB.
+
+Therefore, the MOVIES scenario supports two different DBs at runtime.
+
