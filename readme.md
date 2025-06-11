@@ -5,8 +5,6 @@ This repository contains a ROS 2 package. To get started, follow the instruction
 - [Installation](#installation)
 - [Usage](#usage)
   - [Launch the Full Architecture](#launching-the-full-architecture)
-  - [Switching Between Text and Speech Input](#switching-between-text-and-speech-input)
-  - [Important: Speech Dependencies Not Included](#important-speech-dependencies-not-included)
   - [Recommended Development & Debug Workflow](#recommended-development--debug-workflow)
 - [Testing](#testing)
 - [Customization](#customizing-the-architecture)
