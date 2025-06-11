@@ -40,10 +40,10 @@ def generate_launch_description():
             prefix='gnome-terminal --title="Explainability" -- '
         ),
         Node(
-            package='clingo_nodes',
-            executable='clingo_listener',
-            name='clingo_listener',
+            package='scope_detection',
+            executable='scope_detection',
+            name='scope_detection',
             output='screen',
-            prefix='gnome-terminal --title="Clingo Solver" -- '
+            prefix='gnome-terminal --title="Scope Detection" -- '
         ),
     ])
