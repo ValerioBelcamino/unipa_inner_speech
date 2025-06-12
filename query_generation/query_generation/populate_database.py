@@ -1,121 +1,353 @@
 from neo4j import GraphDatabase
-import os
+import random
 from dotenv import load_dotenv
+import os
 
-# Load environment variables from .env file
-BASE_DIR = "/home/kimary/unipa/src/unipa_inner_speech"
-dotenv_path = os.path.join(BASE_DIR, ".env")
-load_dotenv(dotenv_path, override=True)
+URI = "neo4j://localhost:7687"
+USERNAME = "neo4j"
+PASSWORD = "password"
 
-uri = os.getenv("NEO4J_URI")
-username = os.getenv("NEO4J_USERNAME")
-password = os.getenv("NEO4J_PASSWORD")
+# Connect to the database
+driver = GraphDatabase.driver(URI, auth=(USERNAME, PASSWORD))
 
-# Data to populate the database
-USERS = [
-    {"name": "Alice", "age": 30, "gender": "female", "fabbisogno": {"calories": 2000, "proteins": 70, "carbs": 250, "fats": 60}, "allergies": ["gluten", "nuts"]},
-    {"name": "Bob", "age": 25, "gender": "male", "fabbisogno": {"calories": 2500, "proteins": 80, "carbs": 300, "fats": 80}, "allergies": ["lactose"]},
-    {"name": "Charlie", "age": 35, "gender": "male", "fabbisogno": {"calories": 1800, "proteins": 60, "carbs": 200, "fats": 50}, "allergies": ["eggs"]},
-    {"name": "Diana", "age": 28, "gender": "female", "fabbisogno": {"calories": 2200, "proteins": 75, "carbs": 270, "fats": 70}, "allergies": ["peanuts"]},
-    {"name": "Eve", "age": 22, "gender": "female", "fabbisogno": {"calories": 1900, "proteins": 65, "carbs": 240, "fats": 55}, "allergies": []},
-]
-
-RECIPES = [
-    {"name": "pasta_al_pesto", "type": "primo", "calories": 450, "proteins": 12, "carbs": 85, "fats": 5, "allergens": ["gluten", "nuts"]},
-    {"name": "risotto_ai_funghi", "type": "primo", "calories": 380, "proteins": 8, "carbs": 70, "fats": 4, "allergens": []},
-    {"name": "branzino_al_forno", "type": "secondo", "calories": 250, "proteins": 30, "carbs": 0, "fats": 8, "allergens": []},
-    {"name": "frittata_di_zucchine", "type": "secondo", "calories": 280, "proteins": 15, "carbs": 5, "fats": 12, "allergens": ["eggs"]},
-    {"name": "panna_cotta", "type": "dolce", "calories": 400, "proteins": 6, "carbs": 35, "fats": 25, "allergens": ["lactose"]},
-    {"name": "minestrone_di_verdure", "type": "primo", "calories": 300, "proteins": 10, "carbs": 60, "fats": 5, "allergens": []},
-    {"name": "pollo_alla_griglia", "type": "secondo", "calories": 320, "proteins": 35, "carbs": 0, "fats": 8, "allergens": []},
-    {"name": "vellutata_di_zucca", "type": "primo", "calories": 200, "proteins": 4, "carbs": 40, "fats": 6, "allergens": []},
-    {"name": "tiramisu", "type": "dolce", "calories": 450, "proteins": 8, "carbs": 50, "fats": 20, "allergens": ["lactose", "eggs"]},
-    {"name": "bistecca_alla_fiorentina", "type": "secondo", "calories": 600, "proteins": 50, "carbs": 0, "fats": 30, "allergens": []},
-    {"name": "sorbetto_al_limone", "type": "dolce", "calories": 150, "proteins": 1, "carbs": 35, "fats": 0, "allergens": []},
-    {"name": "frutta_fresca", "type": "dessert", "calories": 120, "proteins": 1, "carbs": 30, "fats": 0, "allergens": []},
-    {"name": "quinoa_con_verdure", "type": "piatto_unico", "calories": 400, "proteins": 15, "carbs": 70, "fats": 10, "allergens": []},
-    {"name": "pizza_margherita", "type": "primo", "calories": 600, "proteins": 20, "carbs": 90, "fats": 15, "allergens": ["gluten", "lactose"]},
-    {"name": "lasagna_classica", "type": "primo", "calories": 700, "proteins": 25, "carbs": 80, "fats": 30, "allergens": ["gluten", "lactose"]},
-    {"name": "insalata_greca", "type": "contorno", "calories": 250, "proteins": 6, "carbs": 10, "fats": 20, "allergens": ["lactose"]},
-    {"name": "carbonara", "type": "primo", "calories": 500, "proteins": 20, "carbs": 60, "fats": 20, "allergens": ["gluten", "eggs", "lactose"]},
-    {"name": "filetto_di_manzo", "type": "secondo", "calories": 400, "proteins": 45, "carbs": 0, "fats": 15, "allergens": []},
-    {"name": "parmigiana_di_melanzane", "type": "piatto_unico", "calories": 450, "proteins": 18, "carbs": 40, "fats": 25, "allergens": ["lactose"]},
-    {"name": "crema_di_zuppa_di_pomodoro", "type": "primo", "calories": 200, "proteins": 3, "carbs": 25, "fats": 5, "allergens": []},
-    {"name": "torta_alle_mele", "type": "dolce", "calories": 300, "proteins": 4, "carbs": 60, "fats": 10, "allergens": ["gluten", "eggs"]},
-    {"name": "calzone_farcito", "type": "primo", "calories": 550, "proteins": 22, "carbs": 70, "fats": 15, "allergens": ["gluten", "lactose"]},
-    {"name": "zucchine_grigliate", "type": "contorno", "calories": 120, "proteins": 2, "carbs": 10, "fats": 5, "allergens": []},
-    {"name": "pollo_al_curry", "type": "secondo", "calories": 450, "proteins": 40, "carbs": 5, "fats": 15, "allergens": []},
-    {"name": "insalata_di_riso", "type": "primo", "calories": 320, "proteins": 10, "carbs": 60, "fats": 5, "allergens": []},
-    {"name": "pane_con_burro", "type": "contorno", "calories": 300, "proteins": 7, "carbs": 50, "fats": 12, "allergens": ["gluten", "lactose"]},
-    {"name": "crostini_vegetali", "type": "antipasto", "calories": 250, "proteins": 5, "carbs": 40, "fats": 8, "allergens": ["gluten"]},
-    {"name": "spezzatino_con_patate", "type": "secondo", "calories": 500, "proteins": 35, "carbs": 30, "fats": 20, "allergens": []},
-    {"name": "zuppa_di_fagioli", "type": "primo", "calories": 350, "proteins": 15, "carbs": 50, "fats": 10, "allergens": []},
-]
-
-
-# Function to populate Neo4j
-def populate_neo4j(uri, username, password):
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-
+def create_database():
     with driver.session() as session:
         # Clear existing data
         session.run("MATCH (n) DETACH DELETE n")
-        print("Database cleared.")
+        
+        # Create allergens
+        allergens = ["lattosio", "glutine", "frutta secca", "pesce", "crostacei", "soia", "uova"]
+        for allergen in allergens:
+            session.run(
+                "CREATE (a:Allergen {name: $name})",
+                name=allergen
+            )
+        
+        # Create ingredients with nutrition values
+        ingredients = [
+            {"name": "farina", "carbs": 76, "proteins": 10, "fats": 1, "calories": 364, "allergens": ["glutine"]},
+            {"name": "uova", "carbs": 1, "proteins": 13, "fats": 11, "calories": 155, "allergens": ["uova"]},
+            {"name": "latte", "carbs": 5, "proteins": 3, "fats": 4, "calories": 64, "allergens": ["lattosio"]},
+            {"name": "pomodoro", "carbs": 4, "proteins": 1, "fats": 0, "calories": 18, "allergens": []},
+            {"name": "mozzarella", "carbs": 2, "proteins": 22, "fats": 22, "calories": 280, "allergens": ["lattosio"]},
+            {"name": "pasta", "carbs": 75, "proteins": 13, "fats": 2, "calories": 371, "allergens": ["glutine"]},
+            {"name": "olio", "carbs": 0, "proteins": 0, "fats": 100, "calories": 884, "allergens": []},
+            {"name": "parmigiano", "carbs": 4, "proteins": 33, "fats": 29, "calories": 431, "allergens": ["lattosio"]},
+            {"name": "riso", "carbs": 80, "proteins": 7, "fats": 1, "calories": 362, "allergens": []},
+            {"name": "tonno", "carbs": 0, "proteins": 25, "fats": 8, "calories": 184, "allergens": ["pesce"]},
+            {"name": "mandorle", "carbs": 22, "proteins": 21, "fats": 49, "calories": 579, "allergens": ["frutta secca"]},
+            {"name": "zucchero", "carbs": 100, "proteins": 0, "fats": 0, "calories": 394, "allergens": []},
+            {"name": "funghi", "carbs": 3, "proteins": 3, "fats": 0, "calories": 22, "allergens": []},
+            {"name": "gamberi", "carbs": 0, "proteins": 24, "fats": 1, "calories": 106, "allergens": ["crostacei"]},
+            {"name": "cioccolato", "carbs": 61, "proteins": 5, "fats": 31, "calories": 546, "allergens": ["lattosio"]},
+            {"name": "spinaci", "carbs": 4, "proteins": 3, "fats": 0, "calories": 23, "allergens": []},
+            {"name": "ricotta", "carbs": 3, "proteins": 11, "fats": 10, "calories": 174, "allergens": ["lattosio"]},
+            {"name": "limone", "carbs": 9, "proteins": 1, "fats": 0, "calories": 29, "allergens": []},
+            {"name": "manzo", "carbs": 0, "proteins": 26, "fats": 15, "calories": 250, "allergens": []},
+            {"name": "caffe", "carbs": 0, "proteins": 0, "fats": 0, "calories": 2, "allergens": []}
+        ]
+        
+        for ing in ingredients:
+            session.run(
+                "CREATE (i:Ingredient {name: $name, carbs: $carbs, proteins: $proteins, fats: $fats, calories: $calories})",
+                name=ing["name"], carbs=ing["carbs"], proteins=ing["proteins"], fats=ing["fats"], calories=ing["calories"]
+            )
+            
+            # Connect ingredients to allergens
+            for allergen in ing["allergens"]:
+                session.run(
+                    """
+                    MATCH (i:Ingredient {name: $ing_name})
+                    MATCH (a:Allergen {name: $allergen_name})
+                    CREATE (i)-[:CONTAINS]->(a)
+                    """,
+                    ing_name=ing["name"], allergen_name=allergen
+                )
+        
+        # Create dishes
+        dishes = [
+            {
+                "name": "pasta al pomodoro", 
+                "type": "primo", 
+                "ingredients": ["pasta", "pomodoro", "olio", "parmigiano"],
+                "carbs": 60, "proteins": 10, "fats": 15, "calories": 450
+            },
+            {
+                "name": "risotto ai funghi", 
+                "type": "primo", 
+                "ingredients": ["riso", "funghi", "parmigiano", "olio"],
+                "carbs": 65, "proteins": 8, "fats": 12, "calories": 420
+            },
+            {
+                "name": "bistecca di manzo", 
+                "type": "secondo", 
+                "ingredients": ["manzo", "olio"],
+                "carbs": 0, "proteins": 40, "fats": 25, "calories": 380
+            },
+            {
+                "name": "insalata di tonno", 
+                "type": "secondo", 
+                "ingredients": ["tonno", "pomodoro", "olio"],
+                "carbs": 5, "proteins": 30, "fats": 15, "calories": 300
+            },
+            {
+                "name": "tiramisu", 
+                "type": "dolce", 
+                "ingredients": ["uova", "zucchero", "caffe", "mascarpone"],
+                "carbs": 45, "proteins": 8, "fats": 25, "calories": 420
+            },
+            {
+                "name": "pasta alla carbonara", 
+                "type": "primo", 
+                "ingredients": ["pasta", "uova", "parmigiano"],
+                "carbs": 55, "proteins": 22, "fats": 18, "calories": 480
+            },
+            {
+                "name": "cappuccino", 
+                "type": "bevanda", 
+                "ingredients": ["caffe", "latte"],
+                "carbs": 5, "proteins": 3, "fats": 4, "calories": 70
+            },
+            {
+                "name": "gamberi alla griglia", 
+                "type": "secondo", 
+                "ingredients": ["gamberi", "olio", "limone"],
+                "carbs": 1, "proteins": 25, "fats": 10, "calories": 200
+            },
+            {
+                "name": "ravioli di ricotta", 
+                "type": "primo", 
+                "ingredients": ["pasta", "ricotta", "spinaci"],
+                "carbs": 50, "proteins": 15, "fats": 12, "calories": 380
+            },
+            {
+                "name": "torta di mandorle", 
+                "type": "dolce", 
+                "ingredients": ["mandorle", "uova", "zucchero"],
+                "carbs": 40, "proteins": 12, "fats": 30, "calories": 450
+            }
+        ]
+        
+        for dish in dishes:
+            session.run(
+                """
+                CREATE (d:Dish {
+                    name: $name, 
+                    type: $type, 
+                    carbs: $carbs, 
+                    proteins: $proteins, 
+                    fats: $fats, 
+                    calories: $calories
+                })
+                """,
+                name=dish["name"], type=dish["type"], 
+                carbs=dish["carbs"], proteins=dish["proteins"], 
+                fats=dish["fats"], calories=dish["calories"]
+            )
+            
+            # Connect dishes to ingredients
+            for ing_name in dish["ingredients"]:
+                session.run(
+                    """
+                    MATCH (d:Dish {name: $dish_name})
+                    MATCH (i:Ingredient {name: $ing_name})
+                    CREATE (d)-[:CONTAINS]->(i)
+                    """,
+                    dish_name=dish["name"], ing_name=ing_name
+                )
+        
+        # Create people
+        people = [
+            {
+                "name": "marco", 
+                "gender": "m", 
+                "age": 35, 
+                "carbs": 320, 
+                "proteins": 120, 
+                "fats": 90, 
+                "calories": 2600, 
+                "allergies": ["lattosio"]
+            },
+            {
+                "name": "giulia", 
+                "gender": "f", 
+                "age": 28, 
+                "carbs": 250, 
+                "proteins": 90, 
+                "fats": 60, 
+                "calories": 1900, 
+                "allergies": ["glutine", "frutta secca"]
+            },
+            {
+                "name": "antonio", 
+                "gender": "m", 
+                "age": 42, 
+                "carbs": 280, 
+                "proteins": 140, 
+                "fats": 80, 
+                "calories": 2400, 
+                "allergies": []
+            },
+            {
+                "name": "sofia", 
+                "gender": "f", 
+                "age": 31, 
+                "carbs": 220, 
+                "proteins": 85, 
+                "fats": 65, 
+                "calories": 1800, 
+                "allergies": ["pesce", "crostacei"]
+            },
+            {
+                "name": "luca", 
+                "gender": "m", 
+                "age": 25, 
+                "carbs": 350, 
+                "proteins": 150, 
+                "fats": 70, 
+                "calories": 2700, 
+                "allergies": ["uova"]
+            }
+        ]
+        
+        for person in people:
+            session.run(
+                """
+                CREATE (p:Person {
+                    name: $name, 
+                    gender: $gender, 
+                    age: $age, 
+                    carbs: $carbs, 
+                    proteins: $proteins, 
+                    fats: $fats, 
+                    calories: $calories
+                })
+                """,
+                name=person["name"], gender=person["gender"], age=person["age"],
+                carbs=person["carbs"], proteins=person["proteins"], 
+                fats=person["fats"], calories=person["calories"]
+            )
+            
+            # Connect people to allergens
+            for allergen in person["allergies"]:
+                session.run(
+                    """
+                    MATCH (p:Person {name: $person_name})
+                    MATCH (a:Allergen {name: $allergen_name})
+                    CREATE (p)-[:IS_ALLERGIC_TO]->(a)
+                    """,
+                    person_name=person["name"], allergen_name=allergen
+                )
+        
+        # Create weekly meal plans
+        days = ["lunedi", "martedi", "mercoledi", "giovedi", "venerdi", "sabato", "domenica"]
+        meals = ["colazione", "pranzo", "cena"]
+        
+        # Dictionary to track which dishes contain allergens a person is allergic to
+        incompatible_dishes = {}
+        
+        for person in people:
+            # Find dishes that contain allergens this person is allergic to
+            allergic_dishes = []
+            for allergen in person["allergies"]:
+                result = session.run(
+                    """
+                    MATCH (d:Dish)-[:CONTAINS]->(:Ingredient)-[:CONTAINS]->(:Allergen {name: $allergen_name})
+                    RETURN d.name AS dish_name
+                    """,
+                    allergen_name=allergen
+                )
+                allergic_dishes.extend([record["dish_name"] for record in result])
+            
+            incompatible_dishes[person["name"]] = set(allergic_dishes)
+            
+        # Create meal plans for each person
+        for person in people:
+            # Get list of safe dishes for this person
+            all_dishes = [dish["name"] for dish in dishes]
+            safe_dishes = [d for d in all_dishes if d not in incompatible_dishes[person["name"]]]
+            
+            # Group dishes by type
+            dish_types = {}
+            for dish in dishes:
+                if dish["name"] in safe_dishes:
+                    if dish["type"] not in dish_types:
+                        dish_types[dish["type"]] = []
+                    dish_types[dish["type"]].append(dish["name"])
+            
+            # Create weekly meal plan
+            for day in days:
+                # Breakfast
+                if "bevanda" in dish_types and dish_types["bevanda"]:
+                    bevanda = random.choice(dish_types["bevanda"])
+                    session.run(
+                        """
+                        MATCH (p:Person {name: $person_name})
+                        MATCH (d:Dish {name: $dish_name})
+                        CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                        """,
+                        person_name=person["name"], dish_name=bevanda, day=day, meal="colazione"
+                    )
+                
+                # Lunch - usually primo + secondo
+                if "primo" in dish_types and dish_types["primo"]:
+                    primo = random.choice(dish_types["primo"])
+                    session.run(
+                        """
+                        MATCH (p:Person {name: $person_name})
+                        MATCH (d:Dish {name: $dish_name})
+                        CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                        """,
+                        person_name=person["name"], dish_name=primo, day=day, meal="pranzo"
+                    )
+                
+                if "secondo" in dish_types and dish_types["secondo"]:
+                    secondo = random.choice(dish_types["secondo"])
+                    session.run(
+                        """
+                        MATCH (p:Person {name: $person_name})
+                        MATCH (d:Dish {name: $dish_name})
+                        CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                        """,
+                        person_name=person["name"], dish_name=secondo, day=day, meal="pranzo"
+                    )
+                
+                # Dinner - primo or secondo + sometimes dolce on weekends
+                if "primo" in dish_types and dish_types["primo"]:
+                    if random.choice([True, False]):  # Sometimes primo, sometimes secondo
+                        dish = random.choice(dish_types["primo"])
+                        session.run(
+                            """
+                            MATCH (p:Person {name: $person_name})
+                            MATCH (d:Dish {name: $dish_name})
+                            CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                            """,
+                            person_name=person["name"], dish_name=dish, day=day, meal="cena"
+                        )
+                    elif "secondo" in dish_types and dish_types["secondo"]:
+                        dish = random.choice(dish_types["secondo"])
+                        session.run(
+                            """
+                            MATCH (p:Person {name: $person_name})
+                            MATCH (d:Dish {name: $dish_name})
+                            CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                            """,
+                            person_name=person["name"], dish_name=dish, day=day, meal="cena"
+                        )
+                
+                # Add dolce for dinner on weekends
+                if day in ["sabato", "domenica"] and "dolce" in dish_types and dish_types["dolce"]:
+                    dolce = random.choice(dish_types["dolce"])
+                    session.run(
+                        """
+                        MATCH (p:Person {name: $person_name})
+                        MATCH (d:Dish {name: $dish_name})
+                        CREATE (p)-[:SHOULD_EAT {day: $day, meal: $meal}]->(d)
+                        """,
+                        person_name=person["name"], dish_name=dolce, day=day, meal="cena"
+                    )
 
-        # Create users and their fabbisogno
-        for user in USERS:
-            session.run("""
-                CREATE (u:User {name: $name, age: $age, gender: $gender})
-                CREATE (f:Fabbisogno {calories: $calories, proteins: $proteins, carbs: $carbs, fats: $fats})
-                CREATE (u)-[:HAS_FABBISOGNO]->(f)
-            """, {
-                "name": user["name"],
-                "age": user["age"],
-                "gender": user["gender"],
-                "calories": user["fabbisogno"]["calories"],
-                "proteins": user["fabbisogno"]["proteins"],
-                "carbs": user["fabbisogno"]["carbs"],
-                "fats": user["fabbisogno"]["fats"]
-            })
-
-            # Create relationships for allergies
-            for allergen in user["allergies"]:
-                session.run("""
-                   MERGE (a:Allergen {name: $allergen})
-                    WITH a
-                    MATCH (u:User {name: $name})
-                    CREATE (u)-[:IS_ALLERGIC_TO]->(a)
-                """, {"allergen": allergen, "name": user["name"]})
-
-        print("Users and fabbisogno populated.")
-
-        # Create recipes
-        for recipe in RECIPES:
-            recipe["name"] = recipe["name"].replace("_", " ")
-            session.run("""
-                CREATE (r:Recipe {name: $name, type: $type, calories: $calories, proteins: $proteins, carbs: $carbs, fats: $fats})
-            """, {
-                "name": recipe["name"],
-                "type": recipe["type"],
-                "calories": recipe["calories"],
-                "proteins": recipe["proteins"],
-                "carbs": recipe["carbs"],
-                "fats": recipe["fats"]
-            })
-
-            # Create relationships for allergens
-            for allergen in recipe["allergens"]:
-                session.run("""
-                    MERGE (a:Allergen {name: $allergen})
-                    WITH a
-                    MATCH (r:Recipe {name: $name})
-                    CREATE (r)-[:HAS_ALLERGEN]->(a)
-                """, {"allergen": allergen, "name": recipe["name"]})
-
-        print("Recipes and allergens populated.")
-
+if __name__ == "__main__":
+    create_database()
     driver.close()
-    print("Database population completed.")
-
-# Run the function
-populate_neo4j(uri, username, password)
+    print("Database successfully populated!")

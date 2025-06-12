@@ -1,0 +1,17 @@
+services:
+  neo4j:
+    image: neo4j:5.13.0-community
+    ports:
+      - 7474:7474
+      - 7687:7687
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms.memory.heap.initial_size=512M
+      - NEO4J_dbms.memory.heap.max_size=1024M
+    volumes:
+      - ./db/data:/data
+      - ./db/conf:/conf
+      - ./db/logs:/logs
+      - ./db/plugins:/plugins

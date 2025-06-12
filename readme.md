@@ -3,11 +3,14 @@
 This repository contains a ROS 2 package. To get started, follow the instructions below to set up your development environment and build the workspace.
 ## Table of Contents
 - [Installation](#installation)
+- [Starting the Default DB](#starting-the-default-db)
 - [Usage](#usage)
   - [Launch the Full Architecture](#launching-the-full-architecture)
   - [Recommended Development & Debug Workflow](#recommended-development--debug-workflow)
+  - [Environment and Configuration Setup](#environment-and-configuration-setup)
 - [Testing](#testing)
 - [Customization](#customizing-the-architecture)
+
 
 
 ## Installation
@@ -59,6 +62,82 @@ Then, source the setup file:
 source install/setup.bash
 ```
 
+
+## Starting the Default DB
+
+We provide a pre-configured Docker image running a **Neo4j** database, along with a Python script that populates it with a ready-to-use knowledge base.
+
+This setup allows you to:
+
+- Run the **ADVISOR** scenario out of the box
+- Verify your architecture is correctly configured
+- Inspect how domain-specific knowledge is modeled and queried
+
+### 🐳 How to Start the Database
+
+1. Navigate to the appropriate folder:
+   ```bash
+   cd ~/ros2_ws/src/unipa_inner_speech/query_generation/query_generation
+
+    Start the Neo4j container:
+
+docker compose up -d
+
+Run the database population script:
+
+    python3 populate_db.py
+
+    🧪 This will connect to the running Neo4j instance and populate it with entities and relations tailored for the ADVISOR scenario.
+
+## 🧠 What's in the Example Database?
+
+The default Neo4j database includes domain knowledge centered around healthy diet planning, with the following key elements:
+
+    Entities:
+
+        DISH – e.g., risotto, pasta, salad
+
+        PERSON – user profiles with dietary data
+
+        INGREDIENT – e.g., tomato, cheese
+
+        ALLERGEN – e.g., gluten, dairy
+
+    Relationships:
+
+        CONTAINS
+
+        IS_ALLERGIC_TO
+
+        SHOULD_EAT
+
+You can explore the database via the Neo4j browser:
+
+http://localhost:7474
+
+Default credentials:
+
+    Username: Neo4j
+
+    Password: password
+
+    ⚠️ If the script fails to connect, ensure that Docker is running and the credentials are correct.
+
+
+> ⚠️ Important: To use this example database within the architecture, make sure to set the following environment variables in the .env file located at:
+
+```bash
+~/ros2_ws/src/unipa_inner_speech/.env
+```
+
+Example content:
+```bash
+SCENARIO="ADVISOR"
+DB_TYPE="neo4j"
+NEO4J_PASSWORD="password"
+NEO4J_USERNAME="neo4j"
+NEO4J_URI="bolt://localhost:7687"
+```
 ## Usage
 
 ### Launching the Full Architecture
@@ -132,6 +211,88 @@ ros2 launch explainability explainability
 ```
 
 This approach helps isolate issues and gives more control during integration and debugging.
+
+
+
+## Environment and Configuration Setup
+
+To run the architecture, you must define a `.env` file containing environment variables used throughout the system. This file should be located in:
+
+```bash
+~/ros2_ws/src/unipa_inner_speech/.env
+```
+
+### 📄 `.env` Template
+
+```env
+# Neo4j configuration (if using Neo4j)
+NEO4J_PASSWORD="your_password"
+NEO4J_USERNAME="your_username"
+NEO4J_URI="neo4j+s://{uri}.databases.neo4j.io"
+
+# ROS2 workspace path
+ROS2_WORKSPACE="/home/{path}/src/unipa_inner_speech"
+
+# API key for Groq (LLM provider)
+GROQ_API_KEY="your_api_key"
+
+# MySQL or SQLite configuration (if using SQL-based DB)
+SQL_PASSWORD="your_password"
+SQL_USER="your_username"
+SQL_HOST="your_host"
+SQL_DATABASE="your_database"
+
+# Scenario selection
+SCENARIO="MOVIES" # or "ADVISOR"
+
+# Default DB type for the scenario
+DB_TYPE="neo4j" # Options: neo4j, sqlite, qdrant
+
+# Qdrant vector DB configuration (if used)
+QDRANT_HOST="{host}:{port}"
+QDRANT_API_KEY="your_api_key"
+
+# Optional additional LLM provider
+MISTRAL_API_KEY="your_api_key"
+```
+
+⚙️ .config File (Optional)
+
+```config
+You may also define a .config file in the same directory to configure specific LLM settings per module. The configuration must be valid JSON.
+
+Example:
+
+LLM_CONFIG = "{
+    'intent_recognition': {
+        'model_name': 'meta-llama/llama-4-maverick-17b-128e-instruct',
+        'model_provider': 'groq',
+        'temperature': 0.0
+    },
+    'scope_detection': {
+        'model_name': 'llama-3.3-70b-versatile',
+        'model_provider': 'groq',
+        'temperature': 0.0
+    },
+    'inner_speech': {
+        'model_name': 'llama-3.3-70b-versatile',
+        'model_provider': 'groq',
+        'temperature': 0.1
+    },
+    'query_generation': {
+        'model_name': 'meta-llama/llama-4-maverick-17b-128e-instruct',
+        'model_provider': 'groq',
+        'temperature': 0.0
+    },
+    'explainability': {
+        'model_name': 'llama-3.3-70b-versatile',
+        'model_provider': 'groq',
+        'temperature': 0.0
+    }
+}"
+```
+> 📝 This allows you to fine-tune which LLM is used for each module, the provider, and the generation temperature.
+
 
 ## Testing
 

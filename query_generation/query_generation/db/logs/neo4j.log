@@ -1,0 +1,30 @@
+2025-06-11 13:34:20.582+0000 INFO  Logging config in use: Embedded default config 'default-user-logs.xml'
+2025-06-11 13:34:20.587+0000 WARN  Use of deprecated setting 'dbms.memory.pagecache.size'. It is replaced by 'server.memory.pagecache.size'.
+2025-06-11 13:34:20.589+0000 INFO  Starting...
+2025-06-11 13:34:21.515+0000 INFO  This instance is ServerId{420b2d08} (420b2d08-01c3-41c5-b76e-986236cf17a1)
+2025-06-11 13:34:22.204+0000 INFO  ======== Neo4j 5.13.0 ========
+2025-06-11 13:34:24.401+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2025-06-11 13:34:25.054+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+2025-06-11 13:34:25.055+0000 INFO  Remote interface available at http://localhost:7474/
+2025-06-11 13:34:25.058+0000 INFO  id: 76F6DBEE2447FF791BD23B969673F9C83CEEA69218447BCB0D5AA694B5497B52
+2025-06-11 13:34:25.058+0000 INFO  name: system
+2025-06-11 13:34:25.059+0000 INFO  creationDate: 2025-06-11T13:34:22.788Z
+2025-06-11 13:34:25.059+0000 INFO  Started.
+2025-06-11 15:18:52.014+0000 WARN  [bolt-17] Unsupported authentication token, missing key `principal`
+2025-06-11 15:18:52.259+0000 WARN  [bolt-18] Unsupported authentication token, missing key `principal`
+2025-06-11 15:18:52.551+0000 WARN  [bolt-19] Unsupported authentication token, missing key `principal`
+2025-06-12 07:34:55.716+0000 INFO  Neo4j Server shutdown initiated by request
+2025-06-12 07:34:55.716+0000 INFO  Stopping...
+2025-06-12 07:35:00.743+0000 INFO  Stopped.
+2025-06-12 07:35:58.966+0000 INFO  Logging config in use: Embedded default config 'default-user-logs.xml'
+2025-06-12 07:35:58.971+0000 WARN  Use of deprecated setting 'dbms.memory.pagecache.size'. It is replaced by 'server.memory.pagecache.size'.
+2025-06-12 07:35:58.974+0000 INFO  Starting...
+2025-06-12 07:35:59.826+0000 INFO  This instance is ServerId{420b2d08} (420b2d08-01c3-41c5-b76e-986236cf17a1)
+2025-06-12 07:36:00.533+0000 INFO  ======== Neo4j 5.13.0 ========
+2025-06-12 07:36:01.787+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2025-06-12 07:36:02.488+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+2025-06-12 07:36:02.489+0000 INFO  Remote interface available at http://localhost:7474/
+2025-06-12 07:36:02.492+0000 INFO  id: 76F6DBEE2447FF791BD23B969673F9C83CEEA69218447BCB0D5AA694B5497B52
+2025-06-12 07:36:02.492+0000 INFO  name: system
+2025-06-12 07:36:02.493+0000 INFO  creationDate: 2025-06-11T13:34:22.788Z
+2025-06-12 07:36:02.493+0000 INFO  Started.
