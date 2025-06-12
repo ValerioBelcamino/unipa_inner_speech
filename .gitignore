@@ -62,12 +62,12 @@ __pycache__/
 *.egg
 
 # Ignore Neo4j database and logs
-./query_generation/query_generation/db/data/
-./query_generation/query_generation/db/logs/
-./query_generation/query_generation/db/plugins/
-./query_generation/query_generation/db/dbms/
-./query_generation/query_generation/db/server_id
-./query_generation/query_generation/db/transactions/
+query_generation/query_generation/db/data/
+query_generation/query_generation/db/logs/
+query_generation/query_generation/db/plugins/
+query_generation/query_generation/db/dbms/
+query_generation/query_generation/db/server_id
+query_generation/query_generation/db/transactions/
 
 # Docker-related volumes or temporary files
 *.pid
