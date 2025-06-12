@@ -60,3 +60,16 @@ examples.txt
 __pycache__/
 *.egg-info/
 *.egg
+
+# Ignore Neo4j database and logs
+db/data/
+db/logs/
+db/plugins/
+db/dbms/
+db/server_id
+db/transactions/
+
+# Docker-related volumes or temporary files
+*.pid
+*.sock
+*.log
