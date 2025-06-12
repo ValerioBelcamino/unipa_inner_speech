@@ -75,8 +75,8 @@ def test_my_groq_chain(question):
     actual_scenario = outputs["scenario"]
 
     t.log_outputs({
-        "inner_speech": actual_reason,
-        "can_proceed": actual_scenario,
+        "reason": actual_reason,
+        "scenario": actual_scenario,
     })
 
     metrics = compute_metrics(actual_reason, expected_reason)

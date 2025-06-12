@@ -117,7 +117,7 @@ def test_my_groq_chain(examples_input):
     metrics = compute_metrics(actual_explanation, expected_explanation)
 
     t.log_outputs({
-        "inner_speech": actual_explanation,
+        "explanation": actual_explanation,
     })
 
     t.log_feedback(key="total_time", score=round(total_time, 3))
