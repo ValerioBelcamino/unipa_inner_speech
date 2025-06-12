@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import evaluate
+import json 
 
 from domain_examples.en import domain_descriptions
 
@@ -46,6 +47,16 @@ sns.heatmap(cosine_sim_matrix, xticklabels=labels, yticklabels=labels, mask=mask
 plt.title("Cosine Similarity Between Domain Descriptions")
 plt.tight_layout()
 plt.show()
+
+
+# Save cosine similarity matrix to a .npy file
+np.save("cosine_similarity_matrix.npy", cosine_sim_matrix)
+
+# Save labels to a JSON or TXT file
+with open("domain_labels.json", "w") as f:
+    json.dump(labels, f)
+
+exit()
 
 # # Plot BERTScore F1 heatmap (triangular)
 # plt.figure(figsize=(12, 10))
