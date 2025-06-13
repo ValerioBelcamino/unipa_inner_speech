@@ -1,0 +1,9 @@
+[
+    {
+        "question": "Vorrei sapere che film danno stasera", 
+        "inner_speech": "La domanda dell'utente non è pertinente al mio scopo di guidare un regime alimentare, quindi non posso procedere.",
+        "reason": {},
+        "scenario": "MOVIES"
+    },
+
+]

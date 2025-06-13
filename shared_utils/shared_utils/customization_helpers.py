@@ -1,11 +1,12 @@
+from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces
+from typing import Type, Dict, get_origin, get_args, Union
+from db_adapters import DBFactory
+from typing import Optional
+from pydantic import Field
+from pathlib import Path
 import importlib
 import pkgutil
 import inspect
-from pathlib import Path
-from pydantic import BaseModel
-from db_adapters import DBFactory
-from typing import Type, Dict, get_origin, get_args, Union
-from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces
 import json
 import os 
 
@@ -20,8 +21,18 @@ def create_scenario_tools():
         for task_name, task_class in supported_tasks.items():
             doc += f'-{task_name}: {task_class.__doc__}'
 
-        cls = type(name, (BaseModel,), {'__doc__': doc})
+        # Define fields and annotations
+        fields = {
+            '__doc__': doc,
+            '__annotations__': {
+                'reason': Optional[str]
+            },
+            'reason': Field(default=None, description="Il tuo ragionamento. Devi spiegare perché questo tool è adeguato alla domanda dell'utente"),
+        }
+
+        cls = type(name, (BaseModel,), fields)
         scenario_tools[name] = cls
+
     return scenario_tools
 
 def get_scenarios():

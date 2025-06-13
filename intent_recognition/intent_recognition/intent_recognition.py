@@ -39,7 +39,7 @@ class Intent_Recognition(Node):
 
     def change_scenario_callback(self, msg):
         self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
-        self.IR_LLM.change_scenario()
+        self.IR_LLM.change_scenario(msg.data)
 
 
     def listener_callback(self, msg):

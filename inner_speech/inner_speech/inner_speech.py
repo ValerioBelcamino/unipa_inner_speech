@@ -44,7 +44,7 @@ class Inner_Speech(Node):
 
     def change_scenario_callback(self, msg):
         self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
-        self.IS_LLM.change_scenario()
+        self.IS_LLM.change_scenario(msg.data)
 
 
     def listener_callback(self, intent_msg):

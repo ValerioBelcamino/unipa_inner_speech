@@ -1302,3 +1302,4 @@
 2025-06-12 08:02:21.914+0000 INFO  [o.n.k.i.t.l.c.CheckPointerImpl] [neo4j/324e168c] Checkpoint triggered by "Scheduled checkpoint for every 15 minutes threshold" @ txId: 453 checkpoint completed in 118ms. Checkpoint flushed 57 pages (0% of total available pages), in 57 IOs. Checkpoint performed with IO limit: unlimited, paused in total 0 times( 0 millis).
 2025-06-12 08:02:21.917+0000 INFO  [o.n.k.i.t.l.p.LogPruningImpl] [neo4j/324e168c] No log version pruned. The strategy used was '2 days'. 
 2025-06-12 12:09:35.578+0000 WARN  [o.n.k.i.c.VmPauseMonitorComponent] Detected VM stop-the-world pause: {pauseTime=5018, gcTime=0, gcCount=0}
+2025-06-13 07:41:23.090+0000 WARN  [o.n.k.i.c.VmPauseMonitorComponent] Detected VM stop-the-world pause: {pauseTime=3562, gcTime=0, gcCount=0}

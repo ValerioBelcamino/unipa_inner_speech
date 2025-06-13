@@ -52,6 +52,9 @@ input2output = {example["question"]: {
     "reason": example["reason"], 
     "scenario": example["scenario"]} for example in examples}
 
+print(examples)
+print(len(examples))
+exit()
 
 @pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith

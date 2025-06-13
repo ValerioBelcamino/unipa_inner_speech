@@ -53,7 +53,7 @@ class Query_Generation(Node):
 
     def change_scenario_callback(self, msg):
         self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
-        self.QueryGen_LLM.change_scenario()
+        self.QueryGen_LLM.change_scenario(msg.data)
         
 
     def query_generation_callback(self, intent_msg):

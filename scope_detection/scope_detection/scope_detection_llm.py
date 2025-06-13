@@ -3,18 +3,11 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from shared_utils.llm_helpers import LLM_Initializer
 from pydantic import BaseModel, Field
 from groq import BadRequestError
+from typing import Optional
 import textwrap
 import time
 import ast
 import re 
-
-
-
-class InnerSeechOutputFormat(BaseModel):
-    """ Dato un prompt di un utente, l'azione ed i parametri estratti dal riconoscimento dell'intento devi elaborare un discorso interiore che spieghi se l'azione può essere portata a termine oppure no."""
-
-    inner_speech: str = Field(description="Il tuo ragionamento")
-    can_proceed: bool = Field(description="Se la richiesta dell'utente può essere accolta")
 
 
 
