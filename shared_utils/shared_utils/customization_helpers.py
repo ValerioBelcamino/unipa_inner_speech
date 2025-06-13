@@ -1,8 +1,8 @@
 from shared_utils.fewshot_helpers import queries_to_query_list, escape_curly_braces
 from typing import Type, Dict, get_origin, get_args, Union
+from pydantic import BaseModel, Field
 from db_adapters import DBFactory
 from typing import Optional
-from pydantic import Field
 from pathlib import Path
 import importlib
 import pkgutil

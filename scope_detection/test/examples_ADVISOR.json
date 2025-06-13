@@ -2,8 +2,8 @@
     {
         "question": "Vorrei sapere che film danno stasera", 
         "inner_speech": "La domanda dell'utente non è pertinente al mio scopo di guidare un regime alimentare, quindi non posso procedere.",
-        "reason": {},
+        "reason": "La domanda dell'utente è pertinente alla consultazione di un database di film e spettacoli al cinema, quindi il tool MOVIES è adeguato per fornire informazioni sui film in programmazione al cinema Ariston",
         "scenario": "MOVIES"
-    },
+    }
 
 ]
