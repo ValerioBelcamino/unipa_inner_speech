@@ -1,0 +1,72 @@
+[
+    {
+        "indices": [
+            0,
+            6,
+            7
+        ],
+        "labels": [
+            "MOVIES",
+            "HEALTHSYMPTOMS",
+            "SHOPPING"
+        ],
+        "cosine_sum": 1.383256196975708,
+        "cosine_avg": 0.46108540892601013
+    },
+    {
+        "indices": [
+            6,
+            7,
+            9
+        ],
+        "labels": [
+            "HEALTHSYMPTOMS",
+            "SHOPPING",
+            "RESTAURANTS"
+        ],
+        "cosine_sum": 1.6713463068008423,
+        "cosine_avg": 0.5571154356002808
+    },
+    {
+        "indices": [
+            1,
+            2,
+            4
+        ],
+        "labels": [
+            "ADVISOR",
+            "TRAVEL",
+            "TECHSUPPORT"
+        ],
+        "cosine_sum": 1.7596606016159058,
+        "cosine_avg": 0.5865535140037537
+    },
+    {
+        "indices": [
+            4,
+            5,
+            10
+        ],
+        "labels": [
+            "TECHSUPPORT",
+            "EDUCATION",
+            "FITNESS"
+        ],
+        "cosine_sum": 1.8676203489303589,
+        "cosine_avg": 0.6225401163101196
+    },
+    {
+        "indices": [
+            2,
+            8,
+            9
+        ],
+        "labels": [
+            "TRAVEL",
+            "EVENTS",
+            "RESTAURANTS"
+        ],
+        "cosine_sum": 2.1435189247131348,
+        "cosine_avg": 0.7145063281059265
+    }
+]

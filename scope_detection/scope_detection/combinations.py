@@ -1,6 +1,8 @@
 import numpy as np
 import json
 import itertools
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Load the cosine similarity matrix and labels
 cosine_sim_matrix = np.load("cosine_similarity_matrix.npy")
@@ -10,56 +12,55 @@ with open("domain_labels.json", "r") as f:
 
 # Remove the last row and column
 reduced_matrix = cosine_sim_matrix[:-1, :-1]
-print(labels)
 reduced_labels = labels[:-1]
-print(reduced_labels)
 
-# Generate all k=5 combinations
+# Generate all k=3 combinations
 combinations = list(itertools.combinations(range(len(reduced_labels)), 3))
 
-# Compute the sum for each combination
-combo_sums = []
+# Compute the sum and average for each combination
+combo_summaries = []
 for combo in combinations:
     submatrix = reduced_matrix[np.ix_(combo, combo)]
-    combo_sum = np.sum(submatrix)
-    combo_sums.append((combo, combo_sum))
+    upper_tri_indices = np.triu_indices(len(combo), k=1)
+    values = submatrix[upper_tri_indices]
+    sim_sum = np.sum(values)
+    sim_avg = np.mean(values)
+    combo_summaries.append({
+        "indices": combo,
+        "labels": [reduced_labels[i] for i in combo],
+        "cosine_sum": float(sim_sum),
+        "cosine_avg": float(sim_avg)
+    })
 
-# Sort by sum
-combo_sums.sort(key=lambda x: x[1])
+# Sort by similarity sum
+combo_summaries.sort(key=lambda x: x["cosine_sum"])
 
 # Pick 5 spread-out examples
-total_combos = len(combo_sums)
+total_combos = len(combo_summaries)
 spread_indices = [0, total_combos // 4, total_combos // 2, 3 * total_combos // 4, total_combos - 1]
-selected = [combo_sums[i] for i in spread_indices]
+selected = [combo_summaries[i] for i in spread_indices]
 
-# Print results
-for idx, (combo, sim_sum) in enumerate(selected):
-    print(f"--- Combination {idx + 1} ---")
-    print(f"Indices: {combo}")
-    print(f"Labels: {[reduced_labels[i] for i in combo]}")
-    print(f"Cosine similarity sum: {sim_sum:.4f}\n")
+# Save selected combos to JSON
+with open("selected_domain_combinations.json", "w") as f:
+    json.dump(selected, f, indent=4)
 
-
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Create a 1-row, 5-column figure
+# Visualize with seaborn heatmaps
 fig, axes = plt.subplots(1, 5, figsize=(22, 5))
 
-for idx, (combo, sim_sum) in enumerate(selected):
-    submatrix = reduced_matrix[np.ix_(combo, combo)]
-    combo_labels = [reduced_labels[i] for i in combo]
+for idx, combo_data in enumerate(selected):
+    combo = combo_data["indices"]
+    labels = combo_data["labels"]
+    sim_sum = combo_data["cosine_sum"]
 
-    # Upper triangle mask
+    submatrix = reduced_matrix[np.ix_(combo, combo)]
     mask = np.tril(np.ones_like(submatrix, dtype=bool))
 
     ax = axes[idx]
     sns.heatmap(
         submatrix,
         mask=mask,
-        xticklabels=combo_labels,
-        yticklabels=combo_labels,
+        xticklabels=labels,
+        yticklabels=labels,
         annot=True,
         fmt=".2f",
         cmap="coolwarm",
@@ -67,10 +68,10 @@ for idx, (combo, sim_sum) in enumerate(selected):
         cbar=False,
         ax=ax,
         vmin=0,
-        vmax=1,  # Fix color scale from 0 to 1
+        vmax=1
     )
     ax.set_title(f"Combo {idx + 1}\nSum: {sim_sum:.2f}", fontsize=10)
-    ax.tick_params(axis='x', rotation=0)  # No rotation
+    ax.tick_params(axis='x', rotation=0)
     ax.tick_params(axis='y', rotation=0)
 
 plt.tight_layout()

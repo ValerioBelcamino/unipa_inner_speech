@@ -13,16 +13,19 @@ import re
 
 class ScopeDetection_LLM(LLM_Initializer):
 
-    def __init__(self, node_name:str):
+    def __init__(self, node_name:str, test_tools=None):
         super().__init__(node_name)
 
         # Dynamically create the scenario tools
-        self.scenario_tools_dict = create_scenario_tools()
+        if test_tools is None:
+            self.scenario_tools_dict = create_scenario_tools()
+        else:
+            self.scenario_tools_dict = test_tools
         print(f"\033[1;38;5;207mWe have the following scenarios:\033[0m")
         print(f"\033[1;38;5;207m", [f'{name}: {pcls.__doc__}' for name, pcls in self.scenario_tools_dict.items()], "\033[0m")
 
-        # Bind the scenario tools to the llm
         self._llm = self._llm.bind_tools(self.scenario_tools_dict.values())
+
         print(f"\033[1;38;5;207mLoaded {len(self.scenario_tools_dict)} scenario tool(s).\033[0m")
         print()
 
@@ -32,7 +35,6 @@ class ScopeDetection_LLM(LLM_Initializer):
         """
         Function to get the LLM response for a given user input.
         """
-
         prompt = [  
             SystemMessage(content=
                 textwrap.dedent(

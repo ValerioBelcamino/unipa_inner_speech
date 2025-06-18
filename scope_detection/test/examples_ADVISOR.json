@@ -1,9 +1,435 @@
 [
     {
-        "question": "Vorrei sapere che film danno stasera", 
-        "inner_speech": "La domanda dell'utente non è pertinente al mio scopo di guidare un regime alimentare, quindi non posso procedere.",
-        "reason": "La domanda dell'utente è pertinente alla consultazione di un database di film e spettacoli al cinema, quindi il tool MOVIES è adeguato per fornire informazioni sui film in programmazione al cinema Ariston",
+        "question": "Vorrei sapere che film danno stasera",
+        "inner_speech": "La domanda dell'utente riguarda la programmazione cinematografica, quindi è rilevante per il dominio MOVIES.",
+        "reason": "La domanda dell'utente è pertinente alla consultazione di un database di film e spettacoli al cinema, quindi il tool MOVIES è adeguato per fornire informazioni sui film in programmazione.",
         "scenario": "MOVIES"
+    },
+    {
+        "question": "Sono allergico al lattosio, puoi suggerirmi un piatto alternativo?",
+        "inner_speech": "L'utente ha espresso un'esigenza legata alla propria dieta e allergie, che rientra nelle funzionalità del dominio ADVISOR.",
+        "reason": "La richiesta riguarda la sostituzione di un piatto in base ad allergie, un compito specificamente supportato dal task SubstituteDish del dominio ADVISOR.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Mi puoi trovare un volo da Milano a Barcellona per il 15 luglio in economy?",
+        "inner_speech": "La richiesta dell'utente è chiaramente una ricerca di volo, quindi rientra nelle funzionalità del dominio TRAVEL.",
+        "reason": "La domanda riguarda la ricerca di un volo con dettagli specifici come origine, destinazione, data e classe di viaggio, perfettamente in linea con il task FlightSearch.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Vorrei sapere se ci sono offerte di lavoro per sviluppatori a Torino",
+        "inner_speech": "L'utente chiede di cercare opportunità lavorative in base a ruolo e località, compatibile con il dominio JOBHUNT.",
+        "reason": "La domanda richiede la ricerca di offerte di lavoro per uno specifico ruolo e località, supportata dal task JobSearch.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Il mio portatile Dell non si accende più, cosa posso fare?",
+        "inner_speech": "L'utente segnala un problema tecnico con un dispositivo, quindi è opportuno utilizzare il dominio TECHSUPPORT.",
+        "reason": "La richiesta rientra nel task TroubleshootDevice del dominio TECHSUPPORT, dove è richiesto il supporto tecnico per dispositivi elettronici.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Quando si terrà l'esame finale di Matematica 1?",
+        "inner_speech": "L'utente desidera conoscere la data di un esame specifico, un compito gestito dal dominio EDUCATION.",
+        "reason": "La domanda riguarda il calendario esami di un corso specifico, compatibile con il task ExamSchedule.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Ho mal di testa da due giorni e mi sento stanco, cosa può essere?",
+        "inner_speech": "L'utente descrive dei sintomi, quindi il dominio corretto è HEALTHSYMPTOMS.",
+        "reason": "L'utente sta cercando di capire le cause dei propri sintomi, un caso gestito dal task SymptomCheck del dominio HEALTHSYMPTOMS.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Sto cercando uno smartphone con buona fotocamera sotto i 500 euro",
+        "inner_speech": "L'utente vuole trovare un prodotto con determinate caratteristiche, quindi è pertinente al dominio SHOPPING.",
+        "reason": "La richiesta rientra nel task ProductSearch, in quanto cerca un prodotto specifico con un limite di prezzo.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Cosa fanno questo weekend a Milano? Mi interessano concerti o mostre",
+        "inner_speech": "L'utente cerca eventi locali in una data e categoria specifica, rientrando nel dominio EVENTS.",
+        "reason": "La domanda rientra nel task EventSearch del dominio EVENTS, per la ricerca di eventi per tipo e località.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Vorrei prenotare un tavolo per 4 persone da Da Gino sabato alle 20",
+        "inner_speech": "L'utente vuole effettuare una prenotazione in un ristorante, che è un task del dominio RESTAURANTS.",
+        "reason": "La richiesta corrisponde al task TableBooking, per cui si estraggono dati per una prenotazione ristorante.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Mi aiuti a creare un piano per aumentare la massa muscolare?",
+        "inner_speech": "L'utente desidera un piano di allenamento personalizzato, attività gestita dal dominio FITNESS.",
+        "reason": "La domanda riguarda la creazione di un piano di allenamento con obiettivi specifici, rientrando nel task WorkoutPlan.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Puoi raccontarmi una barzelletta?",
+        "inner_speech": "L'utente chiede qualcosa che non rientra in nessuno degli scenari definiti.",
+        "reason": "La richiesta non è correlata a nessuno degli scenari supportati, quindi è classificata come OutOfScope.",
+        "scenario": "OutOfScope"
+    },
+    {
+        "question": "Mi dici qualcosa sul film \"La forma dell'acqua\"?",
+        "inner_speech": "L'utente sta chiedendo informazioni su un film specifico, quindi si applica il dominio MOVIES.",
+        "reason": "La richiesta rientra nel task MovieInfo, che prevede di fornire dettagli su un film specifico.",
+        "scenario": "MOVIES"
+    },
+    {
+        "question": "Ciao, mi chiamo Luca e vorrei iscrivermi alla tua piattaforma per avere un piano alimentare personalizzato.",
+        "inner_speech": "L'utente vuole essere aggiunto al database per ricevere assistenza dietetica, rientrando nel dominio ADVISOR.",
+        "reason": "Il task AddToDatabase del dominio ADVISOR serve proprio a registrare nuovi utenti con dati forniti nel messaggio.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Vorrei prenotare un hotel a Roma dal 20 al 23 giugno per due persone.",
+        "inner_speech": "L'utente desidera prenotare un hotel con date e numero di ospiti, compatibile con il dominio TRAVEL.",
+        "reason": "La richiesta è un tipico caso del task HotelBooking del dominio TRAVEL.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Mi sai dire lo stato della mia candidatura per la posizione di Data Analyst alla Google?",
+        "inner_speech": "L'utente chiede informazioni sullo stato di una candidatura, pertanto il dominio corretto è JOBHUNT.",
+        "reason": "Il task ApplicationStatus del dominio JOBHUNT è adatto a questa richiesta.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Ho installato l'antivirus ma ricevo ancora messaggi di errore, mi puoi aiutare?",
+        "inner_speech": "L'utente chiede supporto per un problema software, quindi è pertinente al dominio TECHSUPPORT.",
+        "reason": "La richiesta è legata a un errore software, rientrando nel task SoftwareHelp.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Quali corsi di filosofia offre l'università di Bologna?",
+        "inner_speech": "L'utente vuole sapere informazioni su corsi accademici, quindi è rilevante per il dominio EDUCATION.",
+        "reason": "Il task CourseInfo del dominio EDUCATION gestisce richieste su corsi specifici.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Sto prendendo ibuprofene da 400mg, ci sono effetti collaterali?",
+        "inner_speech": "L'utente chiede informazioni su un farmaco specifico, quindi si applica il dominio HEALTHSYMPTOMS.",
+        "reason": "La richiesta è compatibile con il task MedicationInfo, che fornisce dettagli su un farmaco.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Puoi confrontare l’iPhone 14 con il Samsung S23?",
+        "inner_speech": "L’utente vuole confrontare due modelli di prodotto, attività gestita dal dominio SHOPPING.",
+        "reason": "La domanda rientra nel task CompareProducts, che prevede il confronto tra due dispositivi.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Vorrei ricevere un promemoria per il concerto dei Coldplay domani alle 21.",
+        "inner_speech": "L'utente desidera un promemoria per un evento, rientrando nelle funzionalità del dominio EVENTS.",
+        "reason": "La richiesta è gestita dal task EventReminder, per creare promemoria legati a eventi.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Cosa propone il ristorante 'La Pergola' per i celiaci?",
+        "inner_speech": "L'utente chiede informazioni su opzioni alimentari in un ristorante, rilevanti per il dominio RESTAURANTS.",
+        "reason": "Il task MenuInfo permette di ottenere dettagli su un menu in base a restrizioni alimentari.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Come si fa correttamente lo squat? Voglio rinforzare le gambe.",
+        "inner_speech": "L'utente desidera istruzioni per eseguire un esercizio fisico, quindi il dominio corretto è FITNESS.",
+        "reason": "La richiesta rientra nel task ExerciseInfo, che fornisce informazioni su esercizi specifici.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Puoi indicarmi chi ha vinto l’ultima edizione di MasterChef?",
+        "inner_speech": "La domanda dell'utente è di tipo generale e non rientra in nessuno degli scenari supportati.",
+        "reason": "La richiesta non riguarda alcuno dei domini funzionali definiti, quindi è classificata come OutOfScope.",
+        "scenario": "OutOfScope"
+    },
+    {
+        "question": "A che ora trasmettono 'Oppenheimer' al cinema Odeon di Firenze domani?",
+        "inner_speech": "L’utente chiede informazioni sugli orari di un film in un cinema specifico, quindi è un caso per il dominio MOVIES.",
+        "reason": "La domanda è perfettamente in linea con il task TimetableInfo, che si occupa degli orari di proiezione nei cinema.",
+        "scenario": "MOVIES"
+    },
+    {
+        "question": "Il piatto 'Insalata di quinoa' è adatto per una dieta vegana?",
+        "inner_speech": "L’utente chiede informazioni su un piatto specifico e la sua compatibilità con una dieta, quindi il dominio ADVISOR è appropriato.",
+        "reason": "La richiesta rientra nel task DishInfo, che fornisce informazioni nutrizionali e dietetiche su un piatto.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Mi servono informazioni sul visto per viaggiare in India per turismo.",
+        "inner_speech": "L’utente chiede informazioni sui requisiti per viaggiare in un paese, quindi il dominio TRAVEL è rilevante.",
+        "reason": "La richiesta è in linea con il task TravelInfo, che fornisce informazioni su visti e requisiti legali.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Puoi controllare il mio CV e dirmi se manca qualcosa?",
+        "inner_speech": "L'utente richiede un feedback sul proprio curriculum, compatibile con il dominio JOBHUNT.",
+        "reason": "La richiesta attiva il task ResumeReview, che analizza il contenuto del CV per individuare punti deboli.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Ho comprato uno smartwatch Samsung a dicembre, è ancora in garanzia?",
+        "inner_speech": "L’utente vuole sapere lo stato della garanzia di un dispositivo, quindi rientra nel dominio TECHSUPPORT.",
+        "reason": "La richiesta è compatibile con il task WarrantyInfo, che verifica la validità della garanzia.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Ho bisogno di aiuto con il mio compito di fisica sul moto uniformemente accelerato.",
+        "inner_speech": "L’utente richiede supporto su un argomento scolastico specifico, adatto al dominio EDUCATION.",
+        "reason": "La richiesta rientra nel task AssignmentHelp, che supporta lo studente con compiti o esercizi.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Dovrei consultare un medico se ho tosse persistente da più di una settimana?",
+        "inner_speech": "L’utente chiede se è necessario consultare un medico, quindi si tratta del dominio HEALTHSYMPTOMS.",
+        "reason": "La domanda è appropriata per il task DoctorReferral, che valuta l'urgenza dei sintomi descritti.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Puoi aiutarmi a tracciare il mio ordine numero 445781? Avevo ordinato un robot da cucina.",
+        "inner_speech": "L’utente chiede lo stato di un ordine, che è una funzione prevista dal dominio SHOPPING.",
+        "reason": "La richiesta è compatibile con il task TrackOrder, che permette di recuperare lo stato di un acquisto.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Vorrei prenotare 2 biglietti in platea per lo spettacolo di teatro 'Amleto' del 21 giugno.",
+        "inner_speech": "L’utente desidera prenotare biglietti per un evento, il che è gestito dal dominio EVENTS.",
+        "reason": "La richiesta è in linea con il task TicketBooking, per la prenotazione di eventi.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Sto cercando un ristorante giapponese a Napoli con prezzi medio-bassi.",
+        "inner_speech": "L’utente vuole trovare un ristorante in base a tipo di cucina, località e budget, cosa gestita dal dominio RESTAURANTS.",
+        "reason": "La richiesta rientra nel task RestaurantSearch, che filtra i ristoranti per cucina, località e prezzo.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Vorrei registrare il mio allenamento cardio di ieri: 45 minuti di corsa.",
+        "inner_speech": "L’utente vuole registrare dati relativi all’attività fisica, quindi il dominio FITNESS è corretto.",
+        "reason": "Il task ProgressTracking è progettato per registrare i progressi degli utenti nel loro allenamento.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Qual è la capitale dell’Islanda?",
+        "inner_speech": "La domanda è di carattere enciclopedico e non rientra in alcuno degli scenari definiti.",
+        "reason": "La richiesta non appartiene a nessuno dei domini funzionali, quindi è OutOfScope.",
+        "scenario": "OutOfScope"
+    },
+    {
+        "question": "Ci sono film di animazione in sala questo fine settimana?",
+        "inner_speech": "L’utente chiede informazioni sulla programmazione di film per un determinato genere e periodo.",
+        "reason": "La richiesta attiva il task TimetableInfo del dominio MOVIES, legato alla consultazione delle proiezioni cinematografiche.",
+        "scenario": "MOVIES"
+    },
+    {
+        "question": "Cosa contiene esattamente il piatto 'Parmigiana di melanzane'?",
+        "inner_speech": "L’utente desidera conoscere i dettagli di un piatto, come ingredienti o allergeni.",
+        "reason": "Il task DishInfo del dominio ADVISOR fornisce queste informazioni nutrizionali e dietetiche.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Vorrei volare da Roma a New York in business class il 1° agosto.",
+        "inner_speech": "La richiesta contiene origine, destinazione, data e classe: è un caso chiaro di ricerca voli.",
+        "reason": "Il task FlightSearch del dominio TRAVEL è pensato proprio per queste richieste.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Ci sono offerte per un lavoro part-time come grafico a Bologna?",
+        "inner_speech": "L’utente cerca un lavoro con specifici criteri: tipo di contratto, ruolo e località.",
+        "reason": "Il task JobSearch del dominio JOBHUNT supporta esattamente questa funzionalità.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Il mio telefono Huawei mostra una schermata nera dopo l'accensione.",
+        "inner_speech": "Si tratta di un problema tecnico con un dispositivo specifico.",
+        "reason": "La richiesta rientra nel task TroubleshootDevice del dominio TECHSUPPORT.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Quando si tiene l’esame orale di Diritto Commerciale?",
+        "inner_speech": "L’utente cerca informazioni sul calendario esami di un corso.",
+        "reason": "La richiesta è in linea con il task ExamSchedule del dominio EDUCATION.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Sto assumendo paracetamolo 500mg, posso prenderlo con ibuprofene?",
+        "inner_speech": "L’utente chiede informazioni sull’interazione tra due farmaci.",
+        "reason": "La richiesta è gestita dal task MedicationInfo del dominio HEALTHSYMPTOMS.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Cerco una macchina del caffè automatica, marca De'Longhi, sotto i 200 euro.",
+        "inner_speech": "L’utente specifica una categoria, marca e fascia di prezzo per un prodotto.",
+        "reason": "Il task ProductSearch del dominio SHOPPING si applica perfettamente.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Ci sono eventi teatrali a Firenze nei prossimi giorni?",
+        "inner_speech": "L’utente cerca eventi per tipo, località e data.",
+        "reason": "La richiesta rientra nel task EventSearch del dominio EVENTS.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Vorrei prenotare un tavolo da 'Trattoria da Nino' per 6 persone sabato alle 21.",
+        "inner_speech": "La richiesta è una chiara prenotazione in un ristorante.",
+        "reason": "Il task TableBooking del dominio RESTAURANTS è pensato per questa funzione.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Mi servirebbe un piano di allenamento per perdere peso con poco tempo a disposizione.",
+        "inner_speech": "L’utente chiede un piano di allenamento con un obiettivo preciso e una preferenza.",
+        "reason": "La richiesta è perfettamente gestita dal task WorkoutPlan del dominio FITNESS.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Che tempo farà domani a Napoli?",
+        "inner_speech": "La richiesta riguarda il meteo, che non rientra in nessuno degli scenari disponibili.",
+        "reason": "Poiché non appartiene a nessun dominio supportato, va classificata come OutOfScope.",
+        "scenario": "OutOfScope"
+    },
+        {
+        "question": "A che ora inizia il film 'Avatar 2' oggi al cinema Apollo?",
+        "inner_speech": "L’utente vuole sapere gli orari di un film in un cinema specifico, quindi il dominio MOVIES è appropriato.",
+        "reason": "La richiesta è in linea con il task TimetableInfo, che fornisce gli orari di proiezione in cinema specifici.",
+        "scenario": "MOVIES"
+    },
+    {
+        "question": "Questo piatto contiene glutine?",
+        "inner_speech": "L’utente chiede informazioni su allergeni per un piatto, quindi è pertinente al dominio ADVISOR.",
+        "reason": "La richiesta si inserisce nel task DishInfo, che fornisce dettagli sugli allergeni di un piatto.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Sto cercando un volo economico da Milano a Londra per il 10 settembre, classe economica.",
+        "inner_speech": "L’utente sta cercando un volo con dati specifici su origine, destinazione, data e classe.",
+        "reason": "La richiesta corrisponde al task FlightSearch, che si occupa della ricerca di voli in base a questi parametri.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Quali sono le opportunità di lavoro come sviluppatore Java a Torino?",
+        "inner_speech": "L’utente cerca una posizione lavorativa specifica in una località ben definita.",
+        "reason": "Il task JobSearch è perfetto per questo tipo di richiesta, in quanto permette di cercare lavori in base a ruolo e località.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Il mio laptop HP non si accende più, cosa posso fare?",
+        "inner_speech": "L’utente segnala un problema tecnico con un dispositivo specifico, quindi il dominio TECHSUPPORT è pertinente.",
+        "reason": "La richiesta si adatta al task TroubleshootDevice, che offre supporto per problemi con dispositivi elettronici.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Qual è la data dell’esame di Psicologia Sociale?",
+        "inner_speech": "L’utente chiede la data di un esame universitario specifico.",
+        "reason": "Questa richiesta appartiene al task ExamSchedule, che fornisce le date degli esami dei corsi.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Ho un mal di testa molto forte, dovrei consultare un medico?",
+        "inner_speech": "L’utente descrive un sintomo e chiede se sia il caso di consultare un medico, quindi è un caso per HEALTHSYMPTOMS.",
+        "reason": "Il task DoctorReferral è progettato per valutare se i sintomi descritti richiedono una visita medica.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Mi aiuti a tracciare l'ordine del mio smartphone? Il numero è 12345.",
+        "inner_speech": "L’utente richiede lo stato di un ordine, il che rientra nel dominio SHOPPING.",
+        "reason": "La richiesta attiva il task TrackOrder, che recupera lo stato di un ordine specifico.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Ci sono concerti di musica rock a Milano questo mese?",
+        "inner_speech": "L’utente vuole trovare eventi di musica rock in una località specifica.",
+        "reason": "Il task EventSearch è progettato per cercare eventi in base a categoria e località.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Vorrei prenotare un tavolo per 2 persone al ristorante 'La Pergola' domenica alle 20.",
+        "inner_speech": "L’utente sta cercando di prenotare un tavolo per una data e ora specifica.",
+        "reason": "La richiesta è compatibile con il task TableBooking del dominio RESTAURANTS.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Mi servirebbe un piano di allenamento per aumentare la massa muscolare.",
+        "inner_speech": "L’utente ha un obiettivo di allenamento specifico (aumento della massa muscolare), quindi il dominio FITNESS è adatto.",
+        "reason": "La richiesta rientra nel task WorkoutPlan, che fornisce piani di allenamento personalizzati.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Dove si trova la Torre Eiffel?",
+        "inner_speech": "La domanda riguarda una localizzazione geografica, non un compito specifico dei domini.",
+        "reason": "La domanda non è pertinente a nessuno degli scenari descritti, quindi è OutOfScope.",
+        "scenario": "OutOfScope"
+    },
+    {
+        "question": "Che film di fantascienza ci sono in sala questa settimana?",
+        "inner_speech": "L’utente chiede informazioni sulla programmazione di film per un genere specifico.",
+        "reason": "La richiesta rientra nel task TimetableInfo del dominio MOVIES, orientato alla programmazione cinematografica.",
+        "scenario": "MOVIES"
+    },
+    {
+        "question": "Sono allergico alle noci, puoi consigliarmi un piatto alternativo a quello che contiene frutta secca?",
+        "inner_speech": "L’utente ha specificato un’allergia e vuole un piatto sostitutivo, che rientra nei compiti del dominio ADVISOR.",
+        "reason": "La richiesta è perfetta per il task SubstituteDish, che fornisce alternative in base ad allergie e piano alimentare.",
+        "scenario": "ADVISOR"
+    },
+    {
+        "question": "Vorrei prenotare un hotel a Parigi dal 5 al 10 luglio per 3 persone.",
+        "inner_speech": "L’utente vuole prenotare un hotel con specifiche di data e numero di ospiti.",
+        "reason": "Il task HotelBooking del dominio TRAVEL è progettato per richieste come questa.",
+        "scenario": "TRAVEL"
+    },
+    {
+        "question": "Vorrei sapere a che punto è la mia candidatura per la posizione di UX Designer, ID 00982, alla Microsoft.",
+        "inner_speech": "L’utente chiede lo stato della propria candidatura e fornisce ID e azienda.",
+        "reason": "Questa richiesta rientra nel task ApplicationStatus del dominio JOBHUNT.",
+        "scenario": "JOBHUNT"
+    },
+    {
+        "question": "Ho installato Windows 11 ma mi dà un errore di attivazione. Puoi aiutarmi?",
+        "inner_speech": "L’utente chiede supporto tecnico su un errore di software, quindi è adatto al dominio TECHSUPPORT.",
+        "reason": "La richiesta rientra nel task SoftwareHelp, pensato per assistenza con messaggi di errore software.",
+        "scenario": "TECHSUPPORT"
+    },
+    {
+        "question": "Mi serve il programma degli esami di Matematica Generale per il mese di luglio.",
+        "inner_speech": "L’utente vuole conoscere le date d’esame di un corso specifico in un intervallo temporale.",
+        "reason": "Il task ExamSchedule del dominio EDUCATION è progettato per queste richieste.",
+        "scenario": "EDUCATION"
+    },
+    {
+        "question": "Ho mal di stomaco da due giorni e nausea, è grave?",
+        "inner_speech": "L’utente descrive sintomi e chiede se è necessario consultare un medico.",
+        "reason": "La richiesta attiva il task DoctorReferral del dominio HEALTHSYMPTOMS.",
+        "scenario": "HEALTHSYMPTOMS"
+    },
+    {
+        "question": "Vorrei confrontare le caratteristiche del Dyson V15 e del Rowenta X-Force.",
+        "inner_speech": "L’utente vuole confrontare due prodotti specifici.",
+        "reason": "La richiesta rientra nel task CompareProducts del dominio SHOPPING.",
+        "scenario": "SHOPPING"
+    },
+    {
+        "question": "Vorrei prenotare due biglietti per il festival jazz del 15 luglio in platea.",
+        "inner_speech": "L’utente desidera prenotare biglietti per un evento con specifica di data, numero e posto.",
+        "reason": "La richiesta è gestita dal task TicketBooking del dominio EVENTS.",
+        "scenario": "EVENTS"
+    },
+    {
+        "question": "Mi consigli un ristorante messicano economico a Torino?",
+        "inner_speech": "L’utente cerca un ristorante in base a tipo di cucina, località e budget.",
+        "reason": "La richiesta rientra nel task RestaurantSearch del dominio RESTAURANTS.",
+        "scenario": "RESTAURANTS"
+    },
+    {
+        "question": "Come si esegue correttamente il plank per rafforzare l’addome?",
+        "inner_speech": "L’utente chiede informazioni su come eseguire un esercizio specifico.",
+        "reason": "La richiesta è gestita dal task ExerciseInfo del dominio FITNESS.",
+        "scenario": "FITNESS"
+    },
+    {
+        "question": "Che ore sono a New York in questo momento?",
+        "inner_speech": "La domanda riguarda l’ora corrente in una città estera, che non rientra in nessuno degli scenari supportati.",
+        "reason": "Non è legata a nessun task funzionale definito, quindi è classificata come OutOfScope.",
+        "scenario": "OutOfScope"
     }
 
 ]
