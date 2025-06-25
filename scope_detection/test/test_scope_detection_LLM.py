@@ -48,11 +48,11 @@ for it in combinations:
 
 # exit()
 
-# idx = 4
-# idkk = list(combo_dict.keys())[idx]
-# combo = combo_dict[idkk]
-# combo.append('OutOfScope')
-# print(combo)
+idx = 0
+idkk = list(combo_dict.keys())[idx]
+combo = combo_dict[idkk]
+combo.append('OutOfScope')
+print(combo)
 
 # # Load metrics once
 bertscore = evaluate.load("bertscore")
@@ -69,17 +69,17 @@ def compute_metrics(prediction: str, reference: str):
 testing_tools = create_scenario_tools(domain_descriptions)
 print(testing_tools)
 
-# testing_tools_new = {k:v for k,v in testing_tools.items() if k in combo}
-# testing_tools = testing_tools_new
+testing_tools_new = {k:v for k,v in testing_tools.items() if k in combo}
+testing_tools = testing_tools_new
 
 node_name = "scope_detection" 
 SD_LLM = ScopeDetection_LLM(node_name, testing_tools)
 
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGSMITH_PROJECT"] = f'12domains:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
+os.environ["LANGSMITH_PROJECT"] = f'{combo}:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-os.environ["LANGSMITH_TEST_SUITE"] = "Scope Detection"
+os.environ["LANGSMITH_TEST_SUITE"] = "Scope Detection stupid"
 
 
 
@@ -101,11 +101,11 @@ def get_examples():
     return examples
 
 examples = get_examples()
-# new_examples = []
-# for i in range(len(examples)):
-#     if examples[i]['scenario'] in combo:
-#         new_examples.append(examples[i])  
-# examples = new_examples
+new_examples = []
+for i in range(len(examples)):
+    if examples[i]['scenario'] in combo:
+        new_examples.append(examples[i])  
+examples = new_examples
 
 inputs = [example["question"] for example in examples]
 input2params = {example["question"]: {

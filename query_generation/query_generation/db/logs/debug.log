@@ -1997,3 +1997,4 @@
 2025-06-18 11:48:30.281+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] id: 76F6DBEE2447FF791BD23B969673F9C83CEEA69218447BCB0D5AA694B5497B52
 2025-06-18 11:48:30.281+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] name: system
 2025-06-18 11:48:30.282+0000 INFO  [o.n.g.f.DatabaseManagementServiceFactory] creationDate: 2025-06-11T13:34:22.788Z
+2025-06-18 13:25:23.087+0000 WARN  [o.n.k.i.c.VmPauseMonitorComponent] Detected VM stop-the-world pause: {pauseTime=604, gcTime=0, gcCount=0}
