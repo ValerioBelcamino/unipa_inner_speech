@@ -1,3 +1,5 @@
+![Architecture](../archi.jpg)
+
 # 🧩 Custom Scenario Integration Guide
 
 This system is designed to support multiple scenarios, allowing for the definition and integration of custom use cases, each with dedicated tools, databases, and operations.

@@ -11,7 +11,7 @@ This repository contains a ROS 2 package. To get started, follow the instruction
 - [Testing](#testing)
 - [Customization](#customizing-the-architecture)
 
-
+![Architecture](./archi.jpg)
 
 ## Installation
 
