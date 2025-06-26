@@ -48,7 +48,7 @@ for it in combinations:
 
 # exit()
 
-idx = 0
+idx = 1
 idkk = list(combo_dict.keys())[idx]
 combo = combo_dict[idkk]
 combo.append('OutOfScope')
