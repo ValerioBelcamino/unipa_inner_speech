@@ -63,7 +63,6 @@ class Inner_Speech(Node):
                                 if parameters[param] in [0, None, '']
                                 ])
         
-
         result = self.IS_LLM.get_LLM_response(user_input, action_name, parameters, missing_parameters)
         result_string = json.dumps(result)
 

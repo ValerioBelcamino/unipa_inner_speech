@@ -60,6 +60,7 @@ class InnerSpeech_LLM(LLM_Initializer):
                 textwrap.dedent(
                     f"""La domanda dell'utente è: {user_input}.
                     Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
+                    Action description:{self.action_name_to_description[action_name]}
                     Con i seguenti parametri: {parameters}.
                     Parametri obbligatori mancanti: {missing_parameters}"""
                 ))
