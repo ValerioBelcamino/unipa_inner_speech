@@ -70,3 +70,20 @@ def check_user_weekly_plan(intent_parameters: dict, action_name: str, db_adapter
         if results and len(results) > 0:
             intent_parameters["ha_piano_settimanale"] = results[0]["hasWeeklyPlan"]
     return intent_parameters
+
+def check_user_weekly_workout(intent_parameters: dict, action_name: str, db_adapter):
+    # print(f"\033[95m[check_user_weekly_plan] parameters = {{'person_name': {intent_parameters}, 'action_name': {action_name}, 'db_adapter': {db_adapter}}}\033[0m")
+
+    # we only have to check the user weekly plan for the meal preparation
+    if action_name == 'ExerciseInformation':
+
+        query = """
+            MATCH (p:Patient {name: $name})-[:has_exercise]->(e:Exercise)
+            RETURN COUNT(e) > 0 AS hasExercises;
+        """
+        # Use the db_adapter to execute the query with parameters
+        results = db_adapter.execute_query(query, {"name": intent_parameters["user_name"]})
+        
+        intent_parameters["hasExercises"] = results[0]["hasExercises"]
+
+    return intent_parameters

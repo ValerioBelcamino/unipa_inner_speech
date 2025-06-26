@@ -42,11 +42,10 @@ class Neo4jAdapter(DBAdapter):
         1. Generate a Cypher query compatible ONLY with Neo4j Version 5.
         2. Do not use the same variable names for different nodes and relationships.
         3. Use only the nodes and relationships mentioned in the schema.
-        4. Always enclose the Cypher output inside three backticks.
-        5. Always use the AS keyword to assign aliases to the returned nodes and relationships.
-        6. Always use aliases to refer to nodes throughout the query.
-        7. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
-        8. You may generate multiple queries if required.
+        4. Always use the AS keyword to assign aliases to the returned nodes and relationships.
+        5. Always use aliases to refer to nodes throughout the query.
+        6. Do not use the word 'Answer' in the query (it is not a Cypher keyword).
+        7. You may generate multiple queries if required.
 
         Schema:
         {schema}"""

@@ -1,0 +1,38 @@
+[
+    {
+        "user_input": "Ciao, mi chiamo Luca. Che esercizi devo fare secondo il mio piano?",
+        "queries": "MATCH (patient:Patient {name: 'luca'})-[:has_exercise {week_day: 0}]->(exercise:Exercise) RETURN exercise.name",
+        "results": "[{'exercise.name': 'alzate laterali'}, {'exercise.name': 'ponte'}]",
+        "explanation": "Questa query cerca il nodo 'Patient' con nome 'luca' e trova tutti gli esercizi ('Exercise') collegati a lui tramite la relazione 'has_exercise' per il giorno della settimana lunedì (week_day = 0). Restituisce i nomi degli esercizi previsti per quel giorno."
+    },
+    {
+        "user_input": "Mi puoi ricordare che esercizi devo fare questa settimana? Sono Gianni",
+        "queries": "MATCH (patient:Patient {name: 'gianni'})-[rel:has_exercise]->(exercise:Exercise) RETURN exercise.name, rel.week_day",
+        "results": "[{'exercise.name': 'piegamenti al muro', 'rel.week_day': 1}, {'exercise.name': 'ponte', 'rel.week_day': 4}]",
+        "explanation": "Questa query recupera tutti gli esercizi associati al paziente 'gianni', indipendentemente dal giorno. Mostra i nomi degli esercizi e il giorno della settimana (0 = lunedì, 6 = domenica) in cui ciascun esercizio deve essere svolto."
+    },
+    {
+        "user_input": "Sono Giorgio, puoi dirmi spiegarmi come si eseguono le alzate laterali",
+        "queries": "MATCH (exercise:Exercise {name: 'alzate laterali'})-[:has_step]->(step:ExerciseStep) RETURN step.order AS step_order, step.name, step.description ORDER BY step_order",
+        "results": "[{'step_order': 1, 'step.name': 'alzata braccia', 'step.description': 'alzare le braccia fino all’altezza delle spalle'}, {'step_order': 2, 'step.name': 'rilassamento', 'step.description': 'riportare le braccia lungo i fianchi'}]",
+        "explanation": "La query trova l’esercizio 'alzate laterali' e restituisce tutti gli step associati, ordinati per ordine di esecuzione. Ogni step contiene il nome e la descrizione dell’azione da compiere."
+    },
+    {
+        "user_input": "Puoi ripetermi qual è il secondo step da eseguire per l'esercizio piegamenti al muro?",
+        "queries": "MATCH (exercise:Exercise {name: 'piegamenti al muro'})-[:has_step {order: 2}]->(step:ExerciseStep) RETURN step.name, step.description",
+        "results": "[{'step.name': 'flessione gomiti', 'step.description': 'piegare i gomiti avvicinando il corpo al muro'}]",
+        "explanation": "Questa query individua lo step numero 2 dell’esercizio 'piegamenti al muro'. Restituisce il nome e la descrizione dello step specifico da eseguire in quella posizione."
+    },
+    {
+        "user_input": "Quante volte devo ripetere il ponte?",
+        "queries": "MATCH (exercise:Exercise {name: 'ponte'}) RETURN exercise.num_repetitions",
+        "results": "[{'exercise.num_repetitions': 10}]",
+        "explanation": "La query recupera dal nodo 'Exercise' chiamato 'ponte' il numero di ripetizioni previste. Serve per indicare quante volte eseguire l'esercizio."
+    },
+    {
+        "user_input": "Sono Giulia, mi puoi ricordare che frequenza cardiaca devo mantenere durante i miei esercizi?",
+        "queries": "MATCH (patient:Patient {name: 'Giulia'}) RETURN patient.heart_rate",
+        "results": "[{'patient.heart_rate': 85}]",
+        "explanation": "Questa query ottiene la frequenza cardiaca target del paziente 'Giulia'. Questo valore aiuta a monitorare se l'intensità dell'esercizio è adeguata durante l’allenamento."
+    }
+]

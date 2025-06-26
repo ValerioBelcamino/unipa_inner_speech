@@ -1,0 +1,11 @@
+plugins:
+
+    
+  - name: "check_user_weekly_plan"
+    module: "intent_post_processing.plugins.db_convention_plugin"
+    function: "check_user_weekly_plan"
+
+  - name: "get_day_of_the_week_exercise"
+    module: "intent_post_processing.plugins.time_plugin"
+    function: "get_day_of_the_week_exercise"
+    
