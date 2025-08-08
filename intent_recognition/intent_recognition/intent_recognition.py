@@ -1,9 +1,10 @@
-import json
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
-from common_msgs.msg import Intent
 from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
+from memory_service.memory_client import MemoryClient
+from common_msgs.msg import Intent
+from std_msgs.msg import String
+from rclpy.node import Node
+import rclpy
+import json
 
 
 
@@ -34,6 +35,10 @@ class Intent_Recognition(Node):
         print(f"\033[34mInitialized publishers to {self.out_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
+        self.memory_client = MemoryClient()
+        self.get_response = self.memory_client.send_get_request()
+        print('Current Memory:', self.get_response.memory_list)
+
         self.IR_LLM = IntentRecognition_LLM(node_name = self.node_name)
 
 
@@ -44,8 +49,13 @@ class Intent_Recognition(Node):
 
     def listener_callback(self, msg):
         self.get_logger().info('Received: "%s"\n' % msg.data)
+
+        # Update Memory
+        self.get_response = self.memory_client.send_get_request()
+        print('Current Memory:', self.get_response.memory_list)
+        
         user_input = msg.data.strip()
-        tool_name, tool_result = self.IR_LLM.get_LLM_response(user_input)
+        tool_name, tool_result = self.IR_LLM.get_LLM_response(user_input, self.get_response.memory_list)
 
         intent_msg = Intent()
         intent_msg.user_input = user_input

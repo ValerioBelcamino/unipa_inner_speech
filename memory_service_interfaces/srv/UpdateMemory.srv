@@ -1,0 +1,6 @@
+string user_input
+string[] queries
+string results
+string explanation
+---
+string[] memory_list

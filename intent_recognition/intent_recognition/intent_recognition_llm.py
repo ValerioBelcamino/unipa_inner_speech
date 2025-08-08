@@ -82,15 +82,16 @@ class IntentRecognition_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class
-    def get_LLM_response(self, user_input, return_time=False):
+    def get_LLM_response(self, user_input, memory, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
         prompt = [  
             SystemMessage(content=
                     textwrap.dedent(
-                        """"You are tasked with identifying the correct intent from a set of available tools and extracting only the parameters explicitly provided by the user.
+                        """You are tasked with identifying the correct intent from a set of available tools and extracting only the parameters explicitly provided by the user.
                         You must not use external knowledge, assumptions, or inference to guess or complete missing information.
+                        You will also receive a short term memory with additional information on past interactions.
                         If the user input is not relevant to any of the available tools, do not respond or assign an intent.
                         Only fill tool parameters when the necessary information is clearly and explicitly included in the user input.
                         Do not hallucinate.
@@ -99,7 +100,10 @@ class IntentRecognition_LLM(LLM_Initializer):
                         If a parameter is missing, ambiguous, or incomplete, leave it blank and do not attempt to infer or complete it.
                         Follow these constraints strictly to ensure reliability and factual accuracy in tool usage."""
                     )),
-            HumanMessage(content=user_input)
+            HumanMessage(content=textwrap.dedent(
+                        f"""Memory: {memory}
+                        User Input: {user_input}"""
+                    ))
         ]
 
         try:

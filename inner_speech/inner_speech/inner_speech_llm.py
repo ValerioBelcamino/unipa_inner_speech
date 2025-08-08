@@ -39,7 +39,7 @@ class InnerSpeech_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None, return_time=False):
+    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None, memory= None, return_time=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -52,13 +52,16 @@ class InnerSpeech_LLM(LLM_Initializer):
             SystemMessage(content=
                 textwrap.dedent(
                     f"""{self.context_scenario}. 
+                    Hai a disposizione anche una memoria a breve termine con interazioni passate.
                     Devi impedire l'esecuzione di domande non pertinenti al tuo scopo
                     Devi impedire l'esecuzione di domande con parametri obbligatori mancanti. 
                     Devi filtrare domande relative al tuo argomento ma troppo vaghe."""
                 )),
             HumanMessage(content=
                 textwrap.dedent(
-                    f"""La domanda dell'utente è: {user_input}.
+                    f"""
+                    Memoria: {memory}
+                    La domanda dell'utente è: {user_input}.
                     Il riconoscimento dell'intento ha assegnato la seguente funzione: {action_name}.
                     Action description:{self.action_name_to_description[action_name]}
                     Con i seguenti parametri: {parameters}.

@@ -1,4 +1,5 @@
 from inner_speech.inner_speech_llm import InnerSpeech_LLM
+from memory_service.memory_client import MemoryClient
 from common_msgs.msg import Intent, InnerSpeech
 from std_msgs.msg import String
 from rclpy.node import Node
@@ -39,6 +40,10 @@ class Inner_Speech(Node):
         print(f"\033[34mInitialized publishers to {self.query_generation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.in_topic}!!!\033[0m")
 
+        self.memory_client = MemoryClient()
+        self.get_response = self.memory_client.send_get_request()
+        print('Current Memory:', self.get_response.memory_list)
+
         self.IS_LLM = InnerSpeech_LLM(node_name = self.node_name)
         
 
@@ -49,6 +54,10 @@ class Inner_Speech(Node):
 
     def listener_callback(self, intent_msg):
         self.get_logger().info('Received: "%s"\n' % intent_msg)
+
+        # Update Memory
+        self.get_response = self.memory_client.send_get_request()
+        print('Current Memory:', self.get_response.memory_list)
 
         user_input = intent_msg.user_input
         action_name = intent_msg.action_name
@@ -63,7 +72,7 @@ class Inner_Speech(Node):
                                 if parameters[param] in [0, None, '']
                                 ])
         
-        result = self.IS_LLM.get_LLM_response(user_input, action_name, parameters, missing_parameters)
+        result = self.IS_LLM.get_LLM_response(user_input, action_name, parameters, missing_parameters, self.get_response.memory_list)
         result_string = json.dumps(result)
 
         print("\033[32m"+result_string+"\033[0m")

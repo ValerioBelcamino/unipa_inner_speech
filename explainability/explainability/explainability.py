@@ -1,4 +1,5 @@
 from explainability.explainability_llm import QueryExplanation_LLM, InnerSpeechExplanation_LLM
+from memory_service.memory_client import MemoryClient
 from common_msgs.msg import QueryOutput, InnerSpeech
 from std_msgs.msg import String
 from rclpy.node import Node
@@ -55,6 +56,10 @@ class Explainability(Node):
         print(f"\033[34mStarted Listening to {self.clingo_explanation_topic}!!!\033[0m")
         print(f"\033[34mStarted Listening to {self.inner_speech_explanation_topic}!!!\033[0m")
 
+        self.memory_client = MemoryClient()
+        self.get_response = self.memory_client.send_get_request()
+        print('Current Memory:', self.get_response.memory_list)
+
         self.QueryEXP_LLM = QueryExplanation_LLM(node_name=self.node_name)
         self.ISEXP_LLM = InnerSpeechExplanation_LLM(node_name=self.node_name)
 
@@ -94,6 +99,15 @@ class Explainability(Node):
         # Output the explanation
         print(f"\033[1;34mExplanation:\033[0m")
         print(f"\033[1;32m{explanation}\033[0m")
+        
+        # Update memory
+        update_response = self.memory_client.send_update_request(
+            msg.user_input,
+            msg.queries,
+            msg.results,
+            explanation
+        )
+        print('Updated list:', update_response.memory_list)
 
 
     # def clingo_explanation_callback(self, msg):
