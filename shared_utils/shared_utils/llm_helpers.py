@@ -13,6 +13,8 @@ class LLM_Initializer(ABC):
     def __init__(
                 self, 
                 node_name:str,
+                use_db_adapter:bool=True,
+                use_scenario_description:bool=True,
                 ):
         
         self.node_name = node_name
@@ -26,9 +28,10 @@ class LLM_Initializer(ABC):
         self.dotconfig_path = os.path.join(self.BASE_DIR, ".config")
         load_dotenv(self.dotconfig_path)
 
-        # Create default DB adapter
-        self.db_type = os.getenv("DB_TYPE") 
-        self._db = DBFactory.create_adapter(self.db_type)
+        if use_db_adapter:
+            # Create default DB adapter
+            self.db_type = os.getenv("DB_TYPE") 
+            self._db = DBFactory.create_adapter(self.db_type)
 
         self.llm_config = ast.literal_eval(os.getenv("LLM_CONFIG"))[self.node_name]
         self._llm = init_chat_model(
@@ -38,11 +41,12 @@ class LLM_Initializer(ABC):
                                     api_key=os.getenv("GROQ_API_KEY")
                                 )
 
-        print()
-        self.scenario = os.getenv("SCENARIO")
-        print(f"\033[34mUsing {self.scenario}!\033[0m")
-        self.context_scenario = get_scenario_description(self.scenario)
-        print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
+        if use_scenario_description:
+            print()
+            self.scenario = os.getenv("SCENARIO")
+            print(f"\033[34mUsing {self.scenario}!\033[0m")
+            self.context_scenario = get_scenario_description(self.scenario)
+            print(f"\033[34mDesciription: {self.context_scenario}\033[0m")
 
 
     @abstractmethod

@@ -103,8 +103,6 @@ class Explainability(Node):
         # Update memory
         update_response = self.memory_client.send_update_request(
             msg.user_input,
-            msg.queries,
-            msg.results,
             explanation
         )
         print('Updated list:', update_response.memory_list)

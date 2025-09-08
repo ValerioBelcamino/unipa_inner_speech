@@ -16,11 +16,9 @@ class MemoryClient(Node):
         while not self.get_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for get_memory service...')
 
-    def send_update_request(self, user_input, queries, results, explanation):
+    def send_update_request(self, user_input, explanation):
         req = UpdateMemory.Request()
         req.user_input = user_input
-        req.queries = queries
-        req.results = results
         req.explanation = explanation
         future = self.update_client.call_async(req)
         rclpy.spin_until_future_complete(self, future)
