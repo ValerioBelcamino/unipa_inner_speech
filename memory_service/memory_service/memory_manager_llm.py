@@ -42,7 +42,7 @@ class SplitCoreAndArchivalMemory(BaseModel):
     archival_memories: list[str]
 
 # Initialize ChromaDB client and collection for archival memory
-chroma_client = chromadb.PersistentClient(path="./chroma_db5")
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
 collection_name = "memory_archive"
 
 # Create or get the collection
@@ -72,13 +72,17 @@ class MemoryAgentLLM(LLM_Initializer):
         return self._llm
     
 memoryAgentLLM = MemoryAgentLLM('memory_agent')
-# Initialize LLM
-# llm = init_chat_model(
-#     model='meta-llama/llama-4-maverick-17b-128e-instruct',
-#     model_provider='groq',
-#     temperature=0.0,
-#     api_key=os.getenv("GROQ_API_KEY")
-# )
+
+def messages_to_str(messages) -> str:
+    """Convert a list of messages to a single string for prompt input."""
+    if isinstance(messages, list):
+        return "\n".join(messages_to_str(msg) for msg in messages)
+    elif isinstance(messages, HumanMessage):
+        return f"Human: {messages.content}"
+    elif isinstance(messages, AIMessage):
+        return f"AI: {messages.content}"
+    else:
+        return str(messages)
 
 @tool
 def insert_archival_memories(memories: list[str]):
@@ -86,7 +90,7 @@ def insert_archival_memories(memories: list[str]):
     Given old memories from the historical interactions, you should summarize them into this other memory."""
     doc_ids = [f"memory_{len(collection.get()['ids']) + i}" for i in range(1, len(memories) + 1)]
     print(f"\tInserting archival memories: {memories} with IDs: {doc_ids}")
-    vector_store.add_texts(texts=memories, ids=doc_ids, metadatas=[{"timestamp": time.now()}]*len(memories))
+    vector_store.add_texts(texts=memories, ids=doc_ids, metadatas=[{"timestamp": str(time.now())}]*len(memories))
     return f"Memories added with IDs: {', '.join(doc_ids)}"
 
 
@@ -110,12 +114,19 @@ def check_information_sufficiency(state: AgentState) -> bool:
     user_query = state["messages"][-1].content
     core_memory = state["core_memory"]
     previous_messages = state["messages"][:-1]
+    previous_messages = messages_to_str(previous_messages)
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a tool that checks if the information provided is sufficient to answer the user's query."),
-        ("human", "User query: {user_query}\nKnown facts: {core_memory}\nYour previous interactions: {previous_messages}\nIs the information sufficient to answer the query?")
+        ("human", """User query: {user_query}
+Known facts: {core_memory}
+Your previous interactions: 
+
+{previous_messages}
+
+Is the information sufficient to answer the query?""")
     ])
     
-    router_llm = memoryAgentLLM.get_LLM.bind_tools([InformationSufficiency])
+    router_llm = memoryAgentLLM.get_LLM().bind_tools([InformationSufficiency])
     chain = prompt | router_llm
     response = chain.invoke({"user_query": user_query, "core_memory": core_memory, "previous_messages": previous_messages})
     is_sufficient = response.tool_calls[0]['args']["is_sufficient"]
@@ -153,7 +164,7 @@ def retrieval_node(state: AgentState):
     ])
     
     # Bind tools to LLM
-    llm_with_tools = memoryAgentLLM.get_LLM.bind_tools([retrieve_memory])
+    llm_with_tools = memoryAgentLLM.get_LLM().bind_tools([retrieve_memory])
     
     chain = prompt | llm_with_tools
     response = chain.invoke({"input": state["messages"][-1].content, "core_memory": state["core_memory"]})
@@ -217,12 +228,13 @@ def generate_answer(state: AgentState):
         ("human", "{input}")
     ])
     
-    chain = prompt | memoryAgentLLM.get_LLM
+    chain = prompt | memoryAgentLLM.get_LLM()
+    
     response = chain.invoke({"input": state["messages"][-1].content, 
                              "core_memory": state["core_memory"], 
                              "retrieved_memory": state["retrieved_memory"], 
-                             "messages": state["messages"][:-1]})
-    
+                             "messages": messages_to_str(state["messages"][:-1])})
+
     return {"messages": state["messages"] + [response]}
 
 def exceed_memory_limit(state: AgentState) -> bool:
@@ -242,6 +254,7 @@ def exceed_core_memory_limit(state: AgentState) -> bool:
 def summarize_memories_node(state: AgentState):
 
     exceeding_messages = state['messages'][:-state['maximum_historical_messages']]
+    exceeding_messages = messages_to_str(exceeding_messages)
     print(f"\tSummarizing {exceeding_messages}")
 
     prompt = ChatPromptTemplate.from_messages([
@@ -249,18 +262,20 @@ def summarize_memories_node(state: AgentState):
         Review the old messages from historical interactions and identify any new, concise, and important facts about the user.
         Add these facts to the core memories, ensuring no redundancy and replacing outdated or contradictory information.
         Only include facts that are relevant and likely to be frequently referenced in future interactions."""),
-        ("human", """The messages exceeding the limit are: {exceeding_messages}.
-        Extract any new facts about the user from these messages and rewrite the old core memories.
-        Current core memories are: {core_memory}.
-        Focus on preferences, opinions, or personal facts mentioned by the user.""")
+        ("human", """The messages exceeding the limit are: 
+         
+        {exceeding_messages}
+        
+Extract any new facts about the user from these messages and rewrite the old core memories.
+Current core memories are: {core_memory}.
+Focus on preferences, opinions, or personal facts mentioned by the user.""")
     ])
-    
-    summarizer_llm = memoryAgentLLM.get_LLM.bind_tools([InsertCoreMemories])
+    summarizer_llm = memoryAgentLLM.get_LLM().bind_tools([InsertCoreMemories])
     chain = prompt | summarizer_llm
     core_memories = {i:cm for i,cm in enumerate(state["core_memory"])}
     response = chain.invoke({"exceeding_messages": exceeding_messages, "core_memory": core_memories})
     print(f"\tSummarization result: {response}")
-    return {"tool_calls": state["tool_calls"] + [response]}
+    return {"tool_calls": state["tool_calls"] + [response], "messages": state["messages"][-state["maximum_historical_messages"]:]}  # Keep only the last N messages
 
 def summarize_core_memories_node(state: AgentState):
     
@@ -275,7 +290,7 @@ def summarize_core_memories_node(state: AgentState):
         ("human", """The current core memories are: {core_memory}. 
          The length is {core_memory_length} characters out of the allowed {core_memory_limit} characters.""")])
 
-    summarizer_llm = memoryAgentLLM.get_LLM.bind_tools([SplitCoreAndArchivalMemory])
+    summarizer_llm = memoryAgentLLM.get_LLM().bind_tools([SplitCoreAndArchivalMemory])
     chain = prompt | summarizer_llm
     core_memory = "\n".join(state["core_memory"])
     response = chain.invoke({"core_memory": core_memory, "core_memory_length": len(core_memory), "core_memory_limit": state["core_memory_limit"]})
@@ -313,34 +328,6 @@ graph.add_conditional_edges('execute_insertion_tool', exceed_core_memory_limit, 
 
 # Compile the graph
 memory_agent = graph.compile()
-
-# state1 = AgentState(
-#     core_memory=['I am a software developer who enjoys hiking.', 'My mom cooks the best carbonara.'],
-#     messages=[
-#         HumanMessage(content='What do you know about my preferences?', additional_kwargs={}, response_metadata={}),
-#         AIMessage(content="""You are a software developer, and you enjoy hiking. 
-#                   You also have a pet cat named Whiskers. 
-#                   That's all I know about your preferences so far.""", additional_kwargs={}, response_metadata={}),
-#         HumanMessage(content="No but what about the drinks i like?", additional_kwargs={}, response_metadata={}),
-#     ],
-#     maximum_historical_messages=5,
-#     core_memory_limit=150,
-#     retrieved_memory="",
-#     tool_calls=[]
-# )
-
-
-
-# # Fill archive with fake memories
-# fake_memories = [
-#     "User prefers coffee over tea in the morning.",
-#     "User's favorite programming language is Python.",
-#     "User has a pet cat named Whiskers.",
-#     "User enjoys hiking on weekends.",
-#     "User's birthday is on March 15th.",
-#     "User likes black tea in the afternoon."
-# ]
-
 
 class MemoryAgent():
     _instance = None  # class-level reference to hold the singleton instance
@@ -394,16 +381,13 @@ class MemoryAgent():
         else:
             raise ValueError("Sender must be 'user' or 'assistant'")
 
-# print("\nExample 4")
-# response4 = run_memory_agent(interaction_mode="retrieve")
-# print(response4)
+# Fill archive with fake memories
+# fake_memories = [
+#     "User prefers coffee over tea in the morning.",
+#     "User likes black tea in the afternoon.",
+#     "User's favourite dish is risotto with mushrooms.",
+#     "User feels unwell when eating goat cheese.",
+#     "User's preferred snack is dark chocolate.",
+# ]
 
-# print("\nExample 5")
-
-
-
-# append_message("When is my bday?", sender="user")
-# response5 = run_memory_agent(interaction_mode="retrieve")
-# print(response5)
-
-
+# insert_archival_memories.invoke({"memories": fake_memories})
