@@ -111,6 +111,10 @@ def empty_node(state: AgentState) -> bool:
 
 def check_information_sufficiency(state: AgentState) -> bool:
     print("\tChecking information sufficiency")
+    
+    if len(state["messages"]) == 0:
+        return False
+    
     user_query = state["messages"][-1].content
     core_memory = state["core_memory"]
     previous_messages = state["messages"][:-1]
@@ -362,6 +366,11 @@ class MemoryAgent():
         
         self.state["current_interaction"] = interaction_mode
         print(f"Initial state: {self.state}")
+        
+        if self.state["messages"] == []:
+            print("No messages to process.")
+            return self.state
+        
         self.state = memory_agent.invoke(self.state)
         for key, value in self.state.items():
             print(f"{key}: {value}")

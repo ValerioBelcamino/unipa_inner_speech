@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from memory_service_interfaces.srv import UpdateMemory, GetMemory
 
-from memory_service.memory_manager_llm import MemoryAgent  # Import your LLM wrapper class
+from memory_service.memory_manager_llm import MemoryAgent
 
 
 class MemoryServer(Node):
@@ -17,17 +17,50 @@ class MemoryServer(Node):
         self.get_service = self.create_service(GetMemory, 'get_memory', self.get_memory_callback)
 
     def update_memory_callback(self, request, response):
-        self.get_logger().info(f"UpdateMemory request: user_input={request.user_input}, response={request.response}")
+        self.get_logger().info(f"UpdateMemory request: user_input={request.user_input}, response={request.explanation}")
 
-        # Prepare inputs for the LLM: current memory + new info from request
-        # Here, you pass the current memory list and new update info to the LLM
-        self.memory_agent.append_message(request, 'user')
-        self.memory_agent.append_message(response, 'assistant')
-        return self.memory_agent.run_memory_agent(interaction_mode='insert')
+        try:
+            # Append messages
+            self.memory_agent.append_message(request.user_input, 'user')
+            self.memory_agent.append_message(request.explanation, 'assistant')
+            
+            # Run the agent and get the state dict
+            state = self.memory_agent.run_memory_agent(interaction_mode='insert')
+            
+            # Extract core_memory and populate the response object
+            core_memory = state["core_memory"]
+            response.memory_list = core_memory
+            
+            self.get_logger().info(f"Memory updated: {response.memory_list}")
+            
+            # Return the response object
+            return response
+            
+        except Exception as e:
+            self.get_logger().error(f"UpdateMemory error: {e}")
+            response.memory_list = []
+            return response
 
     def get_memory_callback(self, request, response):
         self.get_logger().info("GetMemory request")
-        return self.memory_agent.run_memory_agent(interaction_mode='retrieve')
+        
+        try:
+            # Run the agent in retrieve mode
+            state = self.memory_agent.run_memory_agent(interaction_mode='retrieve')
+            
+            # Extract core memory and populate the response
+            core_memory = state["core_memory"]
+            
+            self.get_logger().info(f"Returning memory_list: {core_memory}")
+            
+            response.memory_list = core_memory
+            
+            return response
+            
+        except Exception as e:
+            self.get_logger().error(f"GetMemory error: {e}")
+            response.memory_list = []
+            return response
 
 
 def main(args=None):
