@@ -143,7 +143,7 @@ def load_all_scenario_dbs(scenario:str, default_db: str):
     return db_dict, schemas_dict, instructions_dict
 
 def disconnect_and_delete_dbs(db_dict):
-    for db in db_dict:
+    for db in db_dict.values(): 
         db.disconnect()
     db_dict.clear()
 

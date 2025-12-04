@@ -1,32 +1,32 @@
 [
-  {
-      "question": "Ciao, mi chiamo Luca. Che esercizi devo fare secondo il mio piano?",
-      "parameters": "{'user_name': 'luca','exercise_name': '', 'step_number': '', 'day':'lunedi'}",
-      "query": "MATCH (patient:Patient {name: 'luca'})-[:has_exercise {week_day: 0}]->(exercise:Exercise) RETURN exercise.name"
-  },
-  {
-      "question": "Mi puoi ricordare che esercizi devo fare questa settimana? Sono Gianni",
-      "parameters": "{'user_name': 'gianni','exercise_name': '', 'step_number': '', 'day':'lunedi'}",
-      "query": "MATCH (patient:Patient {name: 'gianni'})-[rel:has_exercise]->(exercise:Exercise) RETURN exercise.name, rel.week_day"
-  },
-  {
-      "question": "Sono Giorgio, puoi dirmi spiegarmi come si eseguono le alzate laterali",
-      "parameters": "{'user_name': 'Giorgio','exercise_name': 'alzate laterali', 'step_number': '', 'day':''}",
-      "query": "MATCH (exercise:Exercise {name: 'alzate laterali'})-[:has_step]->(step:ExerciseStep) RETURN step.order AS step_order, step.name, step.description ORDER BY step_order"
-  },
-  {
-      "question": "Puoi ripetermi qual è il secondo step da eseguire per l'esercizio piegamenti al muro?",
-      "parameters": "{'user_name': '','exercise_name': 'piegamenti al muro', 'step_number': '2', 'day':''}",
-      "query": "MATCH (exercise:Exercise {name: 'piegamenti al muro'})-[:has_step {order: 2}]->(step:ExerciseStep) RETURN step.name, step.description"
-  },
-  {
-      "question": "Quante volte devo ripetere il ponte?",
-      "parameters": "{'user_name': '','exercise_name': 'ponte', 'step_number': '', 'day':''}",
-      "query": "MATCH (exercise:Exercise {name: 'ponte'}) RETURN exercise.num_repetitions"
-  },
-  {
-      "question": "Sono Giulia, mi puoi ricordare che frequenza cardiaca devo mantenere durante i miei esercizi?",
-      "parameters": "{'user_name': 'Giulia','exercise_name': '', 'step_number': '', 'day':''}",
-      "query": "MATCH (patient:Patient {name: 'Giulia'}) RETURN patient.heart_rate"
-  }
+{
+        "question": "Ciao, mi chiamo Luca. Che esercizi devo fare secondo il mio piano?",
+        "parameters": "{'user_name': 'luca','exercise_name': '', 'step_number': '', 'day':'lunedi'}",
+        "query": "MATCH (patient:Patient)-[:has_exercise {week_day: 0}]->(exercise:Exercise) WHERE patient.name =~ '(?i)luca' RETURN exercise.name"
+},
+{
+        "question": "Mi puoi ricordare che esercizi devo fare questa settimana? Sono Gianni",
+        "parameters": "{'user_name': 'gianni','exercise_name': '', 'step_number': '', 'day':'lunedi'}",
+        "query": "MATCH (patient:Patient)-[rel:has_exercise]->(exercise:Exercise) WHERE patient.name =~ '(?i)gianni' RETURN exercise.name, rel.week_day"
+},
+{
+        "question": "Sono Giorgio, puoi dirmi spiegarmi come si eseguono le alzate laterali",
+        "parameters": "{'user_name': 'Giorgio','exercise_name': 'alzate laterali', 'step_number': '', 'day':''}",
+        "query": "MATCH (exercise:Exercise)-[:has_step]->(step:ExerciseStep) WHERE exercise.name =~ '(?i)alzate laterali' RETURN step.order AS step_order, step.name, step.description ORDER BY step_order"
+},
+{
+        "question": "Puoi ripetermi qual è il secondo step da eseguire per l'esercizio piegamenti al muro?",
+        "parameters": "{'user_name': '','exercise_name': 'piegamenti al muro', 'step_number': '2', 'day':''}",
+        "query": "MATCH (exercise:Exercise)-[:has_step {order: 2}]->(step:ExerciseStep) WHERE exercise.name =~ '(?i)piegamenti al muro' RETURN step.name, step.description"
+},
+{
+        "question": "Quante volte devo ripetere il ponte?",
+        "parameters": "{'user_name': '','exercise_name': 'ponte', 'step_number': '', 'day':''}",
+        "query": "MATCH (exercise:Exercise) WHERE exercise.name =~ '(?i)ponte' RETURN exercise.num_repetitions"
+},
+{
+        "question": "Sono Giulia, mi puoi ricordare che frequenza cardiaca devo mantenere durante i miei esercizi?",
+        "parameters": "{'user_name': 'Giulia','exercise_name': '', 'step_number': '', 'day':''}",
+        "query": "MATCH (patient:Patient) WHERE patient.name =~ '(?i)Giulia' RETURN patient.heart_rate"
+}
 ]

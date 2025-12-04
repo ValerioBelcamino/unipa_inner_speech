@@ -63,6 +63,18 @@ class DBFactory:
             adapter = QdrantAdapter(host, api_key)
             adapter.connect()
             return adapter
+        
+        elif db_type.lower() == 'neo4j_physio':
+            uri = config.get('uri', os.getenv("NEO4J_URI_PHYSIO"))
+            username = config.get('username', os.getenv("NEO4J_USERNAME"))
+            password = config.get('password', os.getenv("NEO4J_PASSWORD_PHYSIO"))
+            
+            if not all([uri, username, password]):
+                raise ValueError("Missing required Neo4j configuration parameters")
+                
+            adapter = Neo4jAdapter(uri, username, password)
+            adapter.connect()
+            return adapter
             
         else:
             raise ValueError(f"Unsupported database type: {db_type}")

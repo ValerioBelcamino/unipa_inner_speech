@@ -59,8 +59,8 @@ class Neo4jAdapter(DBAdapter):
         """
         schema = self.get_schema()
         schema = escape_curly_braces(schema)
-        self._prompt = self._prompt.format(schema=schema)
-        return self._prompt
+        prompt = self._prompt.format(schema=schema)
+        return prompt
     
     def connect(self) -> None:
         """Establish a connection to the Neo4j database"""
