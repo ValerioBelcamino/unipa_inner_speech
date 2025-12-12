@@ -1,0 +1,187 @@
+[
+  {
+    "question": "Ciao, sono Luca. Vorrei essere inserito nel sistema con 2000 calorie, 70g di proteine, 250g di carboidrati e 50g di grassi. Non ho intolleranze.",
+    "action_name": "AddToDatabase",
+    "parameters": {
+      "nome_utente": "luca",
+      "calorie": "2000",
+      "proteine": "70",
+      "carboidrati": "250",
+      "grassi": "50",
+      "intolleranze": []
+    },
+    "queries": [
+      "CREATE (p:Person {name: 'luca', calories: 2000, proteins: 70, carbs: 250, fats: 50}) RETURN p;"
+    ]
+  },
+  {
+    "question": "Ciao, sono Giulia. Vorrei essere inserita nel sistema con 1500 calorie, 60g di proteine, 180g di carboidrati e 30g di grassi. Sono intollerante alle noci.",
+    "action_name": "AddToDatabase",
+    "parameters": {
+      "nome_utente": "giulia",
+      "calorie": "1500",
+      "proteine": "60",
+      "carboidrati": "180",
+      "grassi": "30",
+      "intolleranze": ["noci"]
+    },
+    "queries": [
+      "CREATE (p:Person {name: 'giulia', calories: 1500, proteins: 60, carbs: 180, fats: 30}) MERGE (a:Allergen {name: 'noci'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p, a;"
+    ]
+  },
+  {
+    "question": "Ciao, sono Serena. Aggiungimi al sistema con 2200 calorie, 80g di proteine, 260g di carboidrati e 60g di grassi. Ho intolleranze al glutine, lattosio e soia.",
+    "action_name": "AddToDatabase",
+    "parameters": {
+      "nome_utente": "serena",
+      "calorie": "2200",
+      "proteine": "80",
+      "carboidrati": "260",
+      "grassi": "60",
+      "intolleranze": ["glutine", "lattosio", "soia"]
+    },
+    "queries": [
+      "CREATE (p:Person {name: 'serena', calories: 2200, proteins: 80, carbs: 260, fats: 60}) MERGE (a1:Allergen {name: 'glutine'}) MERGE (a2:Allergen {name: 'lattosio'}) MERGE (a3:Allergen {name: 'soia'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a1) MERGE (p)-[:IS_ALLERGIC_TO]->(a2) MERGE (p)-[:IS_ALLERGIC_TO]->(a3) RETURN p, a1, a2, a3;"
+    ]
+  },
+  {
+    "question": "Ciao, il couscous contiene glutine?",
+    "action_name": "DishInfo",
+    "parameters": {
+      "nome_utente": "",
+      "nome_piatto": "couscous",
+      "controllo_ingredienti": "[glutine]"
+    },
+    "queries": [
+      "MATCH (d:Dish {name: 'couscous'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"
+    ]
+  },
+  {
+    "question": "Sono Giorgio, vorrei sapere se la panna cotta contiene il lattosio.",
+    "action_name": "DishInfo",
+    "parameters": {
+      "nome_utente": "giorgio",
+      "nome_piatto": "panna cotta",
+      "controllo_ingredienti": "[lattosio]"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'giorgio'}) MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"
+    ]
+  },
+  {
+    "question": "Ciao, puoi darmi informazioni sui valori nutrizionali della lasagna?",
+    "action_name": "DishInfo",
+    "parameters": {
+      "nome_utente": "",
+      "nome_piatto": "lasagna",
+      "controllo_ingredienti": "[]"
+    },
+    "queries": [
+      "MATCH (d:Dish {name: 'lasagna'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS allergens RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs, ingredients, allergens"
+    ]
+  },
+  {
+    "question": "Mi chiamo Valerio, vorrei sapere se posso mangiare il tiramisù.",
+    "action_name": "DishInfo",
+    "parameters": {
+      "nome_utente": "valerio",
+      "nome_piatto": "tiramisu",
+      "controllo_ingredienti": "[]"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'valerio'}) MATCH (d:Dish {name: 'tiramisu'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, dish_allergens, user_allergens, risks_for_user"
+    ]
+  },
+  {
+    "question": "C'è qualcosa addatto a me con gamberi e limone? Sono Giulia",
+    "action_name": "DishInfo",
+    "parameters": {
+      "nome_utente": "giulia",
+      "nome_piatto": "",
+      "controllo_ingredienti": ["gamberi", "limone"]
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'giulia'})  MATCH (d:Dish)  MATCH (d)-[:CONTAINS]->(i_gamberi:Ingredient {name: 'gamberi'}) MATCH (d)-[:CONTAINS]->(i_limone:Ingredient {name: 'limone'})OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"
+    ]
+  },
+  {
+    "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza uova per domenica? Viene anche un amico allergico al lattosio",
+    "action_name": "SubstituteDish",
+    "parameters": {
+      "nome_utente": "luca",
+      "ingredienti_rimossi": ["uova", "lattosio"],
+      "ingredienti_preferiti": [],
+      "ingredienti_obbligatori_esclusivi": [],
+      "giorno": "domenica",
+      "pasto": "cena"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "MATCH (p:Person {name: 'luca'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['lattosio', 'uova']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'uova'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+    ]
+  },
+  {
+    "question": "Ciao, sono Giulia. Puoi suggerirmi una cena senza frutta secca per mercoledì?",
+    "action_name": "SubstituteDish",
+    "parameters": {
+      "nome_utente": "giulia",
+      "ingredienti_rimossi": ["frutta secca"],
+      "ingredienti_preferiti": [],
+      "ingredienti_obbligatori_esclusivi": [],
+      "giorno": "mercoledì",
+      "pasto": "cena"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen {name: 'frutta secca'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'mercoledi', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+    ]
+  },
+  {
+    "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+    "action_name": "SubstituteDish",
+    "parameters": {
+      "nome_utente": "marco",
+      "ingredienti_rimossi": [],
+      "ingredienti_preferiti": ["pollo", "riso"],
+      "ingredienti_obbligatori_esclusivi": [],
+      "giorno": "giovedi",
+      "pasto": "pranzo"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'marco'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "MATCH (p:Person {name: 'marco'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pollo'})} AND EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'riso'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+    ]
+  },
+  {
+    "question": "Ciao, sono Francesca. Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+    "action_name": "SubstituteDish",
+    "parameters": {
+      "nome_utente": "francesca",
+      "ingredienti_rimossi": ["pomodoro"],
+      "ingredienti_preferiti": ["salmone"],
+      "ingredienti_obbligatori_esclusivi": [],
+      "giorno": "sabato",
+      "pasto": "cena"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'francesca'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "MATCH (p:Person {name: 'francesca'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'salmone'})} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pomodoro'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'sabato', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+    ]
+  },
+  {
+    "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+    "action_name": "SubstituteDish",
+    "parameters": {
+      "nome_utente": "alessandro",
+      "ingredienti_rimossi": [],
+      "ingredienti_preferiti": [],
+      "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"],
+      "giorno": "lunedi",
+      "pasto": "colazione"
+    },
+    "queries": [
+      "MATCH (p:Person {name: 'alessandro'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;",
+      "MATCH (p:Person {name: 'alessandro'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE NOT i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'lunedi', meal: 'colazione'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"
+    ]
+  }
+]
