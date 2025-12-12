@@ -26,8 +26,10 @@ def create_database():
         # Create ingredients with nutrition values
         ingredients = [
             {"name": "farina", "carbs": 76, "proteins": 10, "fats": 1, "calories": 364, "allergens": ["glutine"]},
+            {"name": "couscous", "carbs": 23, "proteins": 4, "fats": 0, "calories": 112, "allergens": ["glutine"]},
             {"name": "uova", "carbs": 1, "proteins": 13, "fats": 11, "calories": 155, "allergens": ["uova"]},
             {"name": "latte", "carbs": 5, "proteins": 3, "fats": 4, "calories": 64, "allergens": ["lattosio"]},
+            {"name": "panna", "carbs": 3, "proteins": 2, "fats": 20, "calories": 193, "allergens": ["lattosio"]},
             {"name": "pomodoro", "carbs": 4, "proteins": 1, "fats": 0, "calories": 18, "allergens": []},
             {"name": "mozzarella", "carbs": 2, "proteins": 22, "fats": 22, "calories": 280, "allergens": ["lattosio"]},
             {"name": "pasta", "carbs": 75, "proteins": 13, "fats": 2, "calories": 371, "allergens": ["glutine"]},
@@ -79,6 +81,18 @@ def create_database():
                 "carbs": 65, "proteins": 8, "fats": 12, "calories": 420
             },
             {
+                "name": "couscous", 
+                "type": "primo", 
+                "ingredients": ["couscous", "olio"],
+                "carbs": 40, "proteins": 8, "fats": 8, "calories": 250
+            },
+            {
+                "name": "lasagna", 
+                "type": "primo", 
+                "ingredients": ["pasta", "pomodoro", "mozzarella", "parmigiano"],
+                "carbs": 50, "proteins": 18, "fats": 22, "calories": 420
+            },
+            {
                 "name": "bistecca di manzo", 
                 "type": "secondo", 
                 "ingredients": ["manzo", "olio"],
@@ -95,6 +109,12 @@ def create_database():
                 "type": "dolce", 
                 "ingredients": ["uova", "zucchero", "caffe", "mascarpone"],
                 "carbs": 45, "proteins": 8, "fats": 25, "calories": 420
+            },
+            {
+                "name": "panna cotta", 
+                "type": "dolce", 
+                "ingredients": ["panna", "zucchero"],
+                "carbs": 30, "proteins": 5, "fats": 20, "calories": 320
             },
             {
                 "name": "pasta alla carbonara", 
@@ -125,6 +145,12 @@ def create_database():
                 "type": "dolce", 
                 "ingredients": ["mandorle", "uova", "zucchero"],
                 "carbs": 40, "proteins": 12, "fats": 30, "calories": 450
+            },
+            {
+                "name": "frittata di spinaci",
+                "type": "secondo",
+                "ingredients": ["uova", "spinaci", "olio"],
+                "carbs": 5, "proteins": 21, "fats": 20, "calories": 270
             }
         ]
         
@@ -207,6 +233,36 @@ def create_database():
                 "fats": 70, 
                 "calories": 2700, 
                 "allergies": ["uova"]
+            },
+            {
+                "name": "valerio", 
+                "gender": "m", 
+                "age": 32, 
+                "carbs": 280, 
+                "proteins": 110, 
+                "fats": 70, 
+                "calories": 2400, 
+                "allergies": []
+            },
+            {
+                "name": "francesca", 
+                "gender": "f", 
+                "age": 29, 
+                "carbs": 220, 
+                "proteins": 90, 
+                "fats": 65, 
+                "calories": 2000, 
+                "allergies": []
+            },
+            {
+                "name": "alessandro", 
+                "gender": "m", 
+                "age": 27, 
+                "carbs": 300, 
+                "proteins": 120, 
+                "fats": 80, 
+                "calories": 2600, 
+                "allergies": []
             }
         ]
         
