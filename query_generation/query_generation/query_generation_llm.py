@@ -56,7 +56,7 @@ class QueryGeneration_LLM(LLM_Initializer):
             print(parameters)
             initial_time = time.time()
             llm_response = llm_cypher_chain.invoke({"question": user_input, "parameters": parameters})
-            llm_response_time = initial_time - time.time()
+            llm_response_time = time.time() - initial_time  # Fixed: was initial_time - time.time()
 
         except BadRequestError as e:
             print(f"\033[31mError: {e}\033[0m")

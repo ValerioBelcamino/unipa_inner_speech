@@ -1,0 +1,7 @@
+[
+  {
+      "question": "Ciao, I'm Giulia. According to the sensor readings, am I performing the exercise correctly?",
+      "parameters": "{'heartrate_data': {'_value': '78', 'exercise': 'AL'}, 'angle_data': {'side': 'L', 'exercise': 'A', 'nth_repetition': '29','angle': '89.9999999999999', 'direction': 'up'}}",
+      "query": "MATCH (e:Exercise) WHERE e.name =~ '(?i)a' WITH e.num_repetitions AS total_repetitions MATCH (e2:Exercise)-[:has_step]->(s:ExerciseStep)-[:has_target_angle]->(a:Angle) WHERE e2.name =~ '(?i)a' WITH total_repetitions, s.name AS step_name, a.limb1 AS limb1, a.limb2 AS limb2, a.angleValue AS expected_angle MATCH (p:Patient) WHERE p.name =~ '(?i)giulia' RETURN total_repetitions, step_name, limb1, limb2, expected_angle, p.heart_rate AS maximum_heart_rate"
+  }
+]
