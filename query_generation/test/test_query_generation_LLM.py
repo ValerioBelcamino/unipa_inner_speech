@@ -127,6 +127,8 @@ def flatten_results(query_results):
 def compute_overlap(ref_results, gen_results):
     ref_flat = set(flatten_results(ref_results))
     gen_flat = set(flatten_results(gen_results))
+    if not ref_flat and not gen_flat:
+        return 1.0  # both empty -> identical outcome
     if not ref_flat or not gen_flat:
         return 0.0
     return len(ref_flat & gen_flat) / len(ref_flat | gen_flat)

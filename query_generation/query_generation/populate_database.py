@@ -30,6 +30,7 @@ def create_database():
             {"name": "uova", "carbs": 1, "proteins": 13, "fats": 11, "calories": 155, "allergens": ["uova"]},
             {"name": "latte", "carbs": 5, "proteins": 3, "fats": 4, "calories": 64, "allergens": ["lattosio"]},
             {"name": "panna", "carbs": 3, "proteins": 2, "fats": 20, "calories": 193, "allergens": ["lattosio"]},
+            {"name": "mascarpone", "carbs": 2, "proteins": 3, "fats": 40, "calories": 400, "allergens": ["lattosio"]},
             {"name": "pomodoro", "carbs": 4, "proteins": 1, "fats": 0, "calories": 18, "allergens": []},
             {"name": "mozzarella", "carbs": 2, "proteins": 22, "fats": 22, "calories": 280, "allergens": ["lattosio"]},
             {"name": "pasta", "carbs": 75, "proteins": 13, "fats": 2, "calories": 371, "allergens": ["glutine"]},
@@ -46,7 +47,8 @@ def create_database():
             {"name": "ricotta", "carbs": 3, "proteins": 11, "fats": 10, "calories": 174, "allergens": ["lattosio"]},
             {"name": "limone", "carbs": 9, "proteins": 1, "fats": 0, "calories": 29, "allergens": []},
             {"name": "manzo", "carbs": 0, "proteins": 26, "fats": 15, "calories": 250, "allergens": []},
-            {"name": "caffe", "carbs": 0, "proteins": 0, "fats": 0, "calories": 2, "allergens": []}
+            {"name": "caffe", "carbs": 0, "proteins": 0, "fats": 0, "calories": 2, "allergens": []},
+            {"name": "salmone", "carbs": 0, "proteins": 20, "fats": 13, "calories": 208, "allergens": ["pesce"]}
         ]
         
         for ing in ingredients:
@@ -81,6 +83,12 @@ def create_database():
                 "carbs": 65, "proteins": 8, "fats": 12, "calories": 420
             },
             {
+                "name": "riso al pomodoro", 
+                "type": "primo", 
+                "ingredients": ["riso", "pomodoro", "olio"],
+                "carbs": 60, "proteins": 7, "fats": 10, "calories": 380
+            },
+            {
                 "name": "couscous", 
                 "type": "primo", 
                 "ingredients": ["couscous", "olio"],
@@ -103,6 +111,12 @@ def create_database():
                 "type": "secondo", 
                 "ingredients": ["tonno", "pomodoro", "olio"],
                 "carbs": 5, "proteins": 30, "fats": 15, "calories": 300
+            },
+            {
+                "name": "salmone alla griglia", 
+                "type": "secondo", 
+                "ingredients": ["salmone", "olio", "limone"],
+                "carbs": 0, "proteins": 25, "fats": 15, "calories": 280
             },
             {
                 "name": "tiramisu", 
@@ -235,6 +249,16 @@ def create_database():
                 "allergies": ["uova"]
             },
             {
+                "name": "anna", 
+                "gender": "f", 
+                "age": 26, 
+                "carbs": 230, 
+                "proteins": 100, 
+                "fats": 70, 
+                "calories": 1800, 
+                "allergies": ["glutine", "lattosio"]
+            },
+            {
                 "name": "valerio", 
                 "gender": "m", 
                 "age": 32, 
@@ -252,6 +276,16 @@ def create_database():
                 "proteins": 90, 
                 "fats": 65, 
                 "calories": 2000, 
+                "allergies": []
+            },
+            {
+                "name": "giorgio", 
+                "gender": "m", 
+                "age": 30, 
+                "carbs": 240, 
+                "proteins": 95, 
+                "fats": 70, 
+                "calories": 2200, 
                 "allergies": []
             },
             {
