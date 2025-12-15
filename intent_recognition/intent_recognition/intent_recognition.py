@@ -52,11 +52,11 @@ class Intent_Recognition(Node):
 
         # Update Memory
         self.get_response = self.memory_client.send_get_request()
-        print('Current Memory:', self.get_response.memory_list)
+        memories = self.get_response.memory_list + self.get_response.last_messages
+        print('Current Memory:', memories)
         
         user_input = msg.data.strip()
-        tool_name, tool_result = self.IR_LLM.get_LLM_response(user_input, self.get_response.memory_list)
-
+        tool_name, tool_result = self.IR_LLM.get_LLM_response(user_input, memories)
         intent_msg = Intent()
         intent_msg.user_input = user_input
         intent_msg.action_name = tool_name

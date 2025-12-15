@@ -31,7 +31,7 @@ class MemoryServer(Node):
             core_memory = state["core_memory"]
             response.memory_list = core_memory
             
-            self.get_logger().info(f"Memory updated: {response.memory_list}")
+            self.get_logger().info(f"Core memory: {response.memory_list}")
             
             # Return the response object
             return response
@@ -51,9 +51,16 @@ class MemoryServer(Node):
             # Extract core memory and populate the response
             core_memory = state["core_memory"]
             
+            
+            # Extract last messages and populate the response object
+            messages = [message.content for message in state["messages"]]
+            response.last_messages = messages
+            
+            self.get_logger().info(f"Last messages: {response.last_messages}")
             self.get_logger().info(f"Returning memory_list: {core_memory}")
             
             response.memory_list = core_memory
+            response.last_messages = messages
             
             return response
             

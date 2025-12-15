@@ -55,7 +55,7 @@ def test_my_groq_chain(question):
     })
 
     # Call your Groq chain
-    actual_intent, actual_parameters, total_time = IR_LLM.get_LLM_response(question, return_time=True)
+    actual_intent, actual_parameters, total_time = IR_LLM.get_LLM_response(question, memory="", return_time=True)
 
     t.log_outputs({
         "action_name": actual_intent,
