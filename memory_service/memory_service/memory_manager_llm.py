@@ -133,10 +133,16 @@ Is the information sufficient to answer the query?""")
     router_llm = memoryAgentLLM.get_LLM().bind_tools([InformationSufficiency])
     chain = prompt | router_llm
     response = chain.invoke({"user_query": user_query, "core_memory": core_memory, "previous_messages": previous_messages})
-    is_sufficient = response.tool_calls[0]['args']["is_sufficient"]
+    # extract and coerce
+    try:
+        is_sufficient = response.tool_calls[0]['args']["is_sufficient"]
+        if isinstance(is_sufficient, str):
+            is_sufficient = is_sufficient.strip().lower() in ["true", "1", "yes"]
+    except Exception:
+        is_sufficient = False
     print(f"\tInformation sufficiency: {is_sufficient}")
 
-    return is_sufficient
+    return bool(is_sufficient)
 
 # Tool to add a new memory to the archive
 @tool

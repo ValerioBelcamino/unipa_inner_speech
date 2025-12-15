@@ -63,21 +63,6 @@ class Explainability(Node):
         self.QueryEXP_LLM = QueryExplanation_LLM(node_name=self.node_name)
         self.ISEXP_LLM = InnerSpeechExplanation_LLM(node_name=self.node_name)
 
-        # # CLINGO EXPLAINABILITY LLM VARIABLES
-        # self.clingo_instructions = "Tu sei un Robot di nome Pepper e devi supportare un utente nel seguire un corretto piano alimentare basato sui suoi bisogni e preferenze. A questo punto del processo abbiamo escluso già i piatti non adatti allo stile alimentare dell'utente e, in questo step, abbiamo generato diverse combinazioni di piatti in grado di soddisfare i vincoli di calorie e macronutrienti rimanenti. Data una una lista di combinazioni di piatti, il tuo compito è spiegare all'utente come sono stati scelti. Il numero di piatti in ogni risposta può essere 1, N, o 0 dipendentemente dai requisiti."
-        # self.clingo_suffix = "Rispondini in linguaggio naturale in lingua Italiana in modo sintetico."
-        # self.clingo_example_template = """User Input: {results}\nExplanation: {explanation}"""
-
-        # with open(os.path.join(self.source_dir, 'fewshot_examples/FewShot_clingo_explanation.json'), 'r') as f:
-        #     self.examples['clingo'] = json.load(f)
-
-        
-        
-        # self.llm_response = (
-        #     self.llm.bind()
-        #     | StrOutputParser()
-        # )
-
     def change_scenario_callback(self, msg):
         self.get_logger().info('Activating: "%s" scenario\n' % msg.data)
         self.QueryEXP_LLM.change_scenario(msg.data)

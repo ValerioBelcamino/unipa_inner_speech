@@ -59,7 +59,7 @@ os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGSMITH_PROJECT"] = f'{os.getenv("SCENARIO")}:{ast.literal_eval(os.getenv("LLM_CONFIG"))[node_name]["model_name"]}'
 os.environ["LANGSMITH_API_KEY"] = os.getenv("LANGSMITH_API_KEY")
-
+os.environ["LANGSMITH_TEST_SUITE"] = "Explainability"
 
 def extract_examples(filename='examples.json'):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -137,3 +137,4 @@ def test_my_groq_chain(examples_input):
 
 # to run:
 # LANGSMITH_TEST_SUITE="Explainability" pytest /home/belca/Desktop/ros2_humble_ws/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py
+# python3 -m pytest /home/mary/src/unipa_inner_speech/explainability/test/test_explainability_LLM.py
