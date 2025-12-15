@@ -223,3 +223,6 @@ def test_query_generation_llm(qg_llm, question, action_name, parameters, referen
 
     assert generated_queries, "No queries generated"
     assert vqr > 0, "All generated queries failed to execute"
+
+    # Throttle between examples to avoid free-tier API rate limits.
+    time.sleep(90)
