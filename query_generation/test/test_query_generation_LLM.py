@@ -11,6 +11,12 @@ import importlib
 from langsmith import testing as t
 from shared_utils.shared_utils.fewshot_helpers import escape_curly_braces
 
+# Backwards compat: older langsmith.testing may not expose log_question_en
+if not hasattr(t, "log_question_en"):
+    def _log_question_en_stub(*args, **kwargs):
+        return None
+    t.log_question_en = _log_question_en_stub
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SHARED_ROOT = REPO_ROOT / "shared_utils"
@@ -78,8 +84,33 @@ def parse_parameters(raw: str):
 
 
 def load_query_examples():
-    """Load ADVISOR query examples directly from the scenario folder."""
+    """Load ADVISOR query examples, preferring the local test file for richer metadata."""
     repo_root = Path(__file__).resolve().parents[2]
+    local_test_file = repo_root / "query_generation" / "test" / f"examples_{SCENARIO}.json"
+
+    def _load_entries(data, action_name_lookup=None):
+        examples = []
+        for entry in data:
+            reference_queries = entry.get("queries") or [v for k, v in entry.items() if "query" in k.lower()]
+            action_name = entry.get("action_name")
+            if action_name_lookup is not None and action_name is None:
+                action_name = action_name_lookup
+            examples.append(
+                {
+                    "question": entry["question"],
+                    "question_en": entry.get("question_en", entry["question"]),
+                    "action_name": action_name,
+                    "parameters": parse_parameters(entry.get("parameters", "{}")),
+                    "reference_queries": reference_queries,
+                }
+            )
+        return examples
+
+    if local_test_file.is_file():
+        with open(local_test_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return _load_entries(data)
+
     scenario_root = repo_root / "scenario_customization" / "scenario_customization" / SCENARIO
     if not scenario_root.is_dir():
         raise FileNotFoundError(f"Scenario folder not found: {scenario_root}")
@@ -92,22 +123,15 @@ def load_query_examples():
         for json_file in sorted(q_examples_dir.glob("*.json")):
             with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for entry in data:
-                    reference_queries = [v for k, v in entry.items() if "query" in k.lower()]
-                    examples.append(
-                        (
-                            entry["question"],
-                            action_dir.name,
-                            parse_parameters(entry.get("parameters", "{}")),
-                            reference_queries,
-                        )
-                    )
+            examples.extend(_load_entries(data, action_name_lookup=action_dir.name))
+
     if not examples:
         raise ValueError(f"No query examples found for scenario {SCENARIO}")
     return examples
 
 
 EXAMPLES = load_query_examples()
+EXAMPLE_IDS = [f"{ex['action_name']}::{ex['question']}" for ex in EXAMPLES]
 
 def normalize_record(record):
     if isinstance(record, dict):
@@ -116,22 +140,87 @@ def normalize_record(record):
 
 
 def flatten_results(query_results):
+    """
+    Flatten arbitrarily nested Neo4j results while preserving record structure.
+    - Dicts are kept as dicts so we can check subset matches.
+    - Errors are tagged so they can be penalized.
+    - Empty lists are surfaced via a sentinel to avoid disappearing matches.
+    """
+
+    def normalize_for_compare(val):
+        """Normalize nested structures so ordering differences don't break equality."""
+        if isinstance(val, dict):
+            return {k: normalize_for_compare(v) for k, v in val.items()}
+        if isinstance(val, list):
+            normed = [normalize_for_compare(v) for v in val]
+            try:
+                return sorted(normed, key=lambda x: json.dumps(x, sort_keys=True))
+            except TypeError:
+                return sorted(normed, key=lambda x: repr(x))
+        return val
+
+    def _flatten(item, acc):
+        if isinstance(item, str):
+            tag = f"ERROR::{item}" if "Query failed" in item or item.startswith("ERROR::") else item
+            acc.append(tag)
+            return
+        if isinstance(item, list):
+            if not item:
+                acc.append("EMPTY_RESULT")
+                return
+            for sub in item:
+                _flatten(sub, acc)
+            return
+        if isinstance(item, dict):
+            acc.append(normalize_for_compare(item))
+            return
+        acc.append(normalize_record(item))
+
     flat = []
     for res in query_results:
-        if isinstance(res, list):
-            for item in res:
-                flat.append(normalize_record(item))
+        _flatten(res, flat)
     return flat
 
 
 def compute_overlap(ref_results, gen_results):
-    ref_flat = set(flatten_results(ref_results))
-    gen_flat = set(flatten_results(gen_results))
-    if not ref_flat and not gen_flat:
-        return 1.0  # both empty -> identical outcome
-    if not ref_flat or not gen_flat:
+    ref_flat = flatten_results(ref_results)
+    gen_flat = flatten_results(gen_results)
+
+    ref_dicts = [item for item in ref_flat if isinstance(item, dict)]
+    gen_dicts = [item for item in gen_flat if isinstance(item, dict)]
+    ref_atoms = {item for item in ref_flat if not isinstance(item, dict)}
+    gen_atoms = {item for item in gen_flat if not isinstance(item, dict)}
+
+    # Penalize if any generated query failed outright.
+    if any(
+        isinstance(item, str) and (item.startswith("ERROR::") or "Query failed" in item)
+        for item in gen_atoms
+    ):
         return 0.0
-    return len(ref_flat & gen_flat) / len(ref_flat | gen_flat)
+
+    def dict_is_subset(a, b):
+        return all(k in b and b[k] == v for k, v in a.items())
+
+    dict_matches = 0
+    used_ref = [False] * len(ref_dicts)
+    for g in gen_dicts:
+        for idx, r in enumerate(ref_dicts):
+            if used_ref[idx]:
+                continue
+            if dict_is_subset(g, r) or dict_is_subset(r, g):
+                dict_matches += 1
+                used_ref[idx] = True
+                break
+
+    atom_intersection = len(ref_atoms & gen_atoms)
+    atom_union = len(ref_atoms | gen_atoms)
+    dict_union = len(ref_dicts) + len(gen_dicts) - dict_matches
+
+    if dict_union + atom_union == 0:
+        return 1.0  # both empty
+    total_intersection = dict_matches + atom_intersection
+    total_union = dict_union + atom_union
+    return total_intersection / total_union
 
 
 def run_queries(db, queries):
@@ -160,11 +249,11 @@ def qg_llm():
         llm.change_scenario(SCENARIO)
     # Inject local examples so we are independent from installed scenario assets.
     action_examples = {}
-    for q, act, params, refs in EXAMPLES:
-        params_str = escape_curly_braces(json.dumps(params, ensure_ascii=False))
-        refs_escaped = [escape_curly_braces(r) for r in refs]
-        action_examples.setdefault(act, []).append(
-            {"question": q, "parameters": params_str, "queries": refs_escaped}
+    for ex in EXAMPLES:
+        params_str = escape_curly_braces(json.dumps(ex["parameters"], ensure_ascii=False))
+        refs_escaped = [escape_curly_braces(r) for r in ex["reference_queries"]]
+        action_examples.setdefault(ex["action_name"], []).append(
+            {"question": ex["question"], "parameters": params_str, "queries": refs_escaped}
         )
     llm.examples.update(action_examples)
     return llm
@@ -182,18 +271,32 @@ def ensure_neo4j_available(qg_llm):
 
 
 @pytest.mark.langsmith
-@pytest.mark.parametrize("question,action_name,parameters,reference_queries", EXAMPLES)
-def test_query_generation_llm(qg_llm, question, action_name, parameters, reference_queries):
+@pytest.mark.parametrize("example", EXAMPLES, ids=EXAMPLE_IDS)
+def test_query_generation_llm(qg_llm, example):
+    question = example["question"]
+    question_en = example.get("question_en", question)
+    action_name = example["action_name"]
+    parameters = example["parameters"]
+    reference_queries = example["reference_queries"]
     db = qg_llm.db_dict.get(action_name, qg_llm.db_dict["default"])
 
     # Reference logging and execution
     reference_results = run_queries(db, reference_queries)
     if USE_LANGSMITH:
+        t.log_question_en({"question_en": question_en})
+        t.log_inputs(
+            {
+                "question": question,
+                "question_en": question_en,
+                "action_name": action_name,
+                "parameters": parameters,
+            }
+        )
         t.log_reference_outputs(
             {
                 "queries": reference_queries,
                 "results": reference_results,
-                "parameters": parameters,
+                # "parameters": parameters,
             }
         )
 

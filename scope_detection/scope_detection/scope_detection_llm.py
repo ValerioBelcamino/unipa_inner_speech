@@ -12,9 +12,14 @@ import re
 
 
 class ScopeDetection_LLM(LLM_Initializer):
-
-    def __init__(self, node_name:str, test_tools=None):
-        super().__init__(node_name)
+    def __init__(
+        self,
+        node_name: str,
+        test_tools=None,
+        use_db_adapter: bool = True,
+        use_scenario_description: bool = True,
+    ):
+        super().__init__(node_name, use_db_adapter=use_db_adapter, use_scenario_description=use_scenario_description)
 
         # Dynamically create the scenario tools
         if test_tools is None:
