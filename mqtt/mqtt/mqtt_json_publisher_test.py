@@ -178,6 +178,79 @@ def publish_single_test_message(client, message_data=None):
     else:
         logging.error("Errore nell'invio del messaggio di test")
 
+def stream_online_mode(client, angles, heartrates, publish_delay=0.5):
+    """
+    Stream mode: publish all lines from the larger file (primary) and interleave
+    lines from the smaller file every N primary messages so both finish roughly at same time.
+    """
+    import math
+
+    len_angles = len(angles)
+    len_heartrate = len(heartrates)
+
+    if len_angles == 0 and len_heartrate == 0:
+        logging.warning("No data available for online streaming.")
+        return
+
+    # Choose primary (larger) and secondary (smaller)
+    if len_angles >= len_heartrate:
+        primary = angles
+        secondary = heartrates
+        primary_type = "angles_data"
+        secondary_type = "heartrate_data"
+    else:
+        primary = heartrates
+        secondary = angles
+        primary_type = "heartrate_data"
+        secondary_type = "angles_data"
+
+    # Avoid division by zero
+    if len(secondary) == 0:
+        N = 1
+    else:
+        N = math.ceil(len(primary) / len(secondary))
+
+    logging.info(f"Streaming online mode: primary={primary_type} ({len(primary)}), "
+                 f"secondary={secondary_type} ({len(secondary)}), N={N}")
+
+    sec_index = 0
+    seq = 1
+
+    for i, item in enumerate(primary):
+        # prepare and publish primary item
+        msg = dict(item)  # copy
+        msg["message_type"] = primary_type
+        msg["sequence_number"] = seq
+        json_message = json.dumps(msg, ensure_ascii=False)
+        client.publish(TOPIC, json_message, qos=1)
+        logging.info(f"Published primary [{seq}] {primary_type}")
+        seq += 1
+        time.sleep(publish_delay)
+
+        # every N primary messages publish one secondary (if available)
+        if (i + 1) % N == 0 and sec_index < len(secondary):
+            sec_msg = dict(secondary[sec_index])
+            sec_msg["message_type"] = secondary_type
+            sec_msg["sequence_number"] = seq
+            json_sec = json.dumps(sec_msg, ensure_ascii=False)
+            client.publish(TOPIC, json_sec, qos=1)
+            logging.info(f"Published secondary [{seq}] {secondary_type}")
+            seq += 1
+            sec_index += 1
+            time.sleep(publish_delay)
+
+    # If any secondary items remain (due to rounding), publish them at end spaced out
+    while sec_index < len(secondary):
+        sec_msg = dict(secondary[sec_index])
+        sec_msg["message_type"] = secondary_type
+        sec_msg["sequence_number"] = seq
+        client.publish(TOPIC, json.dumps(sec_msg, ensure_ascii=False), qos=1)
+        logging.info(f"Published remaining secondary [{seq}] {secondary_type}")
+        seq += 1
+        sec_index += 1
+        time.sleep(publish_delay)
+
+
 def main():
     """Funzione principale"""
     print("🚀 MQTT JSON Publisher per Test")
@@ -205,8 +278,9 @@ def main():
         print("1. Invia messaggi di test automatici (20 messaggi)")
         print("2. Invia un singolo messaggio di test")
         print("3. Modalità interattiva (premi Enter per inviare)")
+        print("4. Modalità online (stream synchronized heartrate & angles)")
         
-        choice = input("Inserisci la tua scelta (1-3): ").strip()
+        choice = input("Inserisci la tua scelta (1-4): ").strip()
         
         if choice == "1":
             print("\n🔄 Invio messaggi automatici...")
@@ -221,12 +295,16 @@ def main():
             counter = 1
             while True:
                 input("Premi Enter per inviare un messaggio...")
-                # data = generate_sensor_data()
                 data = generate_real_data()
                 data["interactive_message"] = counter
                 publish_single_test_message(client, data)
                 counter += 1
-                
+
+        elif choice == "4":
+            print("\n🌐 Modalità online: streaming synchronized heartrate & angles")
+            # use the preloaded lists: heartrate_data and angles_data
+            stream_online_mode(client, angles=angles_data, heartrates=heartrate_data, publish_delay=0.05)
+            
         else:
             print("Scelta non valida")
             

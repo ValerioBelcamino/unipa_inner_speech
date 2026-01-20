@@ -77,9 +77,9 @@ class MQTTReceiver(Node):
         side = self.angle_data["side"]
         direction = self.angle_data["direction"]
         
-        # Create a new ROS message (String in this case)
+        # Create a new ROS message
         intent_msg = Intent()
-        intent_msg.user_input = f"Ciao, I'm {user_name}. \
+        intent_msg.user_input = f"I'm {user_name}. \
             According to the sensor readings, am I performing the exercise correctly?\
             I'm doing the {nth_repetition} repetition of {exercise_name} exercise. \
             I'm moving my {side} limb {direction}, currently it is at {angle} degrees. \
