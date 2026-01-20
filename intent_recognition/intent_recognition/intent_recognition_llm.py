@@ -2,10 +2,11 @@ from shared_utils.customization_helpers import load_all_intent_models
 from langchain_core.messages import SystemMessage, HumanMessage
 from intent_post_processing.loader import load_plugins
 from shared_utils.llm_helpers import LLM_Initializer
-from typing import Any, get_origin, get_args, Union
+from typing import Any, get_origin, get_args, Union, List
 from groq import BadRequestError
 import textwrap
-import ast
+import json
+import time
 import re
 
 
@@ -61,6 +62,102 @@ class IntentRecognition_LLM(LLM_Initializer):
         print(f"\033[1;38;5;208mLoaded {len(self._plugins)} processing plugin(s).\033[0m")
 
 
+    def _fix_parameter_types(self, tool_class, tool_args: dict) -> dict:
+        """
+        Fix parameter types based on the tool schema.
+        Converts empty strings to proper default values based on expected types.
+        Also converts string representations to proper types (e.g., "2500" -> 2500).
+        Handles stringified JSON arrays (e.g., '["glutine"]' -> ["glutine"]).
+        """
+        fixed_args = tool_args.copy()
+        
+        for field_name, field_info in tool_class.model_fields.items():
+            if field_name not in fixed_args:
+                continue
+                
+            value = fixed_args[field_name]
+            field_type = field_info.annotation
+            
+            # Get the origin type (e.g., list, Optional, etc.)
+            origin = get_origin(field_type)
+            
+            # Handle Optional types
+            if origin is Union:
+                args = get_args(field_type)
+                non_none_args = [arg for arg in args if arg is not type(None)]
+                if non_none_args:
+                    field_type = non_none_args[0]
+                    origin = get_origin(field_type) or field_type
+            
+            # Fix empty strings based on expected type
+            if value == "" or value is None:
+                if origin is list or origin is List or field_type is list:
+                    fixed_args[field_name] = []
+                elif field_type is bool:
+                    fixed_args[field_name] = False
+                elif field_type is int:
+                    fixed_args[field_name] = 0
+                elif field_type is float:
+                    fixed_args[field_name] = 0.0
+                elif field_type is str:
+                    fixed_args[field_name] = ""
+                else:
+                    fixed_args[field_name] = get_default_value(field_type)
+            # Convert string numbers to int
+            elif field_type is int:
+                if isinstance(value, str):
+                    try:
+                        fixed_args[field_name] = int(value)
+                    except ValueError:
+                        fixed_args[field_name] = 0
+                elif isinstance(value, float):
+                    fixed_args[field_name] = int(value)
+                elif not isinstance(value, int):
+                    fixed_args[field_name] = 0
+            # Convert string numbers to float
+            elif field_type is float:
+                if isinstance(value, str):
+                    try:
+                        fixed_args[field_name] = float(value)
+                    except ValueError:
+                        fixed_args[field_name] = 0.0
+                elif isinstance(value, int):
+                    fixed_args[field_name] = float(value)
+                elif not isinstance(value, float):
+                    fixed_args[field_name] = 0.0
+            # Fix string "true"/"false" for booleans
+            elif field_type is bool:
+                if isinstance(value, str):
+                    fixed_args[field_name] = value.lower() in ('true', '1', 'yes')
+                elif not isinstance(value, bool):
+                    fixed_args[field_name] = bool(value)
+            # Fix string arrays (when a string is passed instead of a list)
+            elif (origin is list or origin is List or field_type is list):
+                if isinstance(value, str):
+                    # First, try to parse as JSON (handles '["glutine"]' case)
+                    if value.strip().startswith('['):
+                        try:
+                            parsed = json.loads(value)
+                            if isinstance(parsed, list):
+                                fixed_args[field_name] = parsed
+                            else:
+                                fixed_args[field_name] = [parsed] if parsed else []
+                        except json.JSONDecodeError:
+                            # If JSON parsing fails, treat as a single element
+                            if value.strip():
+                                fixed_args[field_name] = [value]
+                            else:
+                                fixed_args[field_name] = []
+                    elif value.strip():
+                        fixed_args[field_name] = [value]
+                    else:
+                        fixed_args[field_name] = []
+                elif not isinstance(value, list):
+                    fixed_args[field_name] = []
+        
+        return fixed_args
+
+
     def execute_plugin_pipeline(self, action_name, intent_parameters):
         """
         Function to execute the loaded plugins with the appropriate parameters.
@@ -107,17 +204,49 @@ class IntentRecognition_LLM(LLM_Initializer):
         ]
 
         try:
+            start_time = time.perf_counter()
             llm_response = self._llm.invoke(prompt)
+            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
             print(llm_response)
             tool_calls = llm_response.tool_calls
-            llm_response_time = llm_response.response_metadata['token_usage']['total_time']
 
         except BadRequestError as e:
-            print(f"\033[31mError: {e}\033[0m")
-            llm_response = re.findall(r"<tool-use>(.*)</tool-use>", str(e))[0]
-            llm_response = ast.literal_eval(llm_response)
-            tool_calls = llm_response.tool_calls
-            llm_response_time = -1
+            llm_response_time = time.perf_counter() - start_time  # Calculate elapsed time
+            print(f"\033[31mBadRequestError: {e}\033[0m")
+            tool_calls = []
+            
+            # Try to extract failed_generation from the error message
+            try:
+                error_str = str(e)
+                # Look for the failed_generation JSON in the error (greedy to capture full JSON array)
+                failed_gen_match = re.search(r"'failed_generation':\s*'(\[.*\])'", error_str, re.DOTALL)
+                if failed_gen_match:
+                    failed_gen_str = failed_gen_match.group(1)
+                    # Unescape the JSON string step by step
+                    # First handle escaped newlines
+                    failed_gen_str = failed_gen_str.replace('\\n', '\n')
+                    # Handle double-escaped quotes (\\\" -> ")
+                    failed_gen_str = failed_gen_str.replace('\\"', '"')
+                    # Handle remaining escaped backslashes
+                    failed_gen_str = failed_gen_str.replace('\\\\', '\\')
+                    
+                    print(f"\033[33mParsing failed_generation: {failed_gen_str}\033[0m")
+                    failed_gen = json.loads(failed_gen_str)
+                    
+                    if failed_gen and isinstance(failed_gen, list) and len(failed_gen) > 0:
+                        tool_call = failed_gen[0]
+                        tool_name = tool_call.get('name', '')
+                        tool_args = tool_call.get('parameters', {})
+                        tool_args = tool_call.get('parameters', {})
+                        
+                        # Fix invalid parameter types based on the tool schema
+                        if tool_name in self.dynamic_intent_tools_dict:
+                            tool_class = self.dynamic_intent_tools_dict[tool_name]
+                            tool_args = self._fix_parameter_types(tool_class, tool_args)
+                        
+                        tool_calls = [{'name': tool_name, 'args': tool_args}]
+            except Exception as parse_error:
+                print(f"\033[31mFailed to parse error response: {parse_error}\033[0m")
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self._dynamic_intent_toolnames]
 
@@ -127,6 +256,9 @@ class IntentRecognition_LLM(LLM_Initializer):
         else:
             tool_name = tool_calls[0]['name']
             tool_result = tool_calls[0]['args']
+
+                # Fix parameter types based on the tool schema
+            tool_result = self._fix_parameter_types(self.dynamic_intent_tools_dict[tool_name], tool_result)
 
                 # defaults missing parameters to '' or None
             tool_result = check_undeclared_parameters(self.dynamic_intent_tools_dict[tool_name], tool_result)

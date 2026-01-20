@@ -27,7 +27,7 @@ def extract_examples(filename='examples.json'):
 
     with open(full_path, 'r') as file:
         data = json.load(file)
-    processed_data = [(example["question"], example["action_name"], example["parameters"]) for example in data]
+    processed_data = [(example["question"], example["action_name"], example["parameters"], example["question_en"]) for example in data]
     return processed_data
 
 def get_examples():
@@ -38,17 +38,25 @@ def get_examples():
     return examples
 
 examples = get_examples()
-inputs, intents, parameters = zip(*examples)
+inputs, intents, parameters, questions_en = zip(*examples)
 input2intents = dict(zip(inputs, intents))
 input2parameters = dict(zip(inputs, parameters))
+input2questions_en = dict(zip(inputs, questions_en))
 
 @pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
 def test_my_groq_chain(question):
     expected_intent = input2intents[question]
     expected_parameters = input2parameters[question]
+    question_en = input2questions_en[question]
 
-    # Log to LangSmith
+    # Log inputs to LangSmith
+    t.log_inputs({
+        "question": question,
+        "question_en": question_en
+    })
+
+    # Log expected outputs to LangSmith
     t.log_reference_outputs({
         "action_name": expected_intent,
         "parameters": expected_parameters

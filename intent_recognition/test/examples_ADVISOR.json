@@ -1,177 +1,586 @@
 [
     {
-        "question": "raccontami una barzelletta", 
+        "question": "raccontami una barzelletta",
+        "question_en": "tell me a joke",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera", 
+        "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera",
+        "question_en": "Hi, I'm Marco, I wanted to know what I can watch on TV tonight",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "quanti anni ha giorgia meloni?", 
+        "question": "quanti anni ha giorgia meloni?",
+        "question_en": "how old is Giorgia Meloni?",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "i carboidrati mi fanno ingrassare?", 
+        "question": "i carboidrati mi fanno ingrassare?",
+        "question_en": "do carbohydrates make me fat?",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "ho comprato un nuovo frigorifero ieri", 
+        "question": "ho comprato un nuovo frigorifero ieri",
+        "question_en": "I bought a new refrigerator yesterday",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "Il mio piatto preferito è il risotto ai funghi", 
+        "question": "Il mio piatto preferito è il risotto ai funghi",
+        "question_en": "My favorite dish is mushroom risotto",
         "action_name": "OutOfScope",
         "parameters": {}
     },
     {
-        "question": "Penso che salterò la cena oggi", 
+        "question": "Penso che salterò la cena oggi",
+        "question_en": "I think I'll skip dinner today",
         "action_name": "OutOfScope",
         "parameters": {}
     },
-    {   "question": "ciao puoi aggiungermi in database? sono paolo", 
+    {
+        "question": "ciao puoi aggiungermi in database? sono paolo",
+        "question_en": "hi can you add me to the database? I'm Paolo",
         "action_name": "AddToDatabase",
         "parameters": {
-            "nome_utente": "paolo", 
-            "calorie": 0, 
-            "carboidrati": 0, 
-            "grassi": 0, 
-            "proteine": 0, 
-            "intolleranze": []}
-    },
-    {   "question": "Mi chiamo Anna. Puoi registrare un nuovo utente?", 
-        "action_name": "AddToDatabase",
-        "parameters": {
-            "nome_utente": "anna", 
-            "calorie": 0, 
-            "carboidrati": 0, 
-            "grassi": 0, 
-            "proteine": 0, 
-            "intolleranze": []}
-    },
-    {   "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 150 grammi.", 
-        "action_name": "AddToDatabase",
-        "parameters": {
-            "nome_utente": "elisa", 
-            "calorie": 0, 
-            "carboidrati": 0, 
-            "grassi": 0, 
-            "proteine": 150, 
-            "intolleranze": ["glutine"]}
-    },
-    {   "question": "Sono Pippo, seguo una dieta priva di glutine e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.", 
-        "action_name": "AddToDatabase",
-        "parameters": {
-            "nome_utente": "pippo", 
-            "calorie": 2800, 
-            "carboidrati": 180, 
-            "grassi": 80, 
-            "proteine": 150, 
-            "intolleranze": ["glutine"]}
+            "nome_utente": "paolo",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": []
+        }
     },
     {
-        "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?", 
+        "question": "Mi chiamo Anna. Puoi registrare un nuovo utente?",
+        "question_en": "My name is Anna. Can you register a new user?",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "anna",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 150 grammi.",
+        "question_en": "Hello! Can you add me to the system? My name is Elisa, I follow a gluten-free diet and I would like to eat a high amount of protein, around 150 grams.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "elisa",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 150,
+            "intolleranze": ["glutine"]
+        }
+    },
+    {
+        "question": "Sono Pippo, seguo una dieta priva di glutine e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+        "question_en": "I'm Pippo, I follow a gluten-free diet and I would like to eat 2800kcal. With 180g of carbs, 150 of protein and 80 of fat.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "pippo",
+            "calorie": 2800,
+            "carboidrati": 180,
+            "grassi": 80,
+            "proteine": 150,
+            "intolleranze": ["glutine"]
+        }
+    },
+    {
+        "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+        "question_en": "Hi, I'm Giulia, can I eat chicken curry?",
         "action_name": "DishInfo",
         "parameters": {
-            "nome_piatto": "pollo al curry", 
-            "nome_utente": "giulia", 
-            "controllo_ingredienti": []}
+            "nome_piatto": "pollo al curry",
+            "nome_utente": "giulia",
+            "controllo_ingredienti": []
+        }
     },
     {
-        "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio", 
+        "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+        "question_en": "I'm Luca, I wanted to know if pasta carbonara contains lactose",
         "action_name": "DishInfo",
         "parameters": {
-            "nome_piatto": "pasta alla carbonara", 
-            "nome_utente": "luca", 
-            "controllo_ingredienti": ["lattosio"]}
+            "nome_piatto": "pasta alla carbonara",
+            "nome_utente": "luca",
+            "controllo_ingredienti": ["lattosio"]
+        }
     },
     {
-        "question": "Quanti carboidrati ha il tiramisu?", 
+        "question": "Quanti carboidrati ha il tiramisu?",
+        "question_en": "How many carbohydrates does tiramisu have?",
         "action_name": "DishInfo",
         "parameters": {
-            "nome_piatto": "tiramisu", 
-            "nome_utente": "", 
-            "controllo_ingredienti": ["carboidrati"]}
+            "nome_piatto": "tiramisu",
+            "nome_utente": "",
+            "controllo_ingredienti": ["carboidrati"]
+        }
     },
     {
         "question": "è calorico il riso al pomodoro?",
+        "question_en": "is tomato rice high in calories?",
         "action_name": "DishInfo",
         "parameters": {
-            "nome_piatto": "riso al pomodoro", 
-            "nome_utente": "", 
-            "controllo_ingredienti": []}
+            "nome_piatto": "riso al pomodoro",
+            "nome_utente": "",
+            "controllo_ingredienti": []
+        }
     },
     {
         "question": "La panna cotta contiene uova?",
+        "question_en": "Does panna cotta contain eggs?",
         "action_name": "DishInfo",
         "parameters": {
-            "nome_piatto": "panna cotta", 
-            "nome_utente": "", 
-            "controllo_ingredienti": ["uova"]}
+            "nome_piatto": "panna cotta",
+            "nome_utente": "",
+            "controllo_ingredienti": ["uova"]
+        }
     },
     {
         "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+        "question_en": "Hi, I'm Luca. Can you suggest an alternative dinner without dairy for Sunday?",
         "action_name": "SubstituteDish",
         "parameters": {
-            "nome_utente": "luca", 
-            "ingredienti_rimossi": ["latticini"], 
-            "ingredienti_preferiti":[], 
-            "ingredienti_obbligatori_esclusivi":[], 
+            "nome_utente": "luca",
+            "ingredienti_rimossi": ["latticini"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
             "ha_piano_settimanale": true,
-            "giorno": "domenica", 
-            "pasto": "cena"}
-          },
-          {
-            "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
-            "action_name": "SubstituteDish",
-            "parameters": { 
-              "nome_utente": "giulia", 
-              "ingredienti_rimossi": ["frutta secca"], 
-              "ingredienti_preferiti":[], 
-              "ingredienti_obbligatori_esclusivi":[], 
-              "ha_piano_settimanale": true,
-            "giorno": "mercoledi", 
-            "pasto": "cena"}
+            "giorno": "domenica",
+            "pasto": "cena"
+        }
+    },
+    {
+        "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+        "question_en": "Can you suggest a dinner without nuts for Wednesday? I'm Giulia",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "giulia",
+            "ingredienti_rimossi": ["frutta secca"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "ha_piano_settimanale": true,
+            "giorno": "mercoledi",
+            "pasto": "cena"
+        }
     },
     {
         "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+        "question_en": "Hi, I'm Marco. Can you suggest a lunch with chicken and rice for Thursday?",
         "action_name": "SubstituteDish",
-        "parameters": { 
-            "nome_utente": "marco", 
-            "ingredienti_rimossi": [], 
-            "ingredienti_preferiti": ["pollo", "riso"], 
+        "parameters": {
+            "nome_utente": "marco",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": ["pollo", "riso"],
             "ha_piano_settimanale": true,
-            "ingredienti_obbligatori_esclusivi": [], 
-            "giorno": "giovedi", 
-            "pasto": "pranzo"}
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "giovedi",
+            "pasto": "pranzo"
+        }
     },
     {
         "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+        "question_en": "Can you suggest a dinner with salmon but without tomato for Saturday?",
         "action_name": "SubstituteDish",
-        "parameters": { 
-            "nome_utente": "", 
-            "ingredienti_rimossi": ["pomodoro"], 
-            "ingredienti_preferiti": ["salmone"], 
-            "ingredienti_obbligatori_esclusivi": [], 
+        "parameters": {
+            "nome_utente": "",
+            "ingredienti_rimossi": ["pomodoro"],
+            "ingredienti_preferiti": ["salmone"],
+            "ingredienti_obbligatori_esclusivi": [],
             "ha_piano_settimanale": false,
-            "giorno": "sabato", 
-            "pasto": "cena"}
+            "giorno": "sabato",
+            "pasto": "cena"
+        }
     },
     {
-        "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+        "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare martedi per colazione?",
+        "question_en": "Hi, I'm Alessandro. I only have eggs and spinach in the fridge, what can I cook Tuesday for breakfast?",
         "action_name": "SubstituteDish",
-        "parameters": { 
-            "nome_utente": "alessandro", 
-            "ingredienti_rimossi": [], 
-            "ingredienti_preferiti": [], 
-            "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"], 
+        "parameters": {
+            "nome_utente": "alessandro",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": ["uova", "spinaci"],
             "ha_piano_settimanale": false,
-            "giorno": "", 
-            "pasto": "colazione"}
+            "giorno": "martedi",
+            "pasto": "colazione"
+        }
+    },
+    {
+        "question": "Ciao, sono Marco. Puoi aggiungermi al database?",
+        "question_en": "Hi, I'm Marco. Can you add me to the database?",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "marco",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Mi chiamo Maria e vorrei essere aggiunta al sistema. Non posso mangiare lattosio.",
+        "question_en": "My name is Maria and I would like to be added to the system. I can't eat lactose.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "maria",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": ["lattosio"]
+        }
+    },
+    {
+        "question": "Aggiungimi al database, per favore. Sono Giovanni e seguo una dieta con 2000 calorie e 100 grammi di proteine.",
+        "question_en": "Add me to the database, please. I'm Giovanni and I follow a diet with 2000 calories and 100 grams of protein.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "giovanni",
+            "calorie": 2000,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 100,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Salve, sono Chiara. Vorrei essere registrata nel sistema. Mangio 2500 calorie al giorno e sono intollerante al glutine.",
+        "question_en": "Hello, I'm Chiara. I would like to be registered in the system. I eat 2500 calories a day and I'm intolerant to gluten.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "chiara",
+            "calorie": 2500,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": ["glutine"]
+        }
+    },
+    {
+        "question": "Puoi aggiungermi al sistema? Mi chiamo Fabio e seguo una dieta con 3000 calorie, 150 grammi di carboidrati e 80 grammi di grassi.",
+        "question_en": "Can you add me to the system? My name is Fabio and I follow a diet with 3000 calories, 150 grams of carbs and 80 grams of fat.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "fabio",
+            "calorie": 3000,
+            "carboidrati": 150,
+            "grassi": 80,
+            "proteine": 0,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Sono Elisa. Vorrei essere aggiunta al database. Non mangio glutine e consumo 1800 calorie al giorno.",
+        "question_en": "I'm Elisa. I would like to be added to the database. I don't eat gluten and I consume 1800 calories a day.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "elisa",
+            "calorie": 1800,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": ["glutine"]
+        }
+    },
+    {
+        "question": "Mi chiamo Marco. Puoi registrarmi? Seguo una dieta con 2200 calorie e 120 grammi di proteine.",
+        "question_en": "My name is Marco. Can you register me? I follow a diet with 2200 calories and 120 grams of protein.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "marco",
+            "calorie": 2200,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 120,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Ciao, sono Laura. Aggiungimi al sistema. Non posso mangiare lattosio e consumo 2000 calorie al giorno.",
+        "question_en": "Hi, I'm Laura. Add me to the system. I can't eat lactose and I consume 2000 calories a day.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "laura",
+            "calorie": 2000,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": ["lattosio"]
+        }
+    },
+    {
+        "question": "Puoi aggiungermi al database? Sono Andrea e seguo una dieta con 2500 calorie, 200 grammi di carboidrati e 70 grammi di grassi.",
+        "question_en": "Can you add me to the database? I'm Andrea and I follow a diet with 2500 calories, 200 grams of carbs and 70 grams of fat.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "andrea",
+            "calorie": 2500,
+            "carboidrati": 200,
+            "grassi": 70,
+            "proteine": 0,
+            "intolleranze": []
+        }
+    },
+    {
+        "question": "Mi chiamo Sofia. Vorrei essere aggiunta al sistema. Non mangio glutine e lattosio.",
+        "question_en": "My name is Sofia. I would like to be added to the system. I don't eat gluten and lactose.",
+        "action_name": "AddToDatabase",
+        "parameters": {
+            "nome_utente": "sofia",
+            "calorie": 0,
+            "carboidrati": 0,
+            "grassi": 0,
+            "proteine": 0,
+            "intolleranze": ["glutine", "lattosio"]
+        }
+    },
+    {
+        "question": "Ciao, sono Marco. Puoi suggerirmi una cena senza latticini per venerdì?",
+        "question_en": "Hi, I'm Marco. Can you suggest a dinner without dairy for Friday?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "marco",
+            "ingredienti_rimossi": ["latticini"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "venerdi",
+            "pasto": "cena",
+            "ha_piano_settimanale": true
+        }
+    },
+    {
+        "question": "Mi chiamo Giulia. Vorrei un pranzo senza glutine per sabato.",
+        "question_en": "My name is Giulia. I would like a gluten-free lunch for Saturday.",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "giulia",
+            "ingredienti_rimossi": ["glutine"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "sabato",
+            "pasto": "pranzo",
+            "ha_piano_settimanale": true
+        }
+    },
+    {
+        "question": "Puoi suggerirmi una colazione con uova e spinaci per lunedì? Sono Luca.",
+        "question_en": "Can you suggest a breakfast with eggs and spinach for Monday? I'm Luca.",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "luca",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": ["uova", "spinaci"],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "lunedi",
+            "pasto": "colazione",
+            "ha_piano_settimanale": true
+        }
+    },
+    {
+        "question": "Ciao, sono Anna. Ho solo riso e pollo in casa. Cosa posso cucinare martedi per pranzo?",
+        "question_en": "Hi, I'm Anna. I only have rice and chicken at home. What can I cook Tuesday for lunch?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "anna",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": ["riso", "pollo"],
+            "giorno": "martedi",
+            "pasto": "pranzo",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Mi chiamo Fabio. Puoi suggerirmi una cena senza pomodoro per domenica?",
+        "question_en": "My name is Fabio. Can you suggest a dinner without tomato for Sunday?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "fabio",
+            "ingredienti_rimossi": ["pomodoro"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "domenica",
+            "pasto": "cena",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Ciao, sono Elisa. Vorrei un pranzo con salmone e avocado per martedì.",
+        "question_en": "Hi, I'm Elisa. I would like a lunch with salmon and avocado for Tuesday.",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "elisa",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": ["salmone", "avocado"],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "martedi",
+            "pasto": "pranzo",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Sono Chiara. Puoi suggerirmi una cena senza lattosio e glutine per giovedì?",
+        "question_en": "I'm Chiara. Can you suggest a dinner without lactose and gluten for Thursday?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "chiara",
+            "ingredienti_rimossi": ["lattosio", "glutine"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "giovedi",
+            "pasto": "cena",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Ciao, sono Alessandro. Ho solo zucchine e uova. Cosa posso cucinare martedi per cena?",
+        "question_en": "Hi, I'm Alessandro. I only have zucchini and eggs. What can I cook Tuesday for dinner?",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "alessandro",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": ["zucchine", "uova"],
+            "giorno": "martedi",
+            "pasto": "cena",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Mi chiamo Laura. Vorrei un pranzo senza frutta secca per mercoledì.",
+        "question_en": "My name is Laura. I would like a lunch without nuts for Wednesday.",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "laura",
+            "ingredienti_rimossi": ["frutta secca"],
+            "ingredienti_preferiti": [],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "mercoledi",
+            "pasto": "pranzo",
+            "ha_piano_settimanale": false
+        }
+    },
+    {
+        "question": "Puoi suggerirmi una colazione con yogurt e miele per sabato? Sono Sofia.",
+        "question_en": "Can you suggest a breakfast with yogurt and honey for Saturday? I'm Sofia.",
+        "action_name": "SubstituteDish",
+        "parameters": {
+            "nome_utente": "sofia",
+            "ingredienti_rimossi": [],
+            "ingredienti_preferiti": ["yogurt", "miele"],
+            "ingredienti_obbligatori_esclusivi": [],
+            "giorno": "sabato",
+            "pasto": "colazione",
+            "ha_piano_settimanale": true
+        }
+    },
+    {
+        "question": "Ciao, sono Marco. Vorrei sapere se la pizza margherita contiene lattosio.",
+        "question_en": "Hi, I'm Marco. I would like to know if margherita pizza contains lactose.",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pizza margherita",
+            "nome_utente": "marco",
+            "controllo_ingredienti": ["lattosio"]
+        }
+    },
+    {
+        "question": "Mi chiamo Giulia. Puoi dirmi quanti grassi ha il tiramisu?",
+        "question_en": "My name is Giulia. Can you tell me how much fat tiramisu has?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "tiramisu",
+            "nome_utente": "giulia",
+            "controllo_ingredienti": ["grassi"]
+        }
+    },
+    {
+        "question": "Quante calorie ha la pasta al pesto?",
+        "question_en": "How many calories does pesto pasta have?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pasta al pesto",
+            "nome_utente": "",
+            "controllo_ingredienti": []
+        }
+    },
+    {
+        "question": "Ciao, sono Luca. Vorrei sapere se il pollo al curry è adatto alla mia dieta.",
+        "question_en": "Hi, I'm Luca. I would like to know if chicken curry is suitable for my diet.",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pollo al curry",
+            "nome_utente": "luca",
+            "controllo_ingredienti": []
+        }
+    },
+    {
+        "question": "La panna cotta contiene glutine?",
+        "question_en": "Does panna cotta contain gluten?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "panna cotta",
+            "nome_utente": "",
+            "controllo_ingredienti": ["glutine"]
+        }
+    },
+    {
+        "question": "Mi chiamo Fabio. Vorrei sapere se il risotto ai funghi è calorico.",
+        "question_en": "My name is Fabio. I would like to know if mushroom risotto is high in calories.",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "risotto ai funghi",
+            "nome_utente": "fabio",
+            "controllo_ingredienti": []
+        }
+    },
+    {
+        "question": "Ciao, sono Elisa. Puoi controllare se la torta di mele contiene lattosio?",
+        "question_en": "Hi, I'm Elisa. Can you check if apple pie contains lactose?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "torta di mele",
+            "nome_utente": "elisa",
+            "controllo_ingredienti": ["lattosio"]
+        }
+    },
+    {
+        "question": "Quanti carboidrati ha il pane integrale?",
+        "question_en": "How many carbohydrates does whole wheat bread have?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "pane integrale",
+            "nome_utente": "",
+            "controllo_ingredienti": ["carboidrati"]
+        }
+    },
+    {
+        "question": "Sono Anna. Vorrei sapere se il gelato al cioccolato contiene uova.",
+        "question_en": "I'm Anna. I would like to know if chocolate ice cream contains eggs.",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "gelato al cioccolato",
+            "nome_utente": "anna",
+            "controllo_ingredienti": ["uova"]
+        }
+    },
+    {
+        "question": "Il minestrone è adatto a una dieta senza glutine?",
+        "question_en": "Is minestrone suitable for a gluten-free diet?",
+        "action_name": "DishInfo",
+        "parameters": {
+            "nome_piatto": "minestrone",
+            "nome_utente": "",
+            "controllo_ingredienti": ["glutine"]
+        }
     }
 ]
