@@ -1,62 +1,107 @@
 [
     {
       "question": "raccontami una barzelletta",
+      "question_en": "tell me a joke",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "L'utente ha chiesto una barzelletta, che non è pertinente al mio scopo di guidare un corretto regime alimentare. Devo quindi declinare la richiesta e riportare l'attenzione sul tema principale.",
+      "inner_speech_en": "The user asked for a joke, which is not relevant to my purpose of guiding a correct diet. I must therefore decline the request and bring attention back to the main topic.",
       "can_proceed": false
     },
     {
       "question": "Ciao, sono Marco, volevo sapere cosa posso vedere in tv stasera",
+      "question_en": "Hi, I'm Marco, I wanted to know what I can watch on TV tonight",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "La domanda dell'utente riguarda la programmazione televisiva, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso soddisfare questa richiesta.",
+      "inner_speech_en": "The user's question concerns TV programming, which is not relevant to my purpose of guiding the user towards a correct diet. Therefore, I cannot fulfill this request.",
       "can_proceed": false
     },
     {
       "question": "quanti anni ha giorgia meloni?",
+      "question_en": "how old is Giorgia Meloni?",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "La domanda dell'utente riguarda l'età di Giorgia Meloni, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso rispondere a questa richiesta.",
+      "inner_speech_en": "The user's question concerns Giorgia Meloni's age, which is not relevant to my purpose of guiding the user towards a correct diet. Therefore, I cannot respond to this request.",
       "can_proceed": false
     },
     {
       "question": "i carboidrati mi fanno ingrassare?",
+      "question_en": "do carbohydrates make me fat?",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "La domanda dell'utente riguarda l'effetto dei carboidrati sul peso corporeo, che è un argomento pertinente al regime alimentare. Tuttavia, la funzione assegnata è OutOfScope, il che suggerisce che la domanda potrebbe essere troppo generica o non direttamente correlata alla guida alimentare specifica che dovrei fornire.",
+      "inner_speech_en": "The user's question concerns the effect of carbohydrates on body weight, which is a topic relevant to diet. However, the assigned function is OutOfScope, suggesting that the question may be too generic or not directly related to the specific dietary guidance I should provide.",
       "can_proceed": false
     },
     {
       "question": "ho comprato un nuovo frigorifero ieri",
+      "question_en": "I bought a new refrigerator yesterday",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "La domanda dell'utente riguarda l'acquisto di un nuovo frigorifero, che non è pertinente al mio scopo di guidare l'utente in un corretto regime alimentare. Pertanto, non posso procedere con questa richiesta.",
+      "inner_speech_en": "The user's statement concerns buying a new refrigerator, which is not relevant to my purpose of guiding the user towards a correct diet. Therefore, I cannot proceed with this request.",
       "can_proceed": false
     },
     {
       "question": "Il mio piatto preferito è il risotto ai funghi",
+      "question_en": "My favorite dish is mushroom risotto",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "L'utente ha menzionato il suo piatto preferito, il risotto ai funghi, ma non ha formulato una domanda specifica o una richiesta relativa al regime alimentare. Senza una domanda chiara, non è possibile procedere con un'azione utile.",
+      "inner_speech_en": "The user mentioned their favorite dish, mushroom risotto, but did not formulate a specific question or request related to diet. Without a clear question, it is not possible to proceed with a useful action.",
       "can_proceed": false
     },
     {
       "question": "Penso che salterò la cena oggi",
+      "question_en": "I think I'll skip dinner today",
       "action_name": "OutOfScope",
       "parameters": {},
       "missing_parameters": [],
       "inner_speech": "L'utente ha espresso l'intenzione di saltare la cena, ma questa richiesta non è direttamente correlata a un regime alimentare corretto o a una richiesta di guida nutrizionale. Il mio ruolo è quello di fornire consigli su un'alimentazione sana e bilanciata, non di commentare scelte personali come saltare un pasto.",
+      "inner_speech_en": "The user expressed the intention to skip dinner, but this request is not directly related to a correct diet or a request for nutritional guidance. My role is to provide advice on healthy and balanced eating, not to comment on personal choices like skipping a meal.",
+      "can_proceed": false
+    },
+    {
+      "question": "Sai dirmi che tempo farà domani a Milano?",
+      "question_en": "Can you tell me what the weather will be like tomorrow in Milan?",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "L'utente ha chiesto informazioni meteorologiche, che non rientrano nel mio ambito di competenza. Il mio scopo è esclusivamente quello di guidare l'utente verso un corretto regime alimentare, non fornire previsioni del tempo.",
+      "inner_speech_en": "The user asked for weather information, which is not within my area of expertise. My purpose is exclusively to guide the user towards a correct diet, not to provide weather forecasts.",
+      "can_proceed": false
+    },
+    {
+      "question": "Metti un po' di musica rilassante, per favore",
+      "question_en": "Play some relaxing music, please",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "L'utente ha richiesto di riprodurre musica, ma questa funzionalità non fa parte delle mie competenze. Sono progettato per assistere con consigli nutrizionali e piani alimentari, non per controllare dispositivi multimediali.",
+      "inner_speech_en": "The user requested to play music, but this functionality is not part of my capabilities. I am designed to assist with nutritional advice and meal plans, not to control multimedia devices.",
+      "can_proceed": false
+    },
+    {
+      "question": "Ieri sera sono andato al cinema con degli amici",
+      "question_en": "Last night I went to the cinema with some friends",
+      "action_name": "OutOfScope",
+      "parameters": {},
+      "missing_parameters": [],
+      "inner_speech": "L'utente sta condividendo un'esperienza personale riguardante un'uscita al cinema, che non è correlata al mio ambito di competenza. Non posso fornire assistenza su attività ricreative; il mio ruolo è quello di supportare scelte alimentari sane.",
+      "inner_speech_en": "The user is sharing a personal experience about going to the cinema, which is not related to my area of expertise. I cannot provide assistance on recreational activities; my role is to support healthy food choices.",
       "can_proceed": false
     },
     {
       "question": "ciao puoi aggiungermi in database? sono paolo",
+      "question_en": "hi can you add me to the database? I'm Paolo",
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "paolo",
@@ -68,10 +113,12 @@
       },
       "missing_parameters": ["grassi", "carboidrati", "proteine", "calorie"],
       "inner_speech": "L'utente ha chiesto di essere aggiunto a un database, ma i parametri necessari per un corretto regime alimentare (come calorie, proteine, carboidrati e grassi) sono mancanti. Senza queste informazioni, non posso procedere con una raccomandazione alimentare personalizzata.",
+      "inner_speech_en": "The user asked to be added to a database, but the necessary parameters for a correct diet (such as calories, protein, carbohydrates, and fats) are missing. Without this information, I cannot proceed with a personalized dietary recommendation.",
       "can_proceed": false
     },
     {
       "question": "Mi chiamo Anna. Puoi registrare un nuovo utente? Sono allergica al pesce.",
+      "question_en": "My name is Anna. Can you register a new user? I'm allergic to fish.",
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "anna",
@@ -83,10 +130,12 @@
       },
       "missing_parameters": ["grassi", "carboidrati", "proteine", "calorie"],
       "inner_speech": "L'utente Anna ha chiesto di registrarsi nel database con un'allergia al pesce. Tuttavia, mancano informazioni essenziali come calorie, proteine, carboidrati e grassi, che sono necessarie per un corretto regime alimentare. Senza questi dati, non posso procedere con la registrazione.",
+      "inner_speech_en": "User Anna asked to register in the database with a fish allergy. However, essential information such as calories, protein, carbohydrates, and fats is missing, which is necessary for a correct diet. Without this data, I cannot proceed with the registration.",
       "can_proceed": false
     },
     {
       "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
+      "question_en": "Hello! Can you add me to the system? My name is Elisa, I follow a gluten-free diet and I would like to eat a high amount of protein, around 200 grams.",
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "elisa",
@@ -98,10 +147,12 @@
       },
       "missing_parameters": ["grassi", "carboidrati", "calorie"],
       "inner_speech": "L'utente Elisa ha fornito informazioni sul suo nome, l'intolleranza al glutine e l'obiettivo proteico di 200 grammi. Tuttavia, mancano dati essenziali come grassi, carboidrati e calorie, che sono fondamentali per creare un piano alimentare completo. Senza questi dati, non posso procedere in modo accurato.",
+      "inner_speech_en": "User Elisa provided information about her name, gluten intolerance, and protein goal of 200 grams. However, essential data such as fats, carbohydrates, and calories are missing, which are fundamental for creating a complete meal plan. Without this data, I cannot proceed accurately.",
       "can_proceed": false
     },
     {
       "question": "Sono Pippo, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+      "question_en": "I'm Pippo, I'm lactose intolerant and I would like to eat 2800kcal. With 180g of carbohydrates, 150 of protein and 80 of fat.",
       "action_name": "AddToDatabase",
       "parameters": {
         "nome_utente": "pippo",
@@ -113,10 +164,114 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente ha fornito tutte le informazioni necessarie per creare un piano alimentare personalizzato, inclusi i macronutrienti e le intolleranze. La richiesta è pertinente e completa.",
+      "inner_speech_en": "The user has provided all the necessary information to create a personalized meal plan, including macronutrients and intolerances. The request is relevant and complete.",
       "can_proceed": true
     },
     {
+      "question": "Ciao, sono Marco. Puoi aggiungermi al database?",
+      "question_en": "Hi, I'm Marco. Can you add me to the database?",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "marco",
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": []
+      },
+      "missing_parameters": ["calorie", "carboidrati", "grassi", "proteine"],
+      "inner_speech": "L'utente Marco ha chiesto di essere aggiunto al database, ma non ha fornito alcuna informazione sui macronutrienti. Senza questi dati essenziali, non posso procedere con la registrazione.",
+      "inner_speech_en": "User Marco asked to be added to the database, but did not provide any information about macronutrients. Without this essential data, I cannot proceed with the registration.",
+      "can_proceed": false
+    },
+    {
+      "question": "Mi chiamo Maria e vorrei essere aggiunta al sistema. Non posso mangiare lattosio.",
+      "question_en": "My name is Maria and I would like to be added to the system. I can't eat lactose.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "maria",
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": ["lattosio"]
+      },
+      "missing_parameters": ["calorie", "carboidrati", "grassi", "proteine"],
+      "inner_speech": "L'utente Maria ha fornito il suo nome e l'intolleranza al lattosio, ma mancano tutti i dati sui macronutrienti necessari per creare un piano alimentare personalizzato.",
+      "inner_speech_en": "User Maria provided her name and lactose intolerance, but all macronutrient data necessary for creating a personalized meal plan is missing.",
+      "can_proceed": false
+    },
+    {
+      "question": "Aggiungimi al database, per favore. Sono Giovanni e seguo una dieta con 2000 calorie e 100 grammi di proteine.",
+      "question_en": "Add me to the database, please. I'm Giovanni and I follow a diet with 2000 calories and 100 grams of protein.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "giovanni",
+        "calorie": 2000,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 100,
+        "intolleranze": []
+      },
+      "missing_parameters": ["carboidrati", "grassi"],
+      "inner_speech": "L'utente Giovanni ha fornito calorie e proteine, ma mancano i dati su carboidrati e grassi. Senza queste informazioni, il piano alimentare non può essere completo.",
+      "inner_speech_en": "User Giovanni provided calories and protein, but carbohydrate and fat data is missing. Without this information, the meal plan cannot be complete.",
+      "can_proceed": false
+    },
+    {
+      "question": "Salve, sono Chiara. Vorrei essere registrata nel sistema. Mangio 2500 calorie al giorno e sono intollerante al glutine.",
+      "question_en": "Hello, I'm Chiara. I would like to be registered in the system. I eat 2500 calories a day and I'm gluten intolerant.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "chiara",
+        "calorie": 2500,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": ["glutine"]
+      },
+      "missing_parameters": ["carboidrati", "grassi", "proteine"],
+      "inner_speech": "L'utente Chiara ha fornito il suo nome, le calorie giornaliere e l'intolleranza al glutine. Tuttavia, mancano informazioni su carboidrati, grassi e proteine necessarie per un piano completo.",
+      "inner_speech_en": "User Chiara provided her name, daily calories, and gluten intolerance. However, information about carbohydrates, fats, and protein necessary for a complete plan is missing.",
+      "can_proceed": false
+    },
+    {
+      "question": "Puoi aggiungermi al sistema? Mi chiamo Fabio e seguo una dieta con 3000 calorie, 150 grammi di carboidrati e 80 grammi di grassi.",
+      "question_en": "Can you add me to the system? My name is Fabio and I follow a diet with 3000 calories, 150 grams of carbohydrates and 80 grams of fat.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "fabio",
+        "calorie": 3000,
+        "carboidrati": 150,
+        "grassi": 80,
+        "proteine": 0,
+        "intolleranze": []
+      },
+      "missing_parameters": ["proteine"],
+      "inner_speech": "L'utente Fabio ha fornito calorie, carboidrati e grassi, ma manca il dato sulle proteine. Per completare il piano alimentare, è necessario conoscere anche l'apporto proteico desiderato.",
+      "inner_speech_en": "User Fabio provided calories, carbohydrates, and fats, but protein data is missing. To complete the meal plan, the desired protein intake also needs to be known.",
+      "can_proceed": false
+    },
+    {
+      "question": "Mi chiamo Sofia. Vorrei essere aggiunta al sistema. Non mangio glutine e lattosio.",
+      "question_en": "My name is Sofia. I would like to be added to the system. I don't eat gluten and lactose.",
+      "action_name": "AddToDatabase",
+      "parameters": {
+        "nome_utente": "sofia",
+        "calorie": 0,
+        "carboidrati": 0,
+        "grassi": 0,
+        "proteine": 0,
+        "intolleranze": ["glutine", "lattosio"]
+      },
+      "missing_parameters": ["calorie", "carboidrati", "grassi", "proteine"],
+      "inner_speech": "L'utente Sofia ha indicato due intolleranze (glutine e lattosio), ma non ha fornito alcun dato sui macronutrienti. Senza queste informazioni, non posso procedere con la registrazione.",
+      "inner_speech_en": "User Sofia indicated two intolerances (gluten and lactose), but did not provide any macronutrient data. Without this information, I cannot proceed with the registration.",
+      "can_proceed": false
+    },
+    {
       "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+      "question_en": "Hi, I'm Giulia, can I eat chicken curry?",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "pollo al curry",
@@ -125,10 +280,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente Giulia chiede se può mangiare il pollo al curry. La domanda è pertinente al mio scopo di guidare un corretto regime alimentare. Tuttavia, mancano informazioni specifiche sulle sue esigenze dietetiche, allergie o restrizioni. Posso comunque fornire una risposta generica sui benefici e le considerazioni del pollo al curry.",
+      "inner_speech_en": "User Giulia asks if she can eat chicken curry. The question is relevant to my purpose of guiding a correct diet. However, specific information about her dietary needs, allergies, or restrictions is missing. I can still provide a generic response about the benefits and considerations of chicken curry.",
       "can_proceed": true
     },
     {
       "question": "Sono Luca, volevo sapere se la pasta alla carbonara contiene lattosio",
+      "question_en": "I'm Luca, I wanted to know if pasta carbonara contains lactose",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "pasta alla carbonara",
@@ -137,10 +294,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "Luca chiede una verifica su un ingrediente specifico in un piatto. Devo attivare il task DishInfo per controllare se la pasta alla carbonara contiene il lattosio.",
+      "inner_speech_en": "Luca asks for verification of a specific ingredient in a dish. I need to activate the DishInfo task to check if pasta carbonara contains lactose.",
       "can_proceed": true
     },
     {
       "question": "Quanti carboidrati ha il tiramisù?",
+      "question_en": "How many carbohydrates does tiramisu have?",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "tiramisu",
@@ -149,10 +308,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente ha chiesto informazioni sui carboidrati presenti nel tiramisù. Poiché questa domanda è pertinente al regime alimentare e fornisce dettagli sufficienti (il nome del piatto), posso procedere a fornire una risposta.",
+      "inner_speech_en": "The user asked for information about the carbohydrates in tiramisu. Since this question is relevant to diet and provides sufficient details (the dish name), I can proceed to provide an answer.",
       "can_proceed": true
     },
     {
       "question": "è calorico il riso al pomodoro?",
+      "question_en": "Is tomato rice high in calories?",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "riso al pomodoro",
@@ -161,10 +322,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente ha chiesto informazioni sulle calorie del piatto 'riso al pomodoro'. Poiché il mio scopo è guidare l'utente in un corretto regime alimentare, questa domanda è pertinente. Posso procedere a fornire una risposta.",
+      "inner_speech_en": "The user asked for information about the calories in the dish 'tomato rice'. Since my purpose is to guide the user towards a correct diet, this question is relevant. I can proceed to provide an answer.",
       "can_proceed": true
     },
     {
       "question": "La panna cotta contiene uova?",
+      "question_en": "Does panna cotta contain eggs?",
       "action_name": "DishInfo",
       "parameters": {
         "nome_piatto": "panna cotta",
@@ -173,10 +336,82 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente ha chiesto se la panna cotta contiene uova. Questa è una domanda pertinente al mio scopo, poiché riguarda la composizione di un piatto e i suoi ingredienti. Posso procedere a fornire una risposta chiara e accurata.",
+      "inner_speech_en": "The user asked if panna cotta contains eggs. This is a relevant question for my purpose, as it concerns the composition of a dish and its ingredients. I can proceed to provide a clear and accurate answer.",
+      "can_proceed": true
+    },
+    {
+      "question": "Ciao, sono Marco. Vorrei sapere se la pizza margherita contiene lattosio.",
+      "question_en": "Hi, I'm Marco. I would like to know if margherita pizza contains lactose.",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "pizza margherita",
+        "nome_utente": "marco",
+        "controllo_ingredienti": ["lattosio"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente Marco chiede se la pizza margherita contiene lattosio. La domanda è completa e pertinente al regime alimentare. Posso procedere con la verifica degli ingredienti.",
+      "inner_speech_en": "User Marco asks if margherita pizza contains lactose. The question is complete and relevant to diet. I can proceed with verifying the ingredients.",
+      "can_proceed": true
+    },
+    {
+      "question": "Mi chiamo Giulia. Puoi dirmi quanti grassi ha il tiramisu?",
+      "question_en": "My name is Giulia. Can you tell me how much fat tiramisu has?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "tiramisu",
+        "nome_utente": "giulia",
+        "controllo_ingredienti": ["grassi"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente Giulia ha chiesto informazioni sul contenuto di grassi del tiramisù. La richiesta è chiara e tutti i parametri necessari sono presenti. Posso procedere a fornire le informazioni nutrizionali.",
+      "inner_speech_en": "User Giulia asked for information about the fat content of tiramisu. The request is clear and all necessary parameters are present. I can proceed to provide the nutritional information.",
+      "can_proceed": true
+    },
+    {
+      "question": "Ciao, sono Elisa. Puoi controllare se la torta di mele contiene lattosio?",
+      "question_en": "Hi, I'm Elisa. Can you check if apple pie contains lactose?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "torta di mele",
+        "nome_utente": "elisa",
+        "controllo_ingredienti": ["lattosio"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente Elisa ha chiesto di verificare se la torta di mele contiene lattosio. La richiesta è pertinente e completa, con il nome del piatto e l'ingrediente da controllare specificati.",
+      "inner_speech_en": "User Elisa asked to check if apple pie contains lactose. The request is relevant and complete, with the dish name and ingredient to check specified.",
+      "can_proceed": true
+    },
+    {
+      "question": "Sono Anna. Vorrei sapere se il gelato al cioccolato contiene uova.",
+      "question_en": "I'm Anna. I would like to know if chocolate ice cream contains eggs.",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "gelato al cioccolato",
+        "nome_utente": "anna",
+        "controllo_ingredienti": ["uova"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente Anna chiede se il gelato al cioccolato contiene uova. La domanda è completa con il nome del piatto e l'ingrediente da verificare. Posso procedere con la risposta.",
+      "inner_speech_en": "User Anna asks if chocolate ice cream contains eggs. The question is complete with the dish name and ingredient to verify. I can proceed with the answer.",
+      "can_proceed": true
+    },
+    {
+      "question": "Il minestrone è adatto a una dieta senza glutine?",
+      "question_en": "Is minestrone suitable for a gluten-free diet?",
+      "action_name": "DishInfo",
+      "parameters": {
+        "nome_piatto": "minestrone",
+        "nome_utente": "",
+        "controllo_ingredienti": ["glutine"]
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente ha chiesto se il minestrone è adatto a una dieta senza glutine. La domanda è pertinente e il nome del piatto è specificato. Posso procedere a verificare la presenza di glutine nel piatto.",
+      "inner_speech_en": "The user asked if minestrone is suitable for a gluten-free diet. The question is relevant and the dish name is specified. I can proceed to verify the presence of gluten in the dish.",
       "can_proceed": true
     },
     {
       "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+      "question_en": "Hi, I'm Luca. Can you suggest an alternative dinner without dairy for Sunday?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "luca",
@@ -189,10 +424,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente Luca ha chiesto un'alternativa per la cena di domenica senza latticini. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto tutti i parametri necessari, inclusi gli ingredienti da evitare (latticini) e il giorno specifico (domenica). Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo di guidare l'utente in un regime alimentare corretto.",
+      "inner_speech_en": "User Luca asked for an alternative for Sunday dinner without dairy. The intent recognition correctly identified the request as 'SubstituteDish' and extracted all necessary parameters, including ingredients to avoid (dairy) and the specific day (Sunday). There are no missing parameters and the request is relevant to my purpose of guiding the user towards a correct diet.",
       "can_proceed": true
     },
     {
       "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+      "question_en": "Can you suggest a dinner without nuts for Wednesday? I'm Giulia",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "giulia",
@@ -205,10 +442,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente Giulia ha chiesto un suggerimento per una cena senza frutta secca per mercoledì. L'intento è chiaro e i parametri forniti sono sufficienti per procedere con la richiesta. Non ci sono parametri mancanti e la richiesta è pertinente al mio scopo.",
+      "inner_speech_en": "User Giulia asked for a dinner suggestion without nuts for Wednesday. The intent is clear and the provided parameters are sufficient to proceed with the request. There are no missing parameters and the request is relevant to my purpose.",
       "can_proceed": true
     },
     {
       "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
+      "question_en": "My name is Xenia, can you suggest a dinner without peanuts for Wednesday?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "giulia",
@@ -221,12 +460,14 @@
       },
       "missing_parameters": ["ha_piano_settimanale"],
       "inner_speech": "L'utente Xenia ha chiesto un suggerimento per una cena senza arachidi per mercoledì. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale o meno, il che potrebbe influenzare la scelta del piatto.",
+      "inner_speech_en": "User Xenia asked for a dinner suggestion without peanuts for Wednesday. The intent recognition identified the SubstituteDish function, but the mandatory parameter 'ha_piano_settimanale' is missing. Without this information, I cannot determine whether the user already follows a weekly meal plan or not, which could influence the dish choice.",
       "can_proceed": false
     },
     {
-    "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
-    "action_name": "SubstituteDish",
-    "parameters": {
+      "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
+      "question_en": "Can you suggest a dinner without nuts for Tuesday? I'm Daniele",
+      "action_name": "SubstituteDish",
+      "parameters": {
         "nome_utente": "daniele",
         "ingredienti_rimossi": ["frutta secca"],
         "ingredienti_preferiti": [],
@@ -234,13 +475,15 @@
         "ha_piano_settimanale": false,
         "giorno": "martedi",
         "pasto": "cena"
-    },
-    "missing_parameters": ["ha_piano_settimanale"],
-    "inner_speech": "L'utente Daniele ha chiesto un suggerimento per una cena senza frutta secca per martedi. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto i parametri necessari, inclusi gli ingredienti da rimuovere e il giorno. Tuttavia, manca il parametro obbligatorio 'ha_piano_settimanale'",
-    "can_proceed": false
+      },
+      "missing_parameters": ["ha_piano_settimanale"],
+      "inner_speech": "L'utente Daniele ha chiesto un suggerimento per una cena senza frutta secca per martedi. Il riconoscimento dell'intento ha identificato correttamente la richiesta come 'SubstituteDish' e ha estratto i parametri necessari, inclusi gli ingredienti da rimuovere e il giorno. Tuttavia, manca il parametro obbligatorio 'ha_piano_settimanale'",
+      "inner_speech_en": "User Daniele asked for a dinner suggestion without nuts for Tuesday. The intent recognition correctly identified the request as 'SubstituteDish' and extracted the necessary parameters, including ingredients to remove and the day. However, the mandatory parameter 'ha_piano_settimanale' is missing.",
+      "can_proceed": false
     },
     {
       "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+      "question_en": "Hi, I'm Marco. Can you suggest a lunch with chicken and rice for Thursday?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "marco",
@@ -253,10 +496,12 @@
       },
       "missing_parameters": [],
       "inner_speech": "L'utente Marco ha chiesto un suggerimento per un pranzo con pollo e riso per giovedì. Il riconoscimento dell'intento ha identificato correttamente la richiesta e ha fornito tutti i parametri necessari, inclusi gli ingredienti preferiti, il giorno e il pasto. Non ci sono parametri obbligatori mancanti. Pertanto, posso procedere con il suggerimento.",
+      "inner_speech_en": "User Marco asked for a lunch suggestion with chicken and rice for Thursday. The intent recognition correctly identified the request and provided all necessary parameters, including preferred ingredients, day, and meal. There are no missing mandatory parameters. Therefore, I can proceed with the suggestion.",
       "can_proceed": true
     },
     {
       "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
+      "question_en": "Hi, I'm Giovanni. Can you suggest a lunch with salmon?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "giovanni",
@@ -269,10 +514,12 @@
       },
       "missing_parameters": ["ha_piano_settimanale"],
       "inner_speech": "L'utente Giovanni ha chiesto un suggerimento per un pranzo con salmone. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso determinare se l'utente segue già un piano alimentare settimanale, il che è cruciale per fornire un suggerimento appropriato.",
+      "inner_speech_en": "User Giovanni asked for a lunch suggestion with salmon. The intent recognition identified the SubstituteDish function, but the mandatory parameter 'ha_piano_settimanale' is missing. Without this information, I cannot determine whether the user already follows a weekly meal plan, which is crucial for providing an appropriate suggestion.",
       "can_proceed": false
     },
     {
       "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+      "question_en": "Can you suggest a dinner with salmon but without tomato for Saturday?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "",
@@ -285,10 +532,12 @@
       },
       "missing_parameters": ["nome_utente", "ha_piano_settimanale"],
       "inner_speech": "La domanda dell'utente è pertinente al mio scopo, ma mancano alcuni parametri obbligatori come 'nome_utente' e 'ha_piano_settimanale'. Senza queste informazioni, non posso procedere con la richiesta.",
+      "inner_speech_en": "The user's question is relevant to my purpose, but some mandatory parameters are missing such as 'nome_utente' and 'ha_piano_settimanale'. Without this information, I cannot proceed with the request.",
       "can_proceed": false
     },
     {
       "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+      "question_en": "Hi, I'm Alessandro. I only have eggs and spinach in the fridge, what can I cook for breakfast?",
       "action_name": "SubstituteDish",
       "parameters": {
         "nome_utente": "alessandro",
@@ -301,6 +550,43 @@
       },
       "missing_parameters": ["ha_piano_settimanale"],
       "inner_speech": "L'utente Alessandro ha chiesto cosa può cucinare per colazione utilizzando uova e spinaci. Il riconoscimento dell'intento ha identificato la funzione SubstituteDish, ma manca il parametro obbligatorio 'ha_piano_settimanale'. Senza questa informazione, non posso procedere con la richiesta.",
+      "inner_speech_en": "User Alessandro asked what he can cook for breakfast using eggs and spinach. The intent recognition identified the SubstituteDish function, but the mandatory parameter 'ha_piano_settimanale' is missing. Without this information, I cannot proceed with the request.",
+      "can_proceed": false
+    },
+    {
+      "question": "Mi servirebbe un'idea per il pranzo di venerdì a base di pesce e verdure, evitando assolutamente i crostacei. Sono Francesca.",
+      "question_en": "I would need an idea for Friday lunch based on fish and vegetables, absolutely avoiding shellfish. I'm Francesca.",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "francesca",
+        "ingredienti_rimossi": ["crostacei"],
+        "ingredienti_preferiti": ["pesce", "verdure"],
+        "ingredienti_obbligatori_esclusivi": [],
+        "ha_piano_settimanale": true,
+        "giorno": "venerdi",
+        "pasto": "pranzo"
+      },
+      "missing_parameters": [],
+      "inner_speech": "L'utente Francesca ha chiesto un suggerimento per il pranzo di venerdì con pesce e verdure, escludendo i crostacei. La richiesta è completa: ha specificato il nome, il giorno, il pasto, gli ingredienti preferiti, quelli da evitare e che segue un piano settimanale. Posso procedere con il suggerimento.",
+      "inner_speech_en": "User Francesca asked for a Friday lunch suggestion with fish and vegetables, excluding shellfish. The request is complete: she specified her name, day, meal, preferred ingredients, those to avoid, and that she follows a weekly plan. I can proceed with the suggestion.",
+      "can_proceed": true
+    },
+    {
+      "question": "Avrei bisogno di qualcosa di veloce per la cena di stasera, ma non ho idea di cosa preparare. In dispensa ho solo tonno in scatola e dei pomodorini.",
+      "question_en": "I would need something quick for tonight's dinner, but I have no idea what to prepare. In the pantry I only have canned tuna and some cherry tomatoes.",
+      "action_name": "SubstituteDish",
+      "parameters": {
+        "nome_utente": "",
+        "ingredienti_rimossi": [],
+        "ingredienti_preferiti": [],
+        "ingredienti_obbligatori_esclusivi": ["tonno", "pomodorini"],
+        "ha_piano_settimanale": false,
+        "giorno": "",
+        "pasto": "cena"
+      },
+      "missing_parameters": ["nome_utente", "ha_piano_settimanale", "giorno"],
+      "inner_speech": "L'utente ha chiesto un suggerimento per la cena utilizzando tonno e pomodorini, ma non ha fornito il proprio nome, il giorno specifico e non ha indicato se segue un piano settimanale. Senza queste informazioni fondamentali, non posso procedere con la richiesta.",
+      "inner_speech_en": "The user asked for a dinner suggestion using tuna and cherry tomatoes, but did not provide their name, the specific day, and did not indicate whether they follow a weekly plan. Without this fundamental information, I cannot proceed with the request.",
       "can_proceed": false
     }
 ]

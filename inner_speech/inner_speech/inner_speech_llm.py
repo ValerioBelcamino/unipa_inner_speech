@@ -80,10 +80,21 @@ class InnerSpeech_LLM(LLM_Initializer):
             result['can_proceed'] = llm_response.can_proceed
 
         except BadRequestError as e:
-            print(f"\033[31mError: {e}\033[0m")
-            result = {}
-            result['error'] = e
-            llm_response_time = -1
+            # Use shared error handling to parse failed_generation and fix parameter types
+            _, fixed_args = self._handle_bad_request_error(e, InnerSeechOutputFormat)
+            
+            if fixed_args:
+                # Successfully parsed and fixed the parameters
+                llm_response_time = time.time() - initial_time
+                result = {}
+                result['question'] = user_input
+                result['inner_speech'] = fixed_args.get('inner_speech', '')
+                result['can_proceed'] = fixed_args.get('can_proceed', False)
+            else:
+                # Could not parse or fix the error
+                result = {}
+                result['error'] = e
+                llm_response_time = -1
 
         if return_time:
             return result, llm_response_time

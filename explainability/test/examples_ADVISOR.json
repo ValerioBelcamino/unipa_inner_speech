@@ -1,170 +1,312 @@
 [
   {
     "question": "Quanti carboidrati ha il tiramisù?",
+    "question_en": "How many carbohydrates does tiramisu have?",
     "action_name": "DishInfo",
     "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.carbs AS carbs"],
     "results": "[{'carbs': 45}]",
     "explanation": "Ciao Giulia, il tiramisù contiene 45 grammi di carboidrati. Se stai seguendo una dieta, potresti voler tenerne conto. Vuoi sapere qualcos'altro sul tiramisù o su altre opzioni alimentari?",
+    "explanation_en": "Hi Giulia, tiramisu contains 45 grams of carbohydrates. If you're following a diet, you might want to keep that in mind. Would you like to know anything else about tiramisu or other food options?",
     "inner_speech": ""
   },
   {
     "question": "è calorico il riso al pomodoro?",
+    "question_en": "Is tomato rice high in calories?",
     "action_name": "DishInfo",
     "queries": ["MATCH (d:Dish {name: 'riso al pomodoro'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
     "results": "[]",
     "explanation": "Ciao! Mi dispiace, ma non ho trovato informazioni sulle calorie del riso al pomodoro. Non posso darti una risposta precisa sulla sua valenza calorica. Se vuoi, posso cercare informazioni su un'altra pietanza o aiutarti con qualcos'altro!",
+    "explanation_en": "Hi! I'm sorry, but I couldn't find information about the calories in tomato rice. I can't give you a precise answer about its caloric value. If you'd like, I can look up information about another dish or help you with something else!",
     "inner_speech": ""
   },
   {
     "question": "è calorico il tiramisù?",
+    "question_en": "Is tiramisu high in calories?",
     "action_name": "DishInfo",
     "queries": ["MATCH (d:Dish {name: 'tiramisu'}) RETURN d.name AS dish, d.calories AS calories, d.proteins AS proteins, d.fats AS fats, d.carbs AS carbs"],
     "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
     "explanation": "Ciao! Il tiramisu contiene 420 calorie, con 25 grammi di grassi, 45 grammi di carboidrati e 8 grammi di proteine. Quindi, sì, il tiramisu è un dolce abbastanza calorico. Se stai seguendo una dieta, potresti voler considerare di consumarlo con moderazione.",
+    "explanation_en": "Hi! Tiramisu contains 420 calories, with 25 grams of fat, 45 grams of carbohydrates, and 8 grams of protein. So yes, tiramisu is quite a caloric dessert. If you're following a diet, you might want to consider eating it in moderation.",
     "inner_speech": ""
   },
   {
-    "question": "La panna cotta contiene uova?",
+    "question": "La torta di mandorle contiene uova?",
+    "question_en": "Does almond cake contain eggs?",
     "action_name": "DishInfo",
-    "queries": ["MATCH (d:Dish {name: 'panna cotta'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"],
-    "results": "[{'dish': 'tiramisu', 'calories': 420, 'proteins': 8, 'fats': 25, 'carbs': 45}]",
-    "explanation": "Ciao! La tua domanda è se la panna cotta contiene uova. Dopo aver eseguito la query, non ho trovato alcun risultato che indichi la presenza di uova nella panna cotta. Quindi, la risposta è no, la panna cotta non contiene uova.",
+    "queries": ["MATCH (d:Dish {name: 'torta di mandorle'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'uova'] AS matching_allergens WITH d, apoc.coll.toSet(matching_ingredients + matching_allergens) AS contains RETURN d.name AS dish, contains"],
+    "results": "[{'dish': 'torta di mandorle', 'contains': 'uova'}]",
+    "explanation": "Ciao! La tua domanda è se la torta di mandorle contiene uova. Dopo aver eseguito la query, ho trovato un risultato che indica la presenza di uova nella torta di mandorle. Quindi, la risposta è sì, la torta di mandorle contiene uova.",
+    "explanation_en": "Hi! Your question is whether almond cake contains eggs. After running the query, I found a result indicating the presence of eggs in almond cake. So, the answer is yes, almond cake contains eggs.",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Luca. Puoi suggerirmi una cena alternativa senza latticini per domenica?",
+    "question_en": "Hi, I'm Luca. Can you suggest an alternative dinner without dairy for Sunday?",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'luca'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;", "MATCH (p:Person {name: 'luca'}), (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient)-[:CONTAINS]->(a:Allergen) WHERE a.name IN ['latticini']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'latticini'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'domenica', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": "[{'USER_ALLERGIES': 'uova'}]\n[{'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'ravioli di ricotta', 'calorie': 380, 'carboidrati': 50, 'proteine': 15, 'grassi': 12, 'already_assigned': False}, {'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': False}, {'piatto': 'pasta al pomodoro', 'calorie': 450, 'carboidrati': 60, 'proteine': 10, 'grassi': 15, 'already_assigned': False}]",
     "explanation": "Ciao Luca! Considerando che sei allergico alle uova, ti consiglio una cena alternativa senza latticini per domenica. Una buona opzione potrebbe essere i gamberi alla griglia, che hanno solo 200 calorie, 1 grammo di carboidrati, 25 grammi di proteine e 10 grammi di grassi. Questo piatto è già stato assegnato a te per la cena di domenica, quindi dovrebbe essere una scelta sicura. Se preferisci qualcos'altro, potresti considerare l'insalata di tonno o la bistecca di manzo, che sono entrambe opzioni senza latticini e uova. Evita invece i ravioli di ricotta e il risotto ai funghi perché contengono latticini. Spero che questo ti aiuti a scegliere una cena sana e sicura!",
+    "explanation_en": "Hi Luca! Considering that you're allergic to eggs, I recommend an alternative dairy-free dinner for Sunday. A good option could be grilled shrimp, which has only 200 calories, 1 gram of carbohydrates, 25 grams of protein, and 10 grams of fat. This dish is already assigned to you for Sunday dinner, so it should be a safe choice. If you prefer something else, you could consider tuna salad or beef steak, which are both dairy-free and egg-free options. Avoid ricotta ravioli and mushroom risotto as they contain dairy. I hope this helps you choose a healthy and safe dinner!",
     "inner_speech": ""
   },
   {
     "question": "Puoi suggerirmi una cena senza frutta secca per mercoledì? Sono Giulia",
+    "question_en": "Can you suggest a dinner without nuts for Wednesday? I'm Giulia",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'frutta secca'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'mercoledi', meal: 'cena'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": "[{'USER_ALLERGIES': 'glutine'}, {'USER_ALLERGIES': 'frutta secca'}]\n[{'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'tiramisu', 'calorie': 420, 'carboidrati': 45, 'proteine': 8, 'grassi': 25, 'already_assigned': False}]",
     "explanation": "Ciao Giulia! Considerando le tue allergie, ti consiglio di evitare la frutta secca. Per mercoledì, ti suggerisco il risotto ai funghi, che non contiene frutta secca e non è associato a nessuna delle tue allergie note. Tuttavia, se preferisci qualcos'altro, potresti considerare anche i gamberi alla griglia o l'insalata di tonno, che sono entrambi senza frutta secca e non sembrano presentare rischi per le tue allergie. Spero che questo ti sia stato utile!",
+    "explanation_en": "Hi Giulia! Considering your allergies, I recommend avoiding nuts. For Wednesday, I suggest mushroom risotto, which doesn't contain nuts and isn't associated with any of your known allergies. However, if you prefer something else, you could also consider grilled shrimp or tuna salad, which are both nut-free and don't seem to pose risks for your allergies. I hope this was helpful!",
     "inner_speech": ""
   },
   {
     "question": "Mi chiamo Xenia, puoi suggerirmi una cena senza arachidi per mercoledì?",
+    "question_en": "My name is Xenia, can you suggest a dinner without peanuts for Wednesday?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
     "explanation": "Ciao Xenia! Grazie per avermi chiesto di suggerirti una cena senza arachidi per mercoledì. Per poterti aiutare al meglio, vorrei sapere se hai un piano alimentare settimanale o se ci sono altre preferenze o restrizioni alimentari che dovresti seguire. Hai un piano alimentare settimanale o ci sono altri ingredienti che devi evitare o che preferisci? Questo mi aiuterà a darti una risposta più personalizzata e adatta alle tue esigenze.",
+    "explanation_en": "Hi Xenia! Thank you for asking me to suggest a peanut-free dinner for Wednesday. To help you better, I'd like to know if you have a weekly meal plan or if there are other food preferences or restrictions you should follow. Do you have a weekly meal plan or are there other ingredients you need to avoid or prefer? This will help me give you a more personalized answer suited to your needs.",
     "inner_speech": ""
   },
   {
-  "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
-  "action_name": "SubstituteDish",
-  "queries": [],
-  "results": [],
-  "explanation": "Ciao Daniele! Grazie per avermi chiesto di suggerirti una cena senza frutta secca per martedì. Per poterti aiutare al meglio, vorrei sapere se hai un piano alimentare settimanale o se ci sono altre preferenze o restrizioni alimentari che dovresti seguire. In particolare, mi chiedevo se hai un piano alimentare già stabilito per la settimana o se preferisci che io ti suggerisca qualcosa di generico. Potresti gentilmente fornirmi questa informazione in modo che io possa darti una risposta più personalizzata?",
+    "question": "Puoi suggerirmi una cena senza frutta secca per martedi? Sono Daniele",
+    "question_en": "Can you suggest a dinner without nuts for Tuesday? I'm Daniele",
+    "action_name": "SubstituteDish",
+    "queries": [],
+    "results": [],
+    "explanation": "Ciao Daniele! Grazie per avermi chiesto di suggerirti una cena senza frutta secca per martedì. Per poterti aiutare al meglio, vorrei sapere se hai un piano alimentare settimanale o se ci sono altre preferenze o restrizioni alimentari che dovresti seguire. In particolare, mi chiedevo se hai un piano alimentare già stabilito per la settimana o se preferisci che io ti suggerisca qualcosa di generico. Potresti gentilmente fornirmi questa informazione in modo che io possa darti una risposta più personalizzata?",
+    "explanation_en": "Hi Daniele! Thank you for asking me to suggest a nut-free dinner for Tuesday. To help you better, I'd like to know if you have a weekly meal plan or if there are other food preferences or restrictions you should follow. In particular, I was wondering if you have a meal plan already established for the week or if you'd prefer me to suggest something generic. Could you kindly provide me with this information so I can give you a more personalized answer?",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Marco. Puoi suggerirmi un pranzo con pollo e riso per giovedì?",
+    "question_en": "Hi, I'm Marco. Can you suggest a lunch with chicken and rice for Thursday?",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'marco'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'marco'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pollo'})} AND EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'riso'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": [],
     "explanation": "Ciao Marco, purtroppo non ho trovato un piatto con pollo e riso adatto a te per giovedì, poiché non ci sono opzioni che escludano il lattosio, a cui sei allergico. Posso aiutarti a cercare altre opzioni?",
+    "explanation_en": "Hi Marco, unfortunately I couldn't find a dish with chicken and rice suitable for you on Thursday, as there are no options that exclude lactose, to which you're allergic. Can I help you look for other options?",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Giovanni. Puoi suggerirmi un pranzo con salmone?",
+    "question_en": "Hi, I'm Giovanni. Can you suggest a lunch with salmon?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
     "explanation": "Ciao Giovanni! Sono felice di aiutarti a trovare un pranzo con salmone che ti piaccia. Tuttavia, per poterti suggerire un'opzione personalizzata, ho bisogno di sapere un po' di più sulle tue esigenze. Hai un piano alimentare settimanale o delle restrizioni dietetiche che dovrei considerare? Ad esempio, sei vegetariano, vegano, o hai delle allergie alimentari? Queste informazioni mi aiuteranno a darti un consiglio più preciso e adatto alle tue esigenze. Puoi aiutarmi a capire meglio le tue preferenze?",
+    "explanation_en": "Hi Giovanni! I'm happy to help you find a lunch with salmon that you'll enjoy. However, to suggest a personalized option, I need to know a bit more about your needs. Do you have a weekly meal plan or dietary restrictions I should consider? For example, are you vegetarian, vegan, or do you have food allergies? This information will help me give you more precise advice suited to your needs. Can you help me better understand your preferences?",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Giulia. Puoi suggerirmi un pranzo con salmone?",
+    "question_en": "Hi, I'm Giulia. Can you suggest a lunch with salmon?",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'salmone'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": [],
     "explanation": "Ciao, sono Giulia. Puoi suggerirmi un pranzo con salmone?', 'response': 'Ciao Giulia, ti suggerisco un pranzo con salmone, ma prima vorrei dirti che sei allergica al glutine e alla frutta secca. Purtroppo, non ho trovato un piatto con salmone che sia adatto alle tue esigenze. Posso suggerirti altri piatti che non contengano glutine e frutta secca?",
+    "explanation_en": "Hi Giulia, I'd suggest a lunch with salmon, but first I'd like to let you know that you're allergic to gluten and nuts. Unfortunately, I couldn't find a salmon dish that's suitable for your needs. Can I suggest other dishes that don't contain gluten and nuts?",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Giulia. Puoi suggerirmi un pranzo senza pesce?",
+    "question_en": "Hi, I'm Giulia. Can you suggest a lunch without fish?",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'giulia'})-[:IS_ALLERGIC_TO]->(a:Allergen) RETURN a.name AS USER_ALLERGIES;", "MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish) WHERE NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient {name: 'pesce'})} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'pranzo'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
     "results": "[{'USER_ALLERGIES': 'glutine'}, {'USER_ALLERGIES': 'frutta secca'}]\n[{'piatto': 'gamberi alla griglia', 'calorie': 200, 'carboidrati': 1, 'proteine': 25, 'grassi': 10, 'already_assigned': True}, {'piatto': 'risotto ai funghi', 'calorie': 420, 'carboidrati': 65, 'proteine': 8, 'grassi': 12, 'already_assigned': True}, {'piatto': 'cappuccino', 'calorie': 70, 'carboidrati': 5, 'proteine': 3, 'grassi': 4, 'already_assigned': False}, {'piatto': 'insalata di tonno', 'calorie': 300, 'carboidrati': 5, 'proteine': 30, 'grassi': 15, 'already_assigned': False}, {'piatto': 'bistecca di manzo', 'calorie': 380, 'carboidrati': 0, 'proteine': 40, 'grassi': 25, 'already_assigned': False}, {'piatto': 'tiramisu', 'calorie': 420, 'carboidrati': 45, 'proteine': 8, 'grassi': 25, 'already_assigned': False}]",
     "explanation": "Ciao, sono Giulia. Puoi suggerirmi un pranzo senza pesce?', 'response': 'Ciao Giulia! Sono felice di aiutarti a trovare un pranzo senza pesce. \n\nInnanzitutto, ho verificato le tue allergie e ho trovato che sei allergica al glutine e alla frutta secca. \n\nPoi, ho cercato tra i piatti disponibili quelli che non contengono pesce e che non sono incompatibili con le tue allergie. \n\nEcco alcune opzioni che potrebbero essere adatte per te: \n\n- Bistecca di manzo (380 calorie, 0 carboidrati, 40 proteine, 25 grassi)\n- Cappuccino (70 calorie, 5 carboidrati, 3 proteine, 4 grassi)\n- Tiramisù (420 calorie, 45 carboidrati, 8 proteine, 25 grassi)\n\nTuttavia, ti consiglio di evitare il tiramisù poiché potrebbe contenere glutine. \n\nSpero che queste opzioni ti siano utili! Se hai altre domande o preferenze, non esitare a chiedere.",
+    "explanation_en": "Hi Giulia! I'm happy to help you find a fish-free lunch. First, I checked your allergies and found that you're allergic to gluten and nuts. Then, I searched among the available dishes for those that don't contain fish and aren't incompatible with your allergies. Here are some options that might be suitable for you: Beef steak (380 calories, 0 carbs, 40 protein, 25 fat), Cappuccino (70 calories, 5 carbs, 3 protein, 4 fat), Tiramisu (420 calories, 45 carbs, 8 protein, 25 fat). However, I recommend avoiding tiramisu as it may contain gluten. I hope these options are useful! If you have other questions or preferences, don't hesitate to ask.",
     "inner_speech": ""
   },
   {
     "question": "Puoi suggerirmi una cena con salmone ma senza pomodoro per sabato?",
+    "question_en": "Can you suggest a dinner with salmon but without tomato for Saturday?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
     "explanation": "Ciao! Grazie per avermi chiesto di suggerirti una cena con salmone per sabato. Per poterti aiutare al meglio, ho bisogno di sapere un po' di più sulle tue preferenze e necessità.\nIn particolare, vorrei sapere se hai un piano alimentare settimanale che devo tenere in considerazione mentre ti suggerisco la cena. Inoltre, potresti gentilmente dirmi il tuo nome, così posso rivolgermi a te in modo più personale?\nQueste informazioni mi aiuteranno a fornirti una risposta più precisa e personalizzata. Grazie per la tua collaborazione!",
+    "explanation_en": "Hi! Thank you for asking me to suggest a salmon dinner for Saturday. To help you better, I need to know a bit more about your preferences and needs. In particular, I'd like to know if you have a weekly meal plan I should consider while suggesting dinner. Also, could you kindly tell me your name so I can address you more personally? This information will help me provide a more precise and personalized answer. Thank you for your cooperation!",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Alessandro. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+    "question_en": "Hi, I'm Alessandro. I only have eggs and spinach in the fridge, what can I cook for breakfast?",
     "action_name": "SubstituteDish",
     "queries": [],
     "results": [],
     "explanation": "Ciao Alessandro! Grazie per avermi contattato. Sono felice di aiutarti a trovare una ricetta per la colazione con gli ingredienti che hai a disposizione, ovvero uova e spinaci.\nTuttavia, per poterti fornire una proposta personalizzata, avrei bisogno di sapere se hai un piano alimentare settimanale o delle restrizioni dietetiche specifiche. Questo mi aiuterebbe a capire se ci sono particolari esigenze da considerare nella scelta della ricetta.\nPotresti gentilmente dirmi se hai un piano alimentare settimanale o se ci sono particolari restrizioni dietetiche che devo considerare? Ad esempio, sei vegetariano, vegano, hai allergie alimentari o altre esigenze specifiche? Questo mi aiuterà a fornirti una proposta più adatta alle tue esigenze.",
+    "explanation_en": "Hi Alessandro! Thank you for contacting me. I'm happy to help you find a breakfast recipe with the ingredients you have available, namely eggs and spinach. However, to provide you with a personalized suggestion, I would need to know if you have a weekly meal plan or specific dietary restrictions. This would help me understand if there are particular needs to consider when choosing the recipe. Could you kindly tell me if you have a weekly meal plan or if there are specific dietary restrictions I should consider? For example, are you vegetarian, vegan, do you have food allergies or other specific needs? This will help me provide a suggestion better suited to your needs.",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Sofia. Ho solo uova e spinaci in frigo, cosa posso cucinare per colazione?",
+    "question_en": "Hi, I'm Sofia. I only have eggs and spinach in the fridge, what can I cook for breakfast?",
     "action_name": "SubstituteDish",
     "queries": ["MATCH (p:Person {name: 'sofia'})-[:IS_ALLERGIC_TO]->(i) RETURN i.name as USER_ALLERGIES;", "MATCH (p:Person {name: 'sofia'}) MATCH (d:Dish) WHERE EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (d)-[:CONTAINS]->(i:Ingredient) WHERE NOT i.name IN ['uova', 'spinaci']} AND NOT EXISTS {MATCH (p)-[:IS_ALLERGIC_TO]->(allergen:Allergen)<-[:CONTAINS]-(i:Ingredient)<-[:CONTAINS]-(d)} OPTIONAL MATCH (p)-[meal:SHOULD_EAT {day: 'giovedi', meal: 'colazione'}]->(d) RETURN d.name AS piatto, d.calories AS calorie, d.carbs AS carboidrati, d.proteins AS proteine, d.fats AS grassi, CASE WHEN meal IS NULL THEN false ELSE true END AS already_assigned ORDER BY already_assigned DESC, d.calories ASC"],
-    "results": "[{'USER_ALLERGIES': 'pesce'}, {'USER_ALLERGIES': 'crostacei'}]\n[{'piatto': 'frittata di spinaci', 'calorie': 270 'carboidrati': 5, 'proteine': 21, 'grassi': 20, 'already_assigned': False}]",
+    "results": "[{'USER_ALLERGIES': 'pesce'}, {'USER_ALLERGIES': 'crostacei'}]\n[{'piatto': 'frittata di spinaci', 'calorie': 270, 'carboidrati': 5, 'proteine': 21, 'grassi': 20, 'already_assigned': False}]",
     "explanation": "Ciao Sofia, considerando che hai solo uova e spinaci in frigo e che sei allergica al pesce e ai crostacei, una possibile opzione per la colazione potrebbe essere una frittata di uova e spinaci. Questo piatto non contiene ingredienti a cui sei allergica e utilizza solo gli ingredienti che hai a disposizione. Spero che questo ti sia stato utile!",
+    "explanation_en": "Hi Sofia, considering that you only have eggs and spinach in the fridge and that you're allergic to fish and shellfish, a possible option for breakfast could be a spinach omelette. This dish doesn't contain any ingredients you're allergic to and uses only the ingredients you have available. I hope this was helpful!",
     "inner_speech": ""
   },
   {
     "question": "Salve! Puoi aggiungermi al sistema? Mi chiamo Elisa, seguo una dieta priva di glutine e vorrei mangiare un numero elevato di proteine, intorno ai 200 grammi.",
+    "question_en": "Hello! Can you add me to the system? My name is Elisa, I follow a gluten-free diet and I'd like to eat a high amount of protein, around 200 grams.",
     "action_name": "AddToDatabase",
     "queries": [],
     "results": [],
     "explanation": "Ciao Elisa! Grazie per avermi fornito alcune informazioni sulla tua dieta. Per poterti aggiungere al sistema e fornirti consigli personalizzati, ho bisogno di sapere alcuni dettagli in più.\nIn particolare, mi servirebbero informazioni sui tuoi fabbisogni di calorie, carboidrati e grassi. Potresti dirmi quanto è il tuo fabbisogno giornaliero di calorie? E per quanto riguarda i carboidrati e i grassi, ci sono delle quantità specifiche che cerchi di raggiungere o evitare?\nQueste informazioni mi aiuteranno a comprendere meglio le tue esigenze e a fornirti consigli più personalizzati e efficaci. Grazie per la tua collaborazione!",
+    "explanation_en": "Hi Elisa! Thank you for providing some information about your diet. To add you to the system and provide personalized advice, I need to know a few more details. In particular, I would need information about your calorie, carbohydrate, and fat requirements. Could you tell me what your daily calorie requirement is? And regarding carbohydrates and fats, are there specific amounts you're trying to reach or avoid? This information will help me better understand your needs and provide more personalized and effective advice. Thank you for your cooperation!",
     "inner_speech": ""
   },
   {
     "question": "Sono Gigi, sono intollerante al lattosio e vorrei mangiare 2800kcal. Con 180g di carboidrati, 150 di proteine e 80 di grassi.",
+    "question_en": "I'm Gigi, I'm lactose intolerant and I'd like to eat 2800kcal. With 180g of carbohydrates, 150 of protein and 80 of fat.",
     "action_name": "AddToDatabase",
     "queries": ["CREATE (p:Person {name: 'gigi', calories:2800, proteins:150, carbs:180, fats:80}) MERGE (a:Allergen {name: 'lattosio'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
     "results": "[{'persona': {'carbs': 180, 'fats': 80, 'proteins': 150, 'name': 'gigi', 'calories': 2800}, 'allergene': {'name': 'lattosio'}}]",
     "explanation": "Ciao Gigi! Sono felice di aiutarti a gestire il tuo regime alimentare. Ho creato un profilo per te con le tue esigenze nutrizionali: 2800kcal, 180g di carboidrati, 150g di proteine e 80g di grassi. Inoltre, ho registrato la tua intolleranza al lattosio. Ora sei inserito nel sistema e posso aiutarti a trovare ricette adatte alle tue esigenze e allergie. Come posso aiutarti oggi?",
+    "explanation_en": "Hi Gigi! I'm happy to help you manage your diet. I've created a profile for you with your nutritional needs: 2800kcal, 180g of carbohydrates, 150g of protein, and 80g of fat. I've also recorded your lactose intolerance. You're now in the system and I can help you find recipes suited to your needs and allergies. How can I help you today?",
     "inner_speech": ""
   },
   {
     "question": "Ciao, sono Giulia, posso mangiare il pollo al curry?",
+    "question_en": "Hi, I'm Giulia, can I eat chicken curry?",
     "action_name": "DishInfo",
     "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'pollo al curry'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"],
     "results": [],
     "explanation": "Ciao Giulia! Il pollo al curry non sembra contenere allergeni a cui sei sensibile. Non ci sono rischi noti per te, quindi puoi mangiarlo senza preoccupazioni!",
+    "explanation_en": "Hi Giulia! Chicken curry doesn't seem to contain allergens you're sensitive to. There are no known risks for you, so you can eat it without worries!",
     "inner_speech": ""
   },
   {
     "question": "Sono Luca, posso mangiare la pasta alla carbonara?",
+    "question_en": "I'm Luca, can I eat pasta carbonara?",
     "action_name": "DishInfo",
     "queries": ["MATCH (p:Person {name: 'luca'}) MATCH (d:Dish {name: 'pasta alla carbonara'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d, p, COLLECT(DISTINCT i.name) AS ingredients, COLLECT(DISTINCT a.name) AS dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergens WITH d, ingredients, dish_allergens, user_allergens, apoc.coll.intersection(dish_allergens, user_allergens) AS risks_for_user RETURN d.name AS dish, ingredients, dish_allergens, user_allergens, risks_for_user"],
     "results": "[{'dish': 'pasta alla carbonara', 'ingredients': ['uova', 'pasta', 'parmigiano'], 'dish_allergens': ['uova', 'glutine', 'lattosio'], 'user_allergens': ['uova'], 'risks_for_user': ['uova']}]",
     "explanation": "Ciao Luca, la pasta alla carbonara contiene uova, che è un allergene per te. Purtroppo, non è adatto a te a causa della tua allergia alle uova. Ti consiglio di evitare questo piatto per sicurezza.",
+    "explanation_en": "Hi Luca, pasta carbonara contains eggs, which is an allergen for you. Unfortunately, it's not suitable for you due to your egg allergy. I recommend avoiding this dish for safety.",
     "inner_speech": ""
   },
   {
     "question": "Sono Giulia, volevo sapere se la pasta alla carbonara contiene lattosio",
+    "question_en": "I'm Giulia, I wanted to know if pasta carbonara contains lactose",
     "action_name": "DishInfo",
     "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'pasta alla carbonara'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name)] AS ingredients, [name IN COLLECT(DISTINCT a.name)] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"],
     "results": "[{'dish': 'pasta alla carbonara', 'dish_allergens': ['lattosio', 'uova', 'pasta', 'parmigiano', 'glutine'], 'user_allergies': ['glutine', 'frutta secca'], 'risks_for_user': ['glutine]}]",
     "explanation": "Ciao Giulia, la pasta alla carbonara contiene lattosio, ma non sembra che tu sia allergica a questo ingrediente. I tuoi allergeni noti sono glutine e frutta secca, quindi pertanto è meglio se non mangi questo piatto in ogni caso perché contiene glutine! Dovresti evitare questo piatto!",
+    "explanation_en": "Hi Giulia, pasta carbonara contains lactose, but it doesn't seem like you're allergic to this ingredient. Your known allergens are gluten and nuts, so it's better if you don't eat this dish anyway because it contains gluten! You should avoid this dish!",
     "inner_speech": ""
   },
   {
     "question": "Sono Giulia, volevo sapere se il cappuccino contiene lattosio",
+    "question_en": "I'm Giulia, I wanted to know if cappuccino contains lactose",
     "action_name": "DishInfo",
     "queries": ["MATCH (p:Person {name: 'giulia'}) MATCH (d:Dish {name: 'cappuccino'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, p, [name IN COLLECT(DISTINCT i.name) WHERE toLower(name) CONTAINS 'lattosio'] AS ingredients, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'lattosio'] AS allergens WITH d, p, apoc.coll.toSet(ingredients + allergens) AS dish_allergens OPTIONAL MATCH (p)-[:IS_ALLERGIC_TO]->(ua:Allergen) WITH d.name AS dish, dish_allergens, COLLECT(DISTINCT ua.name) AS user_allergies WITH dish, dish_allergens, user_allergies, apoc.coll.intersection( [x IN dish_allergens | toLower(x)], [y IN user_allergies | toLower(y)] ) AS risks_for_user RETURN dish, dish_allergens, user_allergies, risks_for_user"],
     "results": "[{'dish': 'cappuccino', 'dish_allergens': ['lattosio'], 'user_allergies': ['glutine', 'frutta secca'], 'risks_for_user': []}]",
     "explanation": "Ciao Giulia, il cappuccino contiene lattosio, ma non sembra che tu abbia allergie a questo ingrediente. Quindi, per te il cappuccino non rappresenta un rischio. Puoi berlo senza preoccupazioni!",
+    "explanation_en": "Hi Giulia, cappuccino contains lactose, but it doesn't seem like you have allergies to this ingredient. So, for you cappuccino doesn't pose a risk. You can drink it without worries!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Mi dici quante proteine ci sono nella bistecca di manzo?",
+    "question_en": "Can you tell me how many proteins are in beef steak?",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'bistecca di manzo'}) RETURN d.proteins AS proteins"],
+    "results": "[{'proteins': 40}]",
+    "explanation": "La bistecca di manzo contiene 40 grammi di proteine per porzione. È un'ottima fonte proteica se stai cercando di aumentare l'apporto di proteine nella tua dieta!",
+    "explanation_en": "Beef steak contains 40 grams of protein per serving. It's an excellent protein source if you're looking to increase your protein intake in your diet!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Vorrei sapere se i gamberi alla griglia sono adatti a chi è celiaco",
+    "question_en": "I'd like to know if grilled shrimp are suitable for someone who is celiac",
+    "action_name": "DishInfo",
+    "queries": ["MATCH (d:Dish {name: 'gamberi alla griglia'}) OPTIONAL MATCH (d)-[:CONTAINS]->(i:Ingredient) OPTIONAL MATCH (i)-[:CONTAINS]->(a:Allergen) WITH d, [name IN COLLECT(DISTINCT a.name) WHERE toLower(name) CONTAINS 'glutine'] AS user_allergies RETURN d.name AS dish, user_allergies"],
+    "results": "[{'dish': 'gamberi alla griglia', 'user_allergies': []}]",
+    "explanation": "I gamberi alla griglia non contengono glutine, quindi sono perfettamente adatti a chi soffre di celiachia. Puoi gustarli senza preoccupazioni!",
+    "explanation_en": "Grilled shrimp don't contain gluten, so they're perfectly suitable for those who suffer from celiac disease. You can enjoy them without worries!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Buongiorno! Vorrei registrarmi, il mio nome è Valentina. Sono allergica ai crostacei e necessito di 1800 calorie giornaliere con 120g di proteine, 200g di carboidrati e 60g di grassi.",
+    "question_en": "Good morning! I'd like to register, my name is Valentina. I'm allergic to shellfish and I need 1800 daily calories with 120g of protein, 200g of carbohydrates, and 60g of fat.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'valentina', calories:1800, proteins:120, carbs:200, fats:60}) MERGE (a:Allergen {name: 'crostacei'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 200, 'fats': 60, 'proteins': 120, 'name': 'valentina', 'calories': 1800}, 'allergene': {'name': 'crostacei'}}]",
+    "explanation": "Ciao Valentina! Ti ho registrata nel sistema con successo. Il tuo profilo include un fabbisogno di 1800 calorie, 120g di proteine, 200g di carboidrati e 60g di grassi. Ho anche annotato la tua allergia ai crostacei. Sono pronta ad aiutarti con il tuo piano alimentare!",
+    "explanation_en": "Hi Valentina! I've successfully registered you in the system. Your profile includes a requirement of 1800 calories, 120g of protein, 200g of carbohydrates, and 60g of fat. I've also noted your shellfish allergy. I'm ready to help you with your meal plan!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Crea il mio profilo per favore. Mi chiamo Roberto, devo evitare le uova e il mio piano prevede 2200kcal, 160g proteine, 250g carbo e 70g grassi.",
+    "question_en": "Create my profile please. My name is Roberto, I need to avoid eggs and my plan includes 2200kcal, 160g protein, 250g carbs and 70g fat.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'roberto', calories:2200, proteins:160, carbs:250, fats:70}) MERGE (a:Allergen {name: 'uova'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 250, 'fats': 70, 'proteins': 160, 'name': 'roberto', 'calories': 2200}, 'allergene': {'name': 'uova'}}]",
+    "explanation": "Perfetto Roberto! Ho creato il tuo profilo alimentare con i seguenti parametri: 2200 calorie, 160g di proteine, 250g di carboidrati e 70g di grassi. La tua intolleranza alle uova è stata registrata. Come posso assisterti oggi?",
+    "explanation_en": "Perfect Roberto! I've created your dietary profile with the following parameters: 2200 calories, 160g of protein, 250g of carbohydrates, and 70g of fat. Your egg intolerance has been registered. How can I assist you today?",
+    "inner_speech": ""
+  },
+  {
+    "question": "Potresti inserirmi nel database? Sono Chiara, non tollero il pesce, e i miei macro sono 1600cal, proteine 90, carboidrati 180, grassi 55.",
+    "question_en": "Could you add me to the database? I'm Chiara, I can't tolerate fish, and my macros are 1600cal, protein 90, carbohydrates 180, fat 55.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'chiara', calories:1600, proteins:90, carbs:180, fats:55}) MERGE (a:Allergen {name: 'pesce'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 180, 'fats': 55, 'proteins': 90, 'name': 'chiara', 'calories': 1600}, 'allergene': {'name': 'pesce'}}]",
+    "explanation": "Ciao Chiara! Sei stata inserita nel sistema con le tue specifiche nutrizionali: 1600 calorie, 90g di proteine, 180g di carboidrati e 55g di grassi. Ho preso nota della tua intolleranza al pesce. Posso aiutarti a pianificare i tuoi pasti!",
+    "explanation_en": "Hi Chiara! You've been added to the system with your nutritional specifications: 1600 calories, 90g of protein, 180g of carbohydrates, and 55g of fat. I've noted your fish intolerance. I can help you plan your meals!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Salve, necessito di essere aggiunto al vostro sistema. Il sottoscritto è Andrea, allergico alla frutta secca. Calorie 2500, proteine 140, carboidrati 300, grassi 85.",
+    "question_en": "Hello, I need to be added to your system. The undersigned is Andrea, allergic to nuts. Calories 2500, protein 140, carbohydrates 300, fat 85.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'andrea', calories:2500, proteins:140, carbs:300, fats:85}) MERGE (a:Allergen {name: 'frutta secca'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 300, 'fats': 85, 'proteins': 140, 'name': 'andrea', 'calories': 2500}, 'allergene': {'name': 'frutta secca'}}]",
+    "explanation": "Benvenuto Andrea! Il tuo profilo è stato creato con successo nel nostro sistema. I tuoi obiettivi nutrizionali sono: 2500 calorie, 140g di proteine, 300g di carboidrati e 85g di grassi. La tua allergia alla frutta secca è stata registrata. Come posso esserti utile?",
+    "explanation_en": "Welcome Andrea! Your profile has been successfully created in our system. Your nutritional goals are: 2500 calories, 140g of protein, 300g of carbohydrates, and 85g of fat. Your nut allergy has been registered. How can I be of help?",
+    "inner_speech": ""
+  },
+  {
+    "question": "Ehi! Puoi mettermi nel sistema? Sono Federica, celiaca. Voglio assumere 1900 calorie al giorno, 100 grammi di proteine, 220 di carboidrati e 65 di grassi.",
+    "question_en": "Hey! Can you put me in the system? I'm Federica, celiac. I want to consume 1900 calories a day, 100 grams of protein, 220 of carbohydrates and 65 of fat.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'federica', calories:1900, proteins:100, carbs:220, fats:65}) MERGE (a:Allergen {name: 'glutine'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 220, 'fats': 65, 'proteins': 100, 'name': 'federica', 'calories': 1900}, 'allergene': {'name': 'glutine'}}]",
+    "explanation": "Ciao Federica! Ti ho aggiunta al sistema con il tuo piano nutrizionale: 1900 calorie, 100g di proteine, 220g di carboidrati e 65g di grassi. Ho registrato la tua celiachia, quindi ti proporrò solo piatti senza glutine. Pronta per iniziare?",
+    "explanation_en": "Hi Federica! I've added you to the system with your nutritional plan: 1900 calories, 100g of protein, 220g of carbohydrates, and 65g of fat. I've registered your celiac condition, so I'll only suggest gluten-free dishes. Ready to start?",
+    "inner_speech": ""
+  },
+  {
+    "question": "Desidero iscrivermi. Nome: Matteo. Allergia: soia. Fabbisogno calorico 2100, proteine 130g, carboidrati 240g, lipidi 75g.",
+    "question_en": "I wish to register. Name: Matteo. Allergy: soy. Caloric requirement 2100, protein 130g, carbohydrates 240g, lipids 75g.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'matteo', calories:2100, proteins:130, carbs:240, fats:75}) MERGE (a:Allergen {name: 'soia'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 240, 'fats': 75, 'proteins': 130, 'name': 'matteo', 'calories': 2100}, 'allergene': {'name': 'soia'}}]",
+    "explanation": "Benvenuto Matteo! La tua iscrizione è stata completata. Il tuo profilo nutrizionale prevede 2100 calorie, 130g di proteine, 240g di carboidrati e 75g di lipidi. L'allergia alla soia è stata annotata. Sono a tua disposizione per consigli alimentari!",
+    "explanation_en": "Welcome Matteo! Your registration has been completed. Your nutritional profile includes 2100 calories, 130g of protein, 240g of carbohydrates, and 75g of lipids. Your soy allergy has been noted. I'm at your disposal for dietary advice!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Ciao a tutti! Mi presento: sono Lucia e ho un'intolleranza al lattosio. Per la mia dieta ho bisogno di 1700kcal, con 110g di proteine, 190g di carbs e 58g di fat.",
+    "question_en": "Hi everyone! Let me introduce myself: I'm Lucia and I have a lactose intolerance. For my diet I need 1700kcal, with 110g of protein, 190g of carbs and 58g of fat.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'lucia', calories:1700, proteins:110, carbs:190, fats:58}) MERGE (a:Allergen {name: 'lattosio'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 190, 'fats': 58, 'proteins': 110, 'name': 'lucia', 'calories': 1700}, 'allergene': {'name': 'lattosio'}}]",
+    "explanation": "Ciao Lucia! Piacere di conoscerti! Ho creato il tuo profilo con 1700 calorie, 110g di proteine, 190g di carboidrati e 58g di grassi. La tua intolleranza al lattosio è stata registrata. Posso suggerirti piatti adatti alle tue esigenze!",
+    "explanation_en": "Hi Lucia! Nice to meet you! I've created your profile with 1700 calories, 110g of protein, 190g of carbohydrates, and 58g of fat. Your lactose intolerance has been registered. I can suggest dishes suited to your needs!",
+    "inner_speech": ""
+  },
+  {
+    "question": "Perfavore aggiungimi, sono Simone. Non posso mangiare arachidi. I miei obiettivi: duemilatrecento calorie, centoquaranta grammi di proteine, duecentosessanta di carboidrati, settantacinque di grassi.",
+    "question_en": "Please add me, I'm Simone. I can't eat peanuts. My goals: two thousand three hundred calories, one hundred forty grams of protein, two hundred sixty of carbohydrates, seventy-five of fat.",
+    "action_name": "AddToDatabase",
+    "queries": ["CREATE (p:Person {name: 'simone', calories:2300, proteins:140, carbs:260, fats:75}) MERGE (a:Allergen {name: 'arachidi'}) MERGE (p)-[:IS_ALLERGIC_TO]->(a) RETURN p AS persona, a AS allergene"],
+    "results": "[{'persona': {'carbs': 260, 'fats': 75, 'proteins': 140, 'name': 'simone', 'calories': 2300}, 'allergene': {'name': 'arachidi'}}]",
+    "explanation": "Fatto Simone! Sei nel sistema con i seguenti obiettivi giornalieri: 2300 calorie, 140g di proteine, 260g di carboidrati e 75g di grassi. Ho preso nota della tua allergia alle arachidi. Come posso aiutarti con la tua alimentazione?",
+    "explanation_en": "Done Simone! You're in the system with the following daily goals: 2300 calories, 140g of protein, 260g of carbohydrates, and 75g of fat. I've noted your peanut allergy. How can I help you with your nutrition?",
     "inner_speech": ""
   }
 ]

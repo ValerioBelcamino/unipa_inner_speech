@@ -4,6 +4,10 @@ from langsmith import testing as t
 import pytest, os, json
 import evaluate
 import ast
+from deep_translator import GoogleTranslator
+
+# Initialize translator (Italian to English)
+translator = GoogleTranslator(source='it', target='en')
 
 
 # # Load metrics once
@@ -69,11 +73,13 @@ def extract_examples(filename='examples.json'):
         data = json.load(file)
     processed_data = [(
                         example["question"], 
+                        example.get("question_en", ""),
                         example["action_name"], 
                         example["queries"], 
                         example["results"], 
                         example["inner_speech"],
-                        example["explanation"]) for example in data]
+                        example["explanation"],
+                        example.get("explanation_en", "")) for example in data]
     return processed_data
 
 
@@ -82,42 +88,67 @@ def get_examples():
     scenario = os.getenv("SCENARIO")
     example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
     examples = extract_examples(filename=example_filename)
+    return examples
 
     query_examples, is_examples = [], []
 
     for e in examples:
-        if len(e[2]) == 0 and len(e[2]) == 0:
+        # Index 3 is queries (previously index 2)
+        if len(e[3]) == 0 and len(e[3]) == 0:
             is_examples.append(e)
         else:
             query_examples.append(e)
     return query_examples, is_examples
 
 # Order is 
-# question, action_name, queries, results, inner_speech, explanation
-query_examples, is_examples = get_examples()
-print(query_examples)
-print(len(query_examples))
-print(is_examples)
-print(len(is_examples))
+# question, question_en, action_name, queries, results, inner_speech, explanation, explanation_en
+# query_examples, is_examples = get_examples()
+examples = get_examples()
+
+# Create lookup dictionaries for test data (keyed by question)
+inputs = [e[0] for e in examples]  # List of questions only
+input2question_en = {e[0]: e[1] for e in examples}
+input2params = {e[0]: {"action_name": e[2], "queries": e[3], "results": e[4]} for e in examples}
+input2output = {e[0]: {"explanation": e[6], "explanation_en": e[7]} for e in examples}
 
 
-@pytest.mark.parametrize("examples_input", query_examples)
+
+@pytest.mark.parametrize("question", inputs)
 @pytest.mark.langsmith  # Enables tracking in LangSmith
-def test_my_groq_chain(examples_input):
-    expected_explanation = examples_input[-1]
+def test_my_groq_chain(question):
+    # Look up data from dictionaries
+    question_en = input2question_en[question]
+    action_name = input2params[question]["action_name"]
+    queries = input2params[question]["queries"]
+    results = input2params[question]["results"]
+    expected_explanation = input2output[question]["explanation"]
+    expected_explanation_en = input2output[question]["explanation_en"]
 
-    # Log to LangSmith
+    # Log to LangSmith - include English translation in inputs
+    t.log_inputs({
+        "question": question,
+        "question_en": question_en,
+    })
+
     t.log_reference_outputs({
         "explanation": expected_explanation,
+        "explanation_en": expected_explanation_en,
     })
 
     # Call your Groq chain w/ question, action_name, queries, results
-    actual_explanation, total_time = IS_LLM.get_LLM_response(examples_input[0], examples_input[1], examples_input[2], examples_input[3], return_time=True)
+    actual_explanation, total_time = IS_LLM.get_LLM_response(question, action_name, queries, results, return_time=True)
     
     metrics = compute_metrics(actual_explanation, expected_explanation)
+    
+    # Translate actual inner speech to English
+    try:
+        actual_explanation_en = translator.translate(actual_explanation)
+    except Exception:
+        actual_explanation_en = ""
 
     t.log_outputs({
         "explanation": actual_explanation,
+        "explanation_en": actual_explanation_en,
     })
 
     t.log_feedback(key="total_time", score=round(total_time, 3))

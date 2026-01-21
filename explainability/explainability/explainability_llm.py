@@ -1,9 +1,15 @@
 from shared_utils.customization_helpers import load_all_explainability_examples
 from shared_utils.fewshot_helpers import prepare_few_shot_prompt
 from shared_utils.llm_helpers import LLM_Initializer
+from pydantic import BaseModel, Field
 from groq import BadRequestError
 import textwrap
-import os
+import time
+
+
+class ExplanationOutputFormat(BaseModel):
+    """Output format for explanation generation."""
+    explanation: str = Field(description="The explanation text for the user")
 
 
 
@@ -46,14 +52,23 @@ class QueryExplanation_LLM(LLM_Initializer):
                                         )
         
         try:
+            initial_time = time.time()
             llm_response = self._llm.invoke(formatted_prompt)
             llm_response_content = llm_response.content
             llm_response_time = llm_response.response_metadata['token_usage']['total_time']
 
         except BadRequestError as e:
-            print(f"\033[31mError: {e}\033[0m")
-            llm_response_content = e
-            llm_response_time = -1
+            # Use shared error handling to parse failed_generation and fix parameter types
+            _, fixed_args = self._handle_bad_request_error(e, ExplanationOutputFormat)
+            
+            if fixed_args:
+                # Successfully parsed and fixed the parameters
+                llm_response_time = time.time() - initial_time
+                llm_response_content = fixed_args.get('explanation', 'Mi dispiace, si è verificato un errore.')
+            else:
+                # Could not parse or fix the error
+                llm_response_content = "Mi dispiace, si è verificato un errore nel generare la risposta."
+                llm_response_time = time.time() - initial_time
         
         if return_time:
             return llm_response_content, llm_response_time
@@ -100,15 +115,23 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
             Formula la tua risposta in italiano:""")
         
         try:
+            initial_time = time.time()
             llm_response = self._llm.invoke(prompt)
             llm_response_content = llm_response.content
             llm_response_time = llm_response.response_metadata['token_usage']['total_time']
 
-
         except BadRequestError as e:
-            print(f"\033[31mError: {e}\033[0m")
-            llm_response_content = e
-            llm_response_time = -1
+            # Use shared error handling to parse failed_generation and fix parameter types
+            _, fixed_args = self._handle_bad_request_error(e, ExplanationOutputFormat)
+            
+            if fixed_args:
+                # Successfully parsed and fixed the parameters
+                llm_response_time = time.time() - initial_time
+                llm_response_content = fixed_args.get('explanation', 'Mi dispiace, si è verificato un errore.')
+            else:
+                # Could not parse or fix the error
+                llm_response_content = "Mi dispiace, si è verificato un errore nel generare la risposta."
+                llm_response_time = time.time() - initial_time
         
         if return_time:
             return llm_response_content, llm_response_time

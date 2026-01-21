@@ -3,10 +3,14 @@ from langsmith import testing as t
 import pytest, os, json
 import evaluate
 import ast
+from deep_translator import GoogleTranslator
 
 
 # # Load metrics once
 bertscore = evaluate.load("bertscore")
+
+# Initialize translator (Italian to English)
+translator = GoogleTranslator(source='it', target='en')
 
 def compute_metrics(prediction: str, reference: str):
     bertscore_result = bertscore.compute(predictions=[prediction], references=[reference], lang="it")
@@ -46,12 +50,15 @@ def get_examples():
 
 examples = get_examples()
 inputs = [example["question"] for example in examples]
+questions_en = [example.get("question_en", "") for example in examples]
+input2questions_en = dict(zip(inputs, questions_en))
 input2params = {example["question"]: {
     "action_name": example["action_name"], 
     "parameters": example["parameters"],
     "missing_parameters": example["missing_parameters"]} for example in examples}
 input2output = {example["question"]: {
-    "inner_speech": example["inner_speech"], 
+    "inner_speech": example["inner_speech"],
+    "inner_speech_en": example.get("inner_speech_en", ""),
     "can_proceed": example["can_proceed"]} for example in examples}
 
 
@@ -59,11 +66,20 @@ input2output = {example["question"]: {
 @pytest.mark.langsmith  # Enables tracking in LangSmith
 def test_my_groq_chain(question):
     expected_inner_speech = input2output[question]["inner_speech"]
+    expected_inner_speech_en = input2output[question]["inner_speech_en"]
     expected_can_proceed = input2output[question]["can_proceed"]
+    question_en = input2questions_en[question]
 
-    # Log to LangSmith
+    # Log inputs to LangSmith (including English translation)
+    t.log_inputs({
+        "question": question,
+        "question_en": question_en
+    })
+
+    # Log reference outputs to LangSmith (including English translation)
     t.log_reference_outputs({
         "inner_speech": expected_inner_speech,
+        "inner_speech_en": expected_inner_speech_en,
         "can_proceed": expected_can_proceed
     })
 
@@ -77,9 +93,16 @@ def test_my_groq_chain(question):
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]
+    
+    # Translate actual inner speech to English
+    try:
+        actual_inner_speech_en = translator.translate(actual_inner_speech)
+    except Exception:
+        actual_inner_speech_en = ""
 
     t.log_outputs({
         "inner_speech": actual_inner_speech,
+        "inner_speech_en": actual_inner_speech_en,
         "can_proceed": actual_can_proceed,
     })
 
