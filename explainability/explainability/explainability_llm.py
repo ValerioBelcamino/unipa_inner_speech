@@ -26,7 +26,7 @@ class QueryExplanation_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, queries=None, results=None, return_time=False):
+    def get_LLM_response(self, user_input, action_name=None, queries=None, results=None, return_time=False, return_tokens=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -51,11 +51,19 @@ class QueryExplanation_LLM(LLM_Initializer):
                                         results = results
                                         )
         
+        # Initialize token counts (used when BadRequestError occurs)
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+        
         try:
             initial_time = time.time()
             llm_response = self._llm.invoke(formatted_prompt)
             llm_response_content = llm_response.content
             llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+            prompt_tokens = llm_response.response_metadata['token_usage'].get('prompt_tokens', 0)
+            completion_tokens = llm_response.response_metadata['token_usage'].get('completion_tokens', 0)
+            total_tokens = llm_response.response_metadata['token_usage'].get('total_tokens', 0)
 
         except BadRequestError as e:
             # Use shared error handling to parse failed_generation and fix parameter types
@@ -65,12 +73,17 @@ class QueryExplanation_LLM(LLM_Initializer):
                 # Successfully parsed and fixed the parameters
                 llm_response_time = time.time() - initial_time
                 llm_response_content = fixed_args.get('explanation', 'Mi dispiace, si è verificato un errore.')
+                prompt_tokens = self._llm.get_num_tokens(formatted_prompt)
+                completion_tokens = self._llm.get_num_tokens(llm_response_content)
+                total_tokens = prompt_tokens + completion_tokens
             else:
                 # Could not parse or fix the error
                 llm_response_content = "Mi dispiace, si è verificato un errore nel generare la risposta."
                 llm_response_time = time.time() - initial_time
         
-        if return_time:
+        if return_tokens:
+            return llm_response_content, llm_response_time, prompt_tokens, completion_tokens, total_tokens
+        elif return_time:
             return llm_response_content, llm_response_time
         else:
             return llm_response_content
@@ -97,7 +110,7 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, action_description=None, parameters=None, missing_parameters=None, return_time=False):
+    def get_LLM_response(self, user_input, action_name=None, action_description=None, parameters=None, missing_parameters=None, return_time=False, return_tokens=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -114,11 +127,19 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
 
             Formula la tua risposta in italiano:""")
         
+        # Initialize token counts (used when BadRequestError occurs)
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+        
         try:
             initial_time = time.time()
             llm_response = self._llm.invoke(prompt)
             llm_response_content = llm_response.content
             llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+            prompt_tokens = llm_response.response_metadata['token_usage'].get('prompt_tokens', 0)
+            completion_tokens = llm_response.response_metadata['token_usage'].get('completion_tokens', 0)
+            total_tokens = llm_response.response_metadata['token_usage'].get('total_tokens', 0)
 
         except BadRequestError as e:
             # Use shared error handling to parse failed_generation and fix parameter types
@@ -133,7 +154,9 @@ class InnerSpeechExplanation_LLM(LLM_Initializer):
                 llm_response_content = "Mi dispiace, si è verificato un errore nel generare la risposta."
                 llm_response_time = time.time() - initial_time
         
-        if return_time:
+        if return_time and return_tokens:
+            return llm_response_content, llm_response_time, prompt_tokens, completion_tokens, total_tokens
+        elif return_time:
             return llm_response_content, llm_response_time
         else:
             return llm_response_content

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from groq import BadRequestError
 import textwrap
 import time
+import json
 
 
 class InnerSeechOutputFormat(BaseModel):
@@ -21,7 +22,7 @@ class InnerSpeech_LLM(LLM_Initializer):
         super().__init__(node_name)
 
         # Bind pydantic class for strict output format
-        self._llm = self._llm.with_structured_output(InnerSeechOutputFormat)
+        self._llm_with_output = self._llm.with_structured_output(InnerSeechOutputFormat)
 
         # Load all pydantic intent tools
         self.dynamic_intent_tools_dict = load_all_intent_models(self.scenario)
@@ -38,8 +39,33 @@ class InnerSpeech_LLM(LLM_Initializer):
         self.action_name_to_description['OutOfScope'] = 'L\'azione non è rilevante per il sistema, quindi il sistema non è in grado di fornire una risposta all\'utente.'
 
 
+    def _get_full_context_tokens(self, prompt):
+        """
+        Get accurate token count including both the prompt messages and tool definitions.
+        When tools are bound to the LLM, they are serialized and sent along with the messages.
+        """
+        # Get tokens from the prompt messages
+        prompt_str = str(prompt)
+        message_tokens = self._llm.get_num_tokens(prompt_str)
+        
+        # Get tokens from tool definitions (InnerSeechOutputFormat schema)
+        # The structured output is converted to JSON schema format when sent to the API
+        tool_schema = {
+            "functions": [{
+                "name": InnerSeechOutputFormat.__name__,
+                "description": InnerSeechOutputFormat.__doc__ or "",
+                "parameters": InnerSeechOutputFormat.model_json_schema()
+            }]
+        }
+        
+        tools_str = json.dumps(tool_schema)
+        tool_tokens = self._llm.get_num_tokens(tools_str)
+        
+        return message_tokens + tool_tokens
+
+
     # Redefine abstractmethod from the parent class with more parameters (must be Noneable by default)
-    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None, memory= None, return_time=False):
+    def get_LLM_response(self, user_input, action_name=None, parameters=None, missing_parameters=None, memory= None, return_time=False, return_tokens=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -68,11 +94,23 @@ class InnerSpeech_LLM(LLM_Initializer):
                     Parametri obbligatori mancanti: {missing_parameters}"""
                 ))
         ]
+        
+        # Initialize token counts (used when BadRequestError occurs)
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+        
         try:
             initial_time = time.time()
-            llm_response = self._llm.invoke(prompt)
+            llm_response = self._llm_with_output.invoke(prompt)
             llm_response_time = time.time() - initial_time
             print(f'\033[91m{llm_response}\033[0m')
+            
+            # Extract token usage from response metadata
+            if hasattr(llm_response, 'response_metadata') and 'token_usage' in llm_response.response_metadata:
+                prompt_tokens = llm_response.response_metadata['token_usage'].get('prompt_tokens', 0)
+                completion_tokens = llm_response.response_metadata['token_usage'].get('completion_tokens', 0)
+                total_tokens = llm_response.response_metadata['token_usage'].get('total_tokens', 0)
             
             result = {}
             result['question'] = user_input
@@ -90,13 +128,19 @@ class InnerSpeech_LLM(LLM_Initializer):
                 result['question'] = user_input
                 result['inner_speech'] = fixed_args.get('inner_speech', '')
                 result['can_proceed'] = fixed_args.get('can_proceed', False)
+                # Estimate tokens including tool definitions
+                prompt_tokens = self._get_full_context_tokens(prompt)
+                completion_tokens = self._llm.get_num_tokens(result['inner_speech'])
+                total_tokens = prompt_tokens + completion_tokens
             else:
                 # Could not parse or fix the error
                 result = {}
                 result['error'] = e
                 llm_response_time = -1
 
-        if return_time:
+        if return_tokens:
+            return result, llm_response_time, prompt_tokens, completion_tokens, total_tokens
+        elif return_time:
             return result, llm_response_time
         else:
             return result

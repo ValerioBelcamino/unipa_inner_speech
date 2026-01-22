@@ -6,6 +6,7 @@ from typing import Any, get_origin, get_args, Union
 from groq import BadRequestError
 import textwrap
 import time
+import json
 
 
 
@@ -59,6 +60,32 @@ class IntentRecognition_LLM(LLM_Initializer):
         self._plugins = load_plugins(self.scenario)
         print(f"\033[1;38;5;208mLoaded {len(self._plugins)} processing plugin(s).\033[0m")
 
+    
+    def _get_full_context_tokens(self, prompt):
+        """
+        Get accurate token count including both the prompt messages and tool definitions.
+        When tools are bound to the LLM, they are serialized and sent along with the messages.
+        """
+        # Get tokens from the prompt messages
+        prompt_str = str(prompt)
+        message_tokens = self._llm.get_num_tokens(prompt_str)
+        
+        # Get tokens from tool definitions
+        # The tools are converted to JSON schema format when sent to the API
+        tool_schemas = {"functions": []}
+        for tool_name, tool_class in self.dynamic_intent_tools_dict.items():
+            tool_schema = {
+                    "name": tool_name,
+                    "description": tool_class.__doc__ or "",
+                    "parameters": tool_class.model_json_schema()
+                }
+            tool_schemas["functions"].append(tool_schema)
+        
+        tools_str = json.dumps(tool_schemas)
+        tool_tokens = self._llm.get_num_tokens(tools_str)
+        
+        return message_tokens + tool_tokens
+
 
     def execute_plugin_pipeline(self, action_name, intent_parameters):
         """
@@ -81,7 +108,7 @@ class IntentRecognition_LLM(LLM_Initializer):
 
 
     # Redefine abstractmethod from the parent class
-    def get_LLM_response(self, user_input, memory, return_time=False):
+    def get_LLM_response(self, user_input, memory, return_time=False, return_tokens=False):
         """
         Function to get the LLM response for a given user input.
         """
@@ -105,10 +132,18 @@ class IntentRecognition_LLM(LLM_Initializer):
                     ))
         ]
 
+        # Initialize token counts (used when BadRequestError occurs)
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+
         try:
             start_time = time.perf_counter()
             llm_response = self._llm.invoke(prompt)
             llm_response_time = llm_response.response_metadata['token_usage']['total_time']
+            prompt_tokens = llm_response.response_metadata['token_usage'].get('prompt_tokens', 0)
+            completion_tokens = llm_response.response_metadata['token_usage'].get('completion_tokens', 0)
+            total_tokens = llm_response.response_metadata['token_usage'].get('total_tokens', 0)
             print(llm_response)
             tool_calls = llm_response.tool_calls
 
@@ -122,6 +157,10 @@ class IntentRecognition_LLM(LLM_Initializer):
                 parsed_tool_name, fixed_args = self._handle_bad_request_error(e, tool_class)
                 if parsed_tool_name and fixed_args:
                     tool_calls = [{'name': parsed_tool_name, 'args': fixed_args}]
+                    # Estimate tokens including tool definitions
+                    prompt_tokens = self._get_full_context_tokens(prompt)
+                    completion_tokens = self._llm.get_num_tokens(str(fixed_args))
+                    total_tokens = prompt_tokens + completion_tokens
                     break
 
         tool_calls = [tool_call for tool_call in tool_calls if tool_call['name'] in self._dynamic_intent_toolnames]
@@ -142,7 +181,9 @@ class IntentRecognition_LLM(LLM_Initializer):
                 # execute post processing plugin pipeline 
             self.execute_plugin_pipeline(tool_name, tool_result)
 
-        if return_time:
+        if return_tokens:
+            return tool_name, tool_result, llm_response_time, prompt_tokens, completion_tokens, total_tokens
+        elif return_time:
             return tool_name, tool_result, llm_response_time
         else:
             return tool_name, tool_result

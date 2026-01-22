@@ -2,6 +2,10 @@ from intent_recognition.intent_recognition_llm import IntentRecognition_LLM
 from langsmith import testing as t
 import pytest, os, json
 import ast
+import random
+
+# Set seed for reproducibility (change or remove for different shuffles each run)
+SHUFFLE_SEED = int(os.getenv("TEST_SHUFFLE_SEED", "42"))
 
 node_name = "intent_recognition" 
 IR_LLM = IntentRecognition_LLM(node_name)
@@ -34,7 +38,12 @@ def get_examples():
     """Helper function to get examples for parameterized tests"""
     scenario = os.getenv("SCENARIO")
     example_filename = "examples.json" if scenario is None else f"examples_{scenario}.json"
-    examples = extract_examples(filename=example_filename)    
+    examples = extract_examples(filename=example_filename)
+    
+    # Shuffle examples with a seed for reproducibility
+    random.seed(SHUFFLE_SEED)
+    random.shuffle(examples)
+    
     return examples
 
 examples = get_examples()
@@ -63,7 +72,7 @@ def test_my_groq_chain(question):
     })
 
     # Call your Groq chain
-    actual_intent, actual_parameters, total_time = IR_LLM.get_LLM_response(question, memory="", return_time=True)
+    actual_intent, actual_parameters, total_time, prompt_tokens, completion_tokens, total_tokens = IR_LLM.get_LLM_response(question, memory="", return_time=True, return_tokens=True)
 
     t.log_outputs({
         "action_name": actual_intent,
@@ -71,6 +80,9 @@ def test_my_groq_chain(question):
     })
 
     t.log_feedback(key="total_time", score=round(total_time, 3))
+    t.log_feedback(key="prompt_tokens", score=prompt_tokens)
+    t.log_feedback(key="completion_tokens", score=completion_tokens)
+    t.log_feedback(key="total_tokens", score=total_tokens)
 
     t.log_feedback(
         key="Intent Accuracy",

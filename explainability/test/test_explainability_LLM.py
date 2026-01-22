@@ -136,7 +136,7 @@ def test_my_groq_chain(question):
     })
 
     # Call your Groq chain w/ question, action_name, queries, results
-    actual_explanation, total_time = IS_LLM.get_LLM_response(question, action_name, queries, results, return_time=True)
+    actual_explanation, total_time, prompt_tokens, completion_tokens, total_tokens = IS_LLM.get_LLM_response(question, action_name, queries, results, return_time=True, return_tokens=True)
     
     metrics = compute_metrics(actual_explanation, expected_explanation)
     
@@ -154,6 +154,10 @@ def test_my_groq_chain(question):
     t.log_feedback(key="total_time", score=round(total_time, 3))
 
     t.log_feedback(key="bert_f1", score=round(metrics["bert_f1"], 3))
+    
+    t.log_feedback(key="prompt_tokens", score=prompt_tokens)
+    t.log_feedback(key="completion_tokens", score=completion_tokens)
+    t.log_feedback(key="total_tokens", score=total_tokens)
     # t.log_feedback(key="bleurt", score=round(metrics["bleurt"], 3))
     # t.log_feedback(key="rougeL", score=round(metrics["rougeL"], 3))
     # t.log_feedback(key="bleu", score=round(metrics["bleu"], 3))

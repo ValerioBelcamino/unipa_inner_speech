@@ -87,9 +87,12 @@ def test_my_groq_chain(question):
     action_name = input2params[question]["action_name"]
     parameters = input2params[question]["parameters"]
     missing_parameters = input2params[question]["missing_parameters"]
-    outputs, total_time = IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters, return_time=True)
+    outputs, total_time, prompt_tokens, completion_tokens, total_tokens = IS_LLM.get_LLM_response(question, action_name, parameters, missing_parameters, return_time=True, return_tokens=True)
 
     t.log_feedback(key="total_time", score=round(total_time, 3))
+    t.log_feedback(key="prompt_tokens", score=prompt_tokens)
+    t.log_feedback(key="completion_tokens", score=completion_tokens)
+    t.log_feedback(key="total_tokens", score=total_tokens)
     
     actual_inner_speech = outputs["inner_speech"]
     actual_can_proceed = outputs["can_proceed"]
