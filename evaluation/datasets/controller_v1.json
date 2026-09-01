@@ -1,0 +1,520 @@
+[
+  {
+    "id": "cv-add-01",
+    "category": "complete_valid",
+    "tags": ["add_user"],
+    "user_input": "Mi chiamo Teresa: registrami con 1950 calorie, 85 grammi di proteine, 210 di carboidrati e 65 di grassi. Sono intollerante al lattosio.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "teresa", "calorie": 1950, "proteine": 85, "carboidrati": 210, "grassi": 65, "intolleranze": ["lattosio"]}
+    }
+  },
+  {
+    "id": "cv-add-02",
+    "category": "complete_valid",
+    "tags": ["add_user"],
+    "user_input": "Puoi aggiungere Davide? Il suo obiettivo è 2400 kcal al giorno: 130 g di proteine, 280 g di carboidrati e 75 g di grassi, senza intolleranze.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "davide", "calorie": 2400, "proteine": 130, "carboidrati": 280, "grassi": 75, "intolleranze": []}
+    }
+  },
+  {
+    "id": "cv-add-03",
+    "category": "complete_valid",
+    "tags": ["add_user", "multiple_allergies"],
+    "user_input": "Sono Beatrice. Inseriscimi con 1700 calorie, 95 grammi di proteine, 180 di carboidrati e 55 di grassi; non posso mangiare glutine né frutta secca.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "beatrice", "calorie": 1700, "proteine": 95, "carboidrati": 180, "grassi": 55, "intolleranze": ["frutta secca", "glutine"]}
+    }
+  },
+  {
+    "id": "cv-add-04",
+    "category": "complete_valid",
+    "tags": ["add_user"],
+    "user_input": "Registra Omar: 2650 kcal, 145 g proteine, 310 g carboidrati, 80 g grassi. È allergico alla soia.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "omar", "calorie": 2650, "proteine": 145, "carboidrati": 310, "grassi": 80, "intolleranze": ["soia"]}
+    }
+  },
+  {
+    "id": "cv-dish-01",
+    "category": "complete_valid",
+    "tags": ["dish_info"],
+    "user_input": "Quante proteine contiene il salmone alla griglia?",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "salmone alla griglia", "controllo_ingredienti": ["proteine"]}
+    }
+  },
+  {
+    "id": "cv-dish-02",
+    "category": "complete_valid",
+    "tags": ["dish_info", "allergen"],
+    "user_input": "Vorrei verificare la presenza di uova nella torta di mandorle.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "torta di mandorle", "controllo_ingredienti": ["uova"]}
+    }
+  },
+  {
+    "id": "cv-dish-03",
+    "category": "complete_valid",
+    "tags": ["dish_info", "personalized"],
+    "user_input": "Per il profilo di Sofia, verifica la compatibilità dei gamberi alla griglia.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "sofia", "nome_piatto": "gamberi alla griglia", "controllo_ingredienti": []}
+    }
+  },
+  {
+    "id": "cv-dish-04",
+    "category": "complete_valid",
+    "tags": ["dish_info", "multiple_checks"],
+    "user_input": "Nella pasta alla carbonara ci sono glutine e lattosio?",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "pasta alla carbonara", "controllo_ingredienti": ["glutine", "lattosio"]}
+    }
+  },
+  {
+    "id": "cv-sub-01",
+    "category": "complete_valid",
+    "tags": ["substitute"],
+    "user_input": "Sono Marco: per la cena di venerdì vorrei un'alternativa senza lattosio ma con funghi.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "marco", "ingredienti_rimossi": ["lattosio"], "ingredienti_preferiti": ["funghi"], "ingredienti_obbligatori_esclusivi": [], "giorno": "venerdi", "pasto": "cena", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "cv-sub-02",
+    "category": "complete_valid",
+    "tags": ["substitute", "exclusive_ingredients"],
+    "user_input": "Mi chiamo Elisa e lunedì a pranzo posso usare soltanto riso e pomodoro. Cosa mi proponi?",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "elisa", "ingredienti_rimossi": [], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": ["pomodoro", "riso"], "giorno": "lunedi", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "cv-sub-03",
+    "category": "complete_valid",
+    "tags": ["substitute", "multiple_exclusions"],
+    "user_input": "Per Giulia suggerisci una colazione per domenica senza glutine e senza frutta secca.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "giulia", "ingredienti_rimossi": ["frutta secca", "glutine"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "domenica", "pasto": "colazione", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "cv-sub-04",
+    "category": "complete_valid",
+    "tags": ["substitute", "preference"],
+    "user_input": "Io sono Antonio; mi serve un pranzo alternativo con salmone per martedì.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "antonio", "ingredienti_rimossi": [], "ingredienti_preferiti": ["salmone"], "ingredienti_obbligatori_esclusivi": [], "giorno": "martedi", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mi-add-01",
+    "category": "missing_required",
+    "tags": ["add_user", "missing_macros"],
+    "user_input": "Aggiungi Irene al sistema; deve assumere 2000 calorie al giorno.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "irene", "calorie": 2000, "proteine": 0, "carboidrati": 0, "grassi": 0, "intolleranze": []}
+    }
+  },
+  {
+    "id": "mi-add-02",
+    "category": "missing_required",
+    "tags": ["add_user", "missing_name"],
+    "user_input": "Vorrei registrarmi: 2300 kcal, 120 grammi di proteine, 270 di carboidrati e 70 di grassi.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "", "calorie": 2300, "proteine": 120, "carboidrati": 270, "grassi": 70, "intolleranze": []}
+    }
+  },
+  {
+    "id": "mi-add-03",
+    "category": "missing_required",
+    "tags": ["add_user", "missing_one_macro"],
+    "user_input": "Registra Nino con 1800 calorie, 90 g di proteine e 190 g di carboidrati; è intollerante al glutine.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "nino", "calorie": 1800, "proteine": 90, "carboidrati": 190, "grassi": 0, "intolleranze": ["glutine"]}
+    }
+  },
+  {
+    "id": "mi-add-04",
+    "category": "missing_required",
+    "tags": ["add_user", "name_only"],
+    "user_input": "Ciao, sono Adele e voglio essere inserita nel database.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "adele", "calorie": 0, "proteine": 0, "carboidrati": 0, "grassi": 0, "intolleranze": []}
+    }
+  },
+  {
+    "id": "mi-dish-01",
+    "category": "missing_required",
+    "tags": ["dish_info", "missing_dish"],
+    "user_input": "Quante calorie ha?",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["calorie"]}
+    }
+  },
+  {
+    "id": "mi-dish-02",
+    "category": "missing_required",
+    "tags": ["dish_info", "vague"],
+    "user_input": "Vorrei sapere se il piatto va bene per me.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": []}
+    }
+  },
+  {
+    "id": "mi-sub-01",
+    "category": "missing_required",
+    "tags": ["substitute", "missing_day"],
+    "user_input": "Sono Paolo, suggeriscimi una cena senza pesce.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "paolo", "ingredienti_rimossi": ["pesce"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "", "pasto": "cena", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mi-sub-02",
+    "category": "missing_required",
+    "tags": ["substitute", "missing_meal"],
+    "user_input": "Per mercoledì proponi a Marta qualcosa con riso.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "marta", "ingredienti_rimossi": [], "ingredienti_preferiti": ["riso"], "ingredienti_obbligatori_esclusivi": [], "giorno": "mercoledi", "pasto": "", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mi-sub-03",
+    "category": "missing_required",
+    "tags": ["substitute", "missing_user"],
+    "user_input": "Mi serve un pranzo senza uova per sabato.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "", "ingredienti_rimossi": ["uova"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "sabato", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mi-sub-04",
+    "category": "missing_required",
+    "tags": ["substitute", "underspecified"],
+    "user_input": "Sono Carlo, puoi cambiare il mio pasto?",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "carlo", "ingredienti_rimossi": [], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "", "pasto": "", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "os-01",
+    "category": "out_of_scope",
+    "tags": ["weather"],
+    "user_input": "Domani pioverà a Palermo?",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "os-02",
+    "category": "out_of_scope",
+    "tags": ["entertainment"],
+    "user_input": "Metti della musica jazz rilassante.",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "os-03",
+    "category": "out_of_scope",
+    "tags": ["politics"],
+    "user_input": "Chi è il presidente della Francia?",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "os-04",
+    "category": "out_of_scope",
+    "tags": ["chitchat"],
+    "user_input": "Raccontami una barzelletta sui robot.",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "os-05",
+    "category": "out_of_scope",
+    "tags": ["medical_advice"],
+    "user_input": "Ho un forte dolore al petto, quale medicina devo prendere?",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "os-06",
+    "category": "out_of_scope",
+    "tags": ["statement_only"],
+    "user_input": "Ieri ho comprato un frigorifero nuovo.",
+    "memory": [],
+    "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "ai-add-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["add_user", "conflicting_value"],
+    "user_input": "Sono Claudia: registrami con 1800, anzi forse 2300 calorie; 100 g di proteine, 220 di carboidrati e 60 di grassi.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "claudia", "calorie": 0, "proteine": 100, "carboidrati": 220, "grassi": 60, "intolleranze": []}
+    }
+  },
+  {
+    "id": "ai-add-02",
+    "category": "ambiguous_inconsistent",
+    "tags": ["add_user", "invalid_value"],
+    "user_input": "Aggiungi Bruno con 2100 calorie, meno 20 grammi di proteine, 240 di carboidrati e 70 di grassi.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "bruno", "calorie": 2100, "proteine": -20, "carboidrati": 240, "grassi": 70, "intolleranze": []}
+    }
+  },
+  {
+    "id": "ai-add-03",
+    "category": "ambiguous_inconsistent",
+    "tags": ["add_user", "ambiguous_identity"],
+    "user_input": "Registra il profilo a nome Luca oppure Marco con 2000 calorie, 90 g proteine, 230 g carboidrati e 65 g grassi.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "", "calorie": 2000, "proteine": 90, "carboidrati": 230, "grassi": 65, "intolleranze": []}
+    }
+  },
+  {
+    "id": "ai-dish-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["dish_info", "two_dishes"],
+    "user_input": "Quante calorie ha il tiramisù oppure la panna cotta? Non ricordo quale dei due mi interessa.",
+    "memory": [],
+    "expected": {
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["calorie"]}
+    }
+  },
+  {
+    "id": "ai-dish-02",
+    "category": "ambiguous_inconsistent",
+    "tags": ["dish_info", "ambiguous_reference"],
+    "user_input": "Controlla se quello contiene glutine.",
+    "memory": ["Abbiamo parlato sia della lasagna sia del couscous."],
+    "expected": {
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["glutine"]}
+    }
+  },
+  {
+    "id": "ai-dish-03",
+    "category": "ambiguous_inconsistent",
+    "tags": ["dish_info", "unsupported_parameter"],
+    "user_input": "Sono Enrico: dimmi soltanto quante calorie contiene la lasagna.",
+    "memory": [],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "enrico", "nome_piatto": "lasagna", "controllo_ingredienti": ["calorie"]}
+    }
+  },
+  {
+    "id": "ai-sub-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["substitute", "include_exclude_conflict"],
+    "user_input": "Sono Valentina: per la cena di giovedì voglio salmone ma il piatto deve essere senza salmone.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "valentina", "ingredienti_rimossi": ["salmone"], "ingredienti_preferiti": ["salmone"], "ingredienti_obbligatori_esclusivi": [], "giorno": "giovedi", "pasto": "cena", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "ai-sub-02",
+    "category": "ambiguous_inconsistent",
+    "tags": ["substitute", "ambiguous_day"],
+    "user_input": "Per Roberto prepara un pranzo alternativo con riso, martedì o mercoledì, devo ancora decidere.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "roberto", "ingredienti_rimossi": [], "ingredienti_preferiti": ["riso"], "ingredienti_obbligatori_esclusivi": [], "giorno": "", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "ai-sub-03",
+    "category": "ambiguous_inconsistent",
+    "tags": ["substitute", "ambiguous_user"],
+    "user_input": "Suggerisci a Sara o a Laura una cena senza uova per sabato; non so ancora chi verrà.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "", "ingredienti_rimossi": ["uova"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "sabato", "pasto": "cena", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "ai-sub-04",
+    "category": "ambiguous_inconsistent",
+    "tags": ["substitute", "exclusive_conflict"],
+    "user_input": "Sono Dario: domenica a pranzo ho soltanto riso e funghi, però il piatto deve essere senza funghi.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "clarify",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "dario", "ingredienti_rimossi": ["funghi"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": ["funghi", "riso"], "giorno": "domenica", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mc-01",
+    "category": "memory_context",
+    "tags": ["dish_info", "resolved_reference"],
+    "user_input": "E contiene lattosio?",
+    "memory": ["L'utente ha detto: mi chiamo Giulia.", "Il piatto attualmente discusso è la panna cotta."],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "giulia", "nome_piatto": "panna cotta", "controllo_ingredienti": ["lattosio"]}
+    }
+  },
+  {
+    "id": "mc-02",
+    "category": "memory_context",
+    "tags": ["dish_info", "ambiguous_memory"],
+    "user_input": "Quante calorie ha?",
+    "memory": ["Nell'ultimo turno sono stati menzionati sia il tiramisu sia la torta di mandorle; nessuno è stato selezionato."],
+    "expected": {
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["calorie"]}
+    }
+  },
+  {
+    "id": "mc-03",
+    "category": "memory_context",
+    "tags": ["substitute", "elliptical_followup"],
+    "user_input": "Per sabato a pranzo invece?",
+    "memory": ["Io sono Federica.", "Richiesta precedente: proponi una cena per venerdì con riso e senza lattosio."],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "federica", "ingredienti_rimossi": ["lattosio"], "ingredienti_preferiti": ["riso"], "ingredienti_obbligatori_esclusivi": [], "giorno": "sabato", "pasto": "pranzo", "ha_piano_settimanale": true}
+    }
+  },
+  {
+    "id": "mc-04",
+    "category": "memory_context",
+    "tags": ["dish_info", "remembered_user"],
+    "user_input": "Posso mangiare il risotto ai funghi?",
+    "memory": ["Il nome dell'utente è Marco."],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "marco", "nome_piatto": "risotto ai funghi", "controllo_ingredienti": []}
+    }
+  },
+  {
+    "id": "mc-05",
+    "category": "memory_context",
+    "tags": ["dish_info", "current_turn_override"],
+    "user_input": "No, ora controlla se il cappuccino contiene lattosio.",
+    "memory": ["Il piatto discusso nel turno precedente era la lasagna."],
+    "expected": {
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "cappuccino", "controllo_ingredienti": ["lattosio"]}
+    }
+  },
+  {
+    "id": "mc-06",
+    "category": "memory_context",
+    "tags": ["substitute", "memory_conflict"],
+    "user_input": "Sono Lucia, per domenica a cena vorrei qualcosa senza pesce.",
+    "memory": ["Una vecchia interazione attribuiva il nome Laura all'utente."],
+    "tool_context": {"ha_piano_settimanale": true},
+    "expected": {
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "lucia", "ingredienti_rimossi": ["pesce"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "domenica", "pasto": "cena", "ha_piano_settimanale": true}
+    }
+  }
+]

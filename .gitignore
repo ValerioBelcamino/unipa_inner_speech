@@ -60,6 +60,12 @@ examples.txt
 __pycache__/
 *.egg-info/
 *.egg
+.venv/
+
+# Reviewer benchmark outputs and local inference state
+evaluation/results/
+evaluation/.cache/
+evaluation/ollama/
 
 # Ignore Neo4j database and logs
 query_generation/query_generation/db/data/
