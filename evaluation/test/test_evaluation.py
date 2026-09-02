@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from evaluation.controllers import run_direct, run_factored_and_rule
-from evaluation.llm_client import CompletionTrace
+from evaluation.llm_client import CompletionTrace, _retry_after_seconds
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
 from evaluation.task_spec import missing_parameters, normalize_parameters
 
@@ -122,3 +122,8 @@ def test_structured_failure_cannot_match_conservative_fallback():
     }
     assert score_controller_record(controller_record)["joint_success"] is False
     assert score_readiness_record(readiness_record)["readiness_correct"] is False
+
+
+def test_groq_retry_delay_is_parsed():
+    error = RuntimeError("Rate limit reached. Please try again in 570ms.")
+    assert _retry_after_seconds(error) == 0.82

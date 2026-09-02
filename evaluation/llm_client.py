@@ -3,11 +3,32 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import asdict, dataclass
 from typing import Any
 
 from openai import OpenAI
+
+
+def _retry_after_seconds(exc: Exception) -> float | None:
+    """Extract a provider retry delay from headers or an error message."""
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", {}) if response is not None else {}
+    try:
+        milliseconds = headers.get("retry-after-ms")
+        if milliseconds is not None:
+            return float(milliseconds) / 1000.0 + 0.25
+        seconds = headers.get("retry-after")
+        if seconds is not None:
+            return float(seconds) + 0.25
+    except (TypeError, ValueError):
+        pass
+    match = re.search(r"try again in\s+([0-9.]+)\s*(ms|s)\b", str(exc), re.IGNORECASE)
+    if not match:
+        return None
+    value = float(match.group(1))
+    return value / 1000.0 + 0.25 if match.group(2).lower() == "ms" else value + 0.25
 
 
 @dataclass
@@ -129,15 +150,19 @@ class JsonLLMClient:
                 total_latency += elapsed
                 errors.append(f"{type(exc).__name__}: {exc}")
                 if attempt < self.max_attempts:
-                    messages.append(
-                        {
-                            "role": "user",
-                            "content": (
-                                "The previous response could not be parsed. Return only one "
-                                "valid JSON object following the requested schema."
-                            ),
-                        }
-                    )
+                    retry_after = _retry_after_seconds(exc)
+                    if retry_after is not None:
+                        time.sleep(retry_after)
+                    else:
+                        messages.append(
+                            {
+                                "role": "user",
+                                "content": (
+                                    "The previous response could not be parsed. Return only one "
+                                    "valid JSON object following the requested schema."
+                                ),
+                            }
+                        )
 
         return CompletionTrace(
             parsed=None,

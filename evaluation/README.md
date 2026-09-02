@@ -62,7 +62,7 @@ python3 -m evaluation.benchmark \
   --suite controller \
   --provider groq \
   --max-cases 5 \
-  --request-delay 2.2
+  --request-delay 7.5
 ```
 
 Then run both complete suites:
@@ -71,12 +71,12 @@ Then run both complete suites:
 python3 -m evaluation.benchmark \
   --suite readiness \
   --provider groq \
-  --request-delay 1.5
+  --request-delay 7.5
 
 python3 -m evaluation.benchmark \
   --suite controller \
   --provider groq \
-  --request-delay 2.2
+  --request-delay 7.5
 ```
 
 Use `--output-dir evaluation/results/<name>` to make a run resumable at a
