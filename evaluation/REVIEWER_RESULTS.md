@@ -41,12 +41,13 @@ pairs 2 vs 8; two-sided exact McNemar p=0.109). JANUS had higher strict state
 match, also without reaching 0.05 (7 vs 1; p=0.070). JANUS factored versus
 RuleGate operational success differed on only two cases (2 vs 0; p=0.5).
 
-The main JANUS failure is upstream: Qwen Intent Recognition mapped seven
+The main JANUS failure in this superseded run was upstream: Qwen Intent Recognition mapped seven
 in-domain but incomplete/ambiguous requests to `OutOfScope`; the downstream
-Inner Speech gate cannot recover the discarded action. This behavior is
-consistent with the repository's actual Intent prompt, which says that vague
-requests not directly referring to a tool should receive no intent. It should
-be reported as a current limitation, not hidden by aggregate parameter metrics.
+Inner Speech gate cannot recover the discarded action. The then-current runtime
+prompt conflated task routing with execution readiness. Commit `6fd907d`
+separates those responsibilities in both the runtime and benchmark; a fresh
+native-tool run is required to evaluate the corrected contract. The obsolete
+numbers must not be used as evidence for that corrected controller.
 
 ## Frozen readiness ablation (29 cases)
 

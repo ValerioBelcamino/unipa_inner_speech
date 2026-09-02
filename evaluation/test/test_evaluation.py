@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from evaluation.controllers import infer_intent, run_direct, run_factored_and_rule
-from evaluation.llm_client import CompletionTrace, _retry_after_seconds
+from evaluation.llm_client import CompletionTrace, ProviderRateLimitError, _retry_after_seconds
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
 from evaluation.multidomain import run_multidomain_direct, run_multidomain_factored_and_rule
 from evaluation.paired_stats import exact_mcnemar, wilson_interval
@@ -136,6 +136,11 @@ def test_structured_failure_cannot_match_conservative_fallback():
 def test_groq_retry_delay_is_parsed():
     error = RuntimeError("Rate limit reached. Please try again in 570ms.")
     assert _retry_after_seconds(error) == 0.82
+
+
+def test_provider_rate_limit_carries_retry_delay():
+    error = ProviderRateLimitError("quota exhausted", 381.5)
+    assert error.retry_after_seconds == 381.5
 
 
 def test_clarification_does_not_require_exact_partial_state_for_operational_success():

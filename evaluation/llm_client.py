@@ -11,6 +11,14 @@ from typing import Any
 from openai import OpenAI
 
 
+class ProviderRateLimitError(RuntimeError):
+    """Pause a benchmark without scoring provider throttling as model failure."""
+
+    def __init__(self, message: str, retry_after_seconds: float | None) -> None:
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
+
+
 def _retry_after_seconds(exc: Exception) -> float | None:
     """Extract a provider retry delay from headers or an error message."""
     response = getattr(exc, "response", None)
@@ -59,12 +67,14 @@ class JsonLLMClient:
         max_attempts: int = 2,
         max_completion_tokens: int = 256,
         request_delay: float = 0.0,
+        max_retry_wait: float = 60.0,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.max_attempts = max(1, max_attempts)
         self.max_completion_tokens = max(32, max_completion_tokens)
         self.request_delay = max(0.0, request_delay)
+        self.max_retry_wait = max(0.0, max_retry_wait)
         self._client = OpenAI(
             api_key=api_key,
             base_url=self.base_url,
@@ -149,8 +159,15 @@ class JsonLLMClient:
                 self._last_request_finished = time.perf_counter()
                 total_latency += elapsed
                 errors.append(f"{type(exc).__name__}: {exc}")
+                retry_after = _retry_after_seconds(exc)
+                is_rate_limit = type(exc).__name__ == "RateLimitError" or retry_after is not None
+                if is_rate_limit and (
+                    attempt >= self.max_attempts
+                    or retry_after is None
+                    or retry_after > self.max_retry_wait
+                ):
+                    raise ProviderRateLimitError(str(exc), retry_after) from exc
                 if attempt < self.max_attempts:
-                    retry_after = _retry_after_seconds(exc)
                     if retry_after is not None:
                         time.sleep(retry_after)
                     else:
@@ -253,8 +270,15 @@ class JsonLLMClient:
                 self._last_request_finished = time.perf_counter()
                 total_latency += elapsed
                 errors.append(f"{type(exc).__name__}: {exc}")
+                retry_after = _retry_after_seconds(exc)
+                is_rate_limit = type(exc).__name__ == "RateLimitError" or retry_after is not None
+                if is_rate_limit and (
+                    attempt >= self.max_attempts
+                    or retry_after is None
+                    or retry_after > self.max_retry_wait
+                ):
+                    raise ProviderRateLimitError(str(exc), retry_after) from exc
                 if attempt < self.max_attempts:
-                    retry_after = _retry_after_seconds(exc)
                     if retry_after is not None:
                         time.sleep(retry_after)
                     else:

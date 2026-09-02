@@ -23,7 +23,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from .controllers import run_direct, run_factored_and_rule, run_readiness_gate
-from .llm_client import JsonLLMClient
+from .llm_client import JsonLLMClient, ProviderRateLimitError
 from .metrics import write_summary
 from .multidomain import (
     DOMAIN_DESCRIPTIONS,
@@ -71,6 +71,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--request-delay", type=float, default=0.0)
+    parser.add_argument(
+        "--max-retry-wait",
+        type=float,
+        default=60.0,
+        help=(
+            "maximum seconds to wait for a provider rate limit; longer waits pause "
+            "the run without recording the current case"
+        ),
+    )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--max-attempts", type=int, default=2)
     parser.add_argument("--max-completion-tokens", type=int)
@@ -313,6 +322,7 @@ def main(argv: list[str] | None = None) -> int:
         "max_attempts": args.max_attempts,
         "max_completion_tokens": args.max_completion_tokens,
         "request_delay": args.request_delay,
+        "max_retry_wait": args.max_retry_wait,
         "hardware": _hardware_metadata(),
         "case_ids": [case["id"] for case in cases],
     }
@@ -330,6 +340,7 @@ def main(argv: list[str] | None = None) -> int:
         max_attempts=args.max_attempts,
         max_completion_tokens=args.max_completion_tokens,
         request_delay=args.request_delay,
+        max_retry_wait=args.max_retry_wait,
     )
 
     total = len(cases) * args.repeats
@@ -440,4 +451,17 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except ProviderRateLimitError as exc:
+        retry = (
+            f" Suggested retry delay: {exc.retry_after_seconds:.1f}s."
+            if exc.retry_after_seconds is not None
+            else ""
+        )
+        print(
+            "Provider rate limit paused the run; the current case was not recorded."
+            + retry,
+            file=sys.stderr,
+        )
+        raise SystemExit(75) from None
