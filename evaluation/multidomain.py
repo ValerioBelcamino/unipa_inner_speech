@@ -56,7 +56,7 @@ MOVIE_TASK_SPECS: dict[str, dict[str, Any]] = {
             "time": "screening times in HH:MM format (list)",
         },
         "required": [],
-        "defaults": {"cinema": "", "language": "", "dates": [], "time": []},
+        "defaults": {"title": "", "cinema": "", "language": "", "dates": [], "time": []},
     },
 }
 
@@ -126,7 +126,9 @@ MOVIE_NATIVE_SCHEMAS = {
             "dates": {"type": "array", "items": {"type": "string"}, "default": []},
             "time": {"type": "array", "items": {"type": "string"}, "default": []},
         },
-        "required": [],
+        # Optional[str] without a default is a required-but-nullable Pydantic
+        # field in the runtime schema; post-processing normalizes it to "".
+        "required": ["title"],
     },
 }
 
