@@ -190,6 +190,52 @@ The selected reviewer runs are versioned under `evaluation/frozen_results/`.
 See `REVIEWER_RESULTS.md` for the primary tables, statistical tests, caveats,
 and the distinction between API latency and rate-limit throttling.
 
+## Reproduce the manuscript module tests with Qwen 3.8
+
+`module_benchmark.py` reruns the isolated quantitative tests reported for the
+submitted manuscript without ROS 2 or LangSmith. It uses the submitted prompts,
+native function calling, manuscript temperatures, and the original ADVISOR JSON
+datasets. The default is `qwen/qwen3.8-27b` with reasoning explicitly disabled.
+
+Validate the exact case counts without making an API call:
+
+```bash
+python3 -m evaluation.module_benchmark --validate-only
+python3 -m pytest -q evaluation/test/test_module_benchmark.py
+```
+
+Run a one-case-per-module smoke test first:
+
+```bash
+docker compose -f query_generation/query_generation/docker-compose.yml up -d
+# Run this only for a new or intentionally reset dedicated test graph:
+python3 query_generation/query_generation/populate_database.py
+
+python3 -m evaluation.module_benchmark \
+  --max-cases 1 \
+  --request-delay 8 \
+  --max-completion-tokens 512 \
+  --output-dir evaluation/results/module_smoke_qwen38
+```
+
+Then run the complete isolated experiment at the same settings. The stable
+output directory makes the command resumable after a provider limit:
+
+```bash
+python3 -m evaluation.module_benchmark \
+  --request-delay 8 \
+  --max-completion-tokens 512 \
+  --output-dir evaluation/results/modules_qwen38_final
+```
+
+The runner stores API and wall-clock latency (mean, p50, and p95), prompt,
+completion, and total tokens, retries, raw model output, and module-specific
+accuracy metrics. Query Generation additionally requires the dedicated Neo4j
+test graph. Its `legacy` protocol deliberately reproduces the original
+in-sample functional test: evaluated examples are also present among its
+few-shot demonstrations, so its scores must not be described as held-out
+generalization.
+
 ## Interpretation boundaries
 
 Call this a comparison between a **structured factored controller** and a

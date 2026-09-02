@@ -21,6 +21,14 @@ class ProviderRateLimitError(RuntimeError):
 
 def _retry_after_seconds(exc: Exception) -> float | None:
     """Extract a provider retry delay from headers or an error message."""
+    # Groq may expose a sub-second delay in the message while returning a
+    # numeric ``retry-after`` header that some SDK versions surface without
+    # its millisecond context. Prefer the explicit unit in the message.
+    match = re.search(r"try again in\s+([0-9.]+)\s*(ms|s)\b", str(exc), re.IGNORECASE)
+    if match:
+        value = float(match.group(1))
+        return value / 1000.0 + 0.25 if match.group(2).lower() == "ms" else value + 0.25
+
     response = getattr(exc, "response", None)
     headers = getattr(response, "headers", {}) if response is not None else {}
     try:
@@ -32,11 +40,7 @@ def _retry_after_seconds(exc: Exception) -> float | None:
             return float(seconds) + 0.25
     except (TypeError, ValueError):
         pass
-    match = re.search(r"try again in\s+([0-9.]+)\s*(ms|s)\b", str(exc), re.IGNORECASE)
-    if not match:
-        return None
-    value = float(match.group(1))
-    return value / 1000.0 + 0.25 if match.group(2).lower() == "ms" else value + 0.25
+    return None
 
 
 @dataclass
@@ -68,6 +72,7 @@ class JsonLLMClient:
         max_completion_tokens: int = 256,
         request_delay: float = 0.0,
         max_retry_wait: float = 60.0,
+        reasoning_effort: str | None = None,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
@@ -75,6 +80,7 @@ class JsonLLMClient:
         self.max_completion_tokens = max(32, max_completion_tokens)
         self.request_delay = max(0.0, request_delay)
         self.max_retry_wait = max(0.0, max_retry_wait)
+        self.reasoning_effort = reasoning_effort
         self._client = OpenAI(
             api_key=api_key,
             base_url=self.base_url,
@@ -84,14 +90,26 @@ class JsonLLMClient:
         self._last_request_finished = 0.0
 
     def _throttle(self) -> None:
-        remaining = self.request_delay - (time.perf_counter() - self._last_request_finished)
+        remaining = self.request_delay - (
+            time.perf_counter() - self._last_request_finished
+        )
         if remaining > 0:
             time.sleep(remaining)
+
+    def _extra_body(
+        self, *, local_options: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
+        """Return provider extensions shared by every completion method."""
+        extra_body = dict(local_options or {})
+        reasoning_effort = getattr(self, "reasoning_effort", None)
+        if reasoning_effort is not None:
+            extra_body["reasoning_effort"] = reasoning_effort
+        return extra_body or None
 
     def complete_json(
         self,
         *,
-        system: str,
+        system: str | None,
         user: str,
         output_schema: dict[str, Any],
         temperature: float,
@@ -103,7 +121,7 @@ class JsonLLMClient:
             f"It must follow this JSON schema: {schema_text}"
         )
         messages = [
-            {"role": "system", "content": system + schema_instruction},
+            {"role": "system", "content": (system or "") + schema_instruction},
             {"role": "user", "content": user},
         ]
         total_latency = 0.0
@@ -118,10 +136,15 @@ class JsonLLMClient:
             started = time.perf_counter()
             try:
                 local_options = None
-                if "localhost:11434" in self.base_url or "127.0.0.1:11434" in self.base_url:
+                if (
+                    "localhost:11434" in self.base_url
+                    or "127.0.0.1:11434" in self.base_url
+                ):
                     # Ollama's native option is the reliable generation cap in
                     # versions where the OpenAI max_tokens alias is ignored.
-                    local_options = {"options": {"num_predict": self.max_completion_tokens}}
+                    local_options = {
+                        "options": {"num_predict": self.max_completion_tokens}
+                    }
                 response = self._client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -130,7 +153,7 @@ class JsonLLMClient:
                     # Ollama 0.11 implements the legacy OpenAI-compatible
                     # ``max_tokens`` field; Groq accepts it as well.
                     max_tokens=self.max_completion_tokens,
-                    extra_body=local_options,
+                    extra_body=self._extra_body(local_options=local_options),
                 )
                 elapsed = time.perf_counter() - started
                 self._last_request_finished = time.perf_counter()
@@ -160,7 +183,9 @@ class JsonLLMClient:
                 total_latency += elapsed
                 errors.append(f"{type(exc).__name__}: {exc}")
                 retry_after = _retry_after_seconds(exc)
-                is_rate_limit = type(exc).__name__ == "RateLimitError" or retry_after is not None
+                is_rate_limit = (
+                    type(exc).__name__ == "RateLimitError" or retry_after is not None
+                )
                 if is_rate_limit and (
                     attempt >= self.max_attempts
                     or retry_after is None
@@ -195,17 +220,17 @@ class JsonLLMClient:
     def complete_tool_call(
         self,
         *,
-        system: str,
+        system: str | None,
         user: str,
         tools: list[dict[str, Any]],
         temperature: float,
         tool_choice: str | dict[str, Any] = "auto",
     ) -> CompletionTrace:
         """Return the first native function call, or OutOfScope when no tool is called."""
-        messages = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ]
+        messages = []
+        if system is not None:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": user})
         total_latency = 0.0
         total_prompt_tokens = 0
         total_completion_tokens = 0
@@ -225,6 +250,7 @@ class JsonLLMClient:
                     parallel_tool_calls=False,
                     temperature=temperature,
                     max_tokens=self.max_completion_tokens,
+                    extra_body=self._extra_body(),
                 )
                 elapsed = time.perf_counter() - started
                 self._last_request_finished = time.perf_counter()
@@ -276,7 +302,9 @@ class JsonLLMClient:
                 total_latency += elapsed
                 errors.append(f"{type(exc).__name__}: {exc}")
                 retry_after = _retry_after_seconds(exc)
-                is_rate_limit = type(exc).__name__ == "RateLimitError" or retry_after is not None
+                is_rate_limit = (
+                    type(exc).__name__ == "RateLimitError" or retry_after is not None
+                )
                 if is_rate_limit and (
                     attempt >= self.max_attempts
                     or retry_after is None
@@ -308,10 +336,92 @@ class JsonLLMClient:
             error=" | ".join(errors),
         )
 
+    def complete_text(
+        self,
+        *,
+        system: str | None,
+        user: str,
+        temperature: float,
+    ) -> CompletionTrace:
+        """Return an unconstrained text completion with timing and usage metadata."""
+        messages = []
+        if system is not None:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": user})
+        total_latency = 0.0
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+        total_tokens = 0
+        raw_text = ""
+        errors: list[str] = []
+
+        for attempt in range(1, self.max_attempts + 1):
+            self._throttle()
+            started = time.perf_counter()
+            try:
+                response = self._client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=self.max_completion_tokens,
+                    extra_body=self._extra_body(),
+                )
+                elapsed = time.perf_counter() - started
+                self._last_request_finished = time.perf_counter()
+                total_latency += elapsed
+                usage = response.usage
+                if usage is not None:
+                    total_prompt_tokens += int(usage.prompt_tokens or 0)
+                    total_completion_tokens += int(usage.completion_tokens or 0)
+                    total_tokens += int(usage.total_tokens or 0)
+                raw_text = response.choices[0].message.content or ""
+                if not raw_text and response.choices[0].finish_reason == "length":
+                    raise ValueError(
+                        "model reached the completion-token cap without text"
+                    )
+                return CompletionTrace(
+                    parsed={"text": raw_text},
+                    raw_text=raw_text,
+                    latency_seconds=total_latency,
+                    prompt_tokens=total_prompt_tokens,
+                    completion_tokens=total_completion_tokens,
+                    total_tokens=total_tokens,
+                    attempts=attempt,
+                    error=" | ".join(errors) or None,
+                )
+            except Exception as exc:
+                elapsed = time.perf_counter() - started
+                self._last_request_finished = time.perf_counter()
+                total_latency += elapsed
+                errors.append(f"{type(exc).__name__}: {exc}")
+                retry_after = _retry_after_seconds(exc)
+                is_rate_limit = (
+                    type(exc).__name__ == "RateLimitError" or retry_after is not None
+                )
+                if is_rate_limit and (
+                    attempt >= self.max_attempts
+                    or retry_after is None
+                    or retry_after > self.max_retry_wait
+                ):
+                    raise ProviderRateLimitError(str(exc), retry_after) from exc
+                if attempt < self.max_attempts and retry_after is not None:
+                    time.sleep(retry_after)
+
+        return CompletionTrace(
+            parsed=None,
+            raw_text=raw_text,
+            latency_seconds=total_latency,
+            prompt_tokens=total_prompt_tokens,
+            completion_tokens=total_completion_tokens,
+            total_tokens=total_tokens,
+            attempts=self.max_attempts,
+            error=" | ".join(errors),
+        )
+
     def complete_structured_tool_call(
         self,
         *,
-        system: str,
+        system: str | None,
         user: str,
         tool_name: str,
         tool_description: str,

@@ -9,8 +9,15 @@ from evaluation.llm_client import (
     ProviderRateLimitError,
     _retry_after_seconds,
 )
-from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
-from evaluation.multidomain import run_multidomain_direct, run_multidomain_factored_and_rule
+from evaluation.metrics import (
+    aggregate,
+    score_controller_record,
+    score_readiness_record,
+)
+from evaluation.multidomain import (
+    run_multidomain_direct,
+    run_multidomain_factored_and_rule,
+)
 from evaluation.paired_stats import exact_mcnemar, wilson_interval
 from evaluation.task_spec import missing_parameters, normalize_parameters
 
@@ -56,15 +63,18 @@ CASE = {
 
 
 def test_false_is_not_missing_for_boolean_context():
-    assert missing_parameters(
-        "SubstituteDish",
-        {
-            "nome_utente": "luca",
-            "giorno": "lunedi",
-            "pasto": "cena",
-            "ha_piano_settimanale": False,
-        },
-    ) == []
+    assert (
+        missing_parameters(
+            "SubstituteDish",
+            {
+                "nome_utente": "luca",
+                "giorno": "lunedi",
+                "pasto": "cena",
+                "ha_piano_settimanale": False,
+            },
+        )
+        == []
+    )
 
 
 def test_parameter_normalization():
@@ -83,7 +93,10 @@ def test_paired_factored_and_rule_share_intent():
         [
             {
                 "action": "DishInfo",
-                "parameters": {"nome_piatto": "tiramisu", "controllo_ingredienti": ["grassi"]},
+                "parameters": {
+                    "nome_piatto": "tiramisu",
+                    "controllo_ingredienti": ["grassi"],
+                },
             },
             {"can_proceed": True, "reason": "complete"},
         ]
@@ -111,7 +124,10 @@ def test_direct_and_aggregation():
             {
                 "decision": "execute",
                 "action": "DishInfo",
-                "parameters": {"nome_piatto": "tiramisu", "controllo_ingredienti": ["grassi"]},
+                "parameters": {
+                    "nome_piatto": "tiramisu",
+                    "controllo_ingredienti": ["grassi"],
+                },
                 "reason": "complete",
                 "clarification": "",
             }
@@ -143,6 +159,12 @@ def test_structured_failure_cannot_match_conservative_fallback():
 def test_groq_retry_delay_is_parsed():
     error = RuntimeError("Rate limit reached. Please try again in 570ms.")
     assert _retry_after_seconds(error) == 0.82
+
+
+def test_explicit_millisecond_message_wins_over_ambiguous_header():
+    error = RuntimeError("Rate limit reached. Please try again in 439ms.")
+    error.response = SimpleNamespace(headers={"retry-after": "439"})
+    assert _retry_after_seconds(error) == 0.6890000000000001
 
 
 def test_provider_rate_limit_carries_retry_delay():
@@ -275,7 +297,9 @@ def test_multidomain_factored_routes_before_intent_and_gate():
     )
     assert all(record["prediction"]["domain"] == "MOVIES" for record in records)
     assert all(record["prediction"]["action"] == "MovieInfo" for record in records)
-    assert all(score_controller_record(record)["operational_success"] for record in records)
+    assert all(
+        score_controller_record(record)["operational_success"] for record in records
+    )
 
 
 def test_wrong_multidomain_route_cannot_receive_operational_credit():
