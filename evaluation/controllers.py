@@ -267,7 +267,10 @@ memory only when unambiguous. Use execute only if every required value is presen
 the request and extracted values are mutually consistent, unambiguous, and safe to pass
 to the tool. Use clarify for a relevant but incomplete, ambiguous, contradictory, or
 invalid request. Use reject only when no task applies. If clarifying, state one concise
-question in the clarification field; otherwise make it empty.
+question in the clarification field; otherwise make it empty. Always preserve every
+parameter explicitly provided by the user or unambiguously resolved from memory or tool
+context in the parameters object, including when the decision is clarify; omit only
+unknown values.
 
 Available task contracts:
 {serialized_task_specs()}"""

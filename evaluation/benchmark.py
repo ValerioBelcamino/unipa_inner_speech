@@ -352,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Completed {total} case/repeat pairs; results: {output_dir}")
     for row in rows:
         if row["category"] == "ALL":
-            primary = row.get("joint_task_success", row.get("readiness_accuracy"))
+            primary = row.get("operational_task_success", row.get("readiness_accuracy"))
             print(
                 f"  {row['architecture']}: n={row['n']} primary={primary:.3f} "
                 f"p50={row['latency_p50_seconds']:.3f}s p95={row['latency_p95_seconds']:.3f}s"

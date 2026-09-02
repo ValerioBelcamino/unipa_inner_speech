@@ -61,7 +61,12 @@ def score_controller_record(record: dict[str, Any]) -> dict[str, Any]:
         "decision_correct": decision_correct,
         "action_correct": action_correct,
         "parameters_exact": parameters_exact,
-        "joint_success": decision_correct and action_correct and parameters_exact,
+        "strict_state_match": decision_correct and action_correct and parameters_exact,
+        "operational_success": (
+            decision_correct
+            and action_correct
+            and (expected_decision != "execute" or parameters_exact)
+        ),
         "parameter_tp": true_positive,
         "parameter_predicted": len(predicted_items),
         "parameter_expected": len(expected_items),
@@ -97,6 +102,7 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
         "latency_p50_seconds": _percentile(latency, 0.50),
         "latency_p95_seconds": _percentile(latency, 0.95),
         "llm_latency_p50_seconds": _percentile(llm_latency, 0.50),
+        "llm_latency_p95_seconds": _percentile(llm_latency, 0.95),
         "total_tokens_median": statistics.median(total_tokens) if total_tokens else math.nan,
         "llm_calls_mean": statistics.mean(calls) if calls else math.nan,
         "structured_output_failure_rate": _rate(
@@ -111,7 +117,12 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
                 "decision_accuracy": _rate(sum(s["decision_correct"] for s in scores), len(scores)),
                 "action_accuracy": _rate(sum(s["action_correct"] for s in scores), len(scores)),
                 "parameter_exact_match": _rate(sum(s["parameters_exact"] for s in scores), len(scores)),
-                "joint_task_success": _rate(sum(s["joint_success"] for s in scores), len(scores)),
+                "strict_state_match": _rate(
+                    sum(s["strict_state_match"] for s in scores), len(scores)
+                ),
+                "operational_task_success": _rate(
+                    sum(s["operational_success"] for s in scores), len(scores)
+                ),
             }
         )
         decision_recalls: list[float] = []

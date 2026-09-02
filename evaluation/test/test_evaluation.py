@@ -105,7 +105,8 @@ def test_direct_and_aggregation():
     record = run_direct(client, CASE, repeat=0, temperature=0.0)
     summary = aggregate([record], "controller")
     overall = next(row for row in summary if row["category"] == "ALL")
-    assert overall["joint_task_success"] == 1.0
+    assert overall["operational_task_success"] == 1.0
+    assert overall["strict_state_match"] == 1.0
     assert overall["parameter_micro_f1"] == 1.0
 
 
@@ -120,10 +121,29 @@ def test_structured_failure_cannot_match_conservative_fallback():
         "prediction": {"can_proceed": False},
         "structured_output_failure": True,
     }
-    assert score_controller_record(controller_record)["joint_success"] is False
+    assert score_controller_record(controller_record)["operational_success"] is False
     assert score_readiness_record(readiness_record)["readiness_correct"] is False
 
 
 def test_groq_retry_delay_is_parsed():
     error = RuntimeError("Rate limit reached. Please try again in 570ms.")
     assert _retry_after_seconds(error) == 0.82
+
+
+def test_clarification_does_not_require_exact_partial_state_for_operational_success():
+    record = {
+        "expected": {
+            "decision": "clarify",
+            "action": "DishInfo",
+            "parameters": {"nome_piatto": "", "controllo_ingredienti": ["calorie"]},
+        },
+        "prediction": {
+            "decision": "clarify",
+            "action": "DishInfo",
+            "parameters": {},
+        },
+        "structured_output_failure": False,
+    }
+    score = score_controller_record(record)
+    assert score["operational_success"] is True
+    assert score["strict_state_match"] is False

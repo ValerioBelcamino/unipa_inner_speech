@@ -26,12 +26,16 @@ incomplete requests, it includes semantic upstream errors: wrong actions,
 invented parameters, ambiguous values, contradictory constraints, and invalid
 nutritional targets.  These are the cases missing from the original unit suite.
 
-Primary metrics are joint task success and decision macro-recall (controller
-suite), readiness balanced accuracy and separate proceed/block recall (readiness
+Primary metrics are operational task success and decision macro-recall
+(controller suite), readiness balanced accuracy and separate proceed/block recall (readiness
 suite), premature execution/proceed rate, unnecessary clarification or blocking
 rate, and structured-output failure rate.  Efficiency metrics are
 p50/p95 wall latency, API-reported token use, and number of calls including
-retries. Groq completions are capped at 1024 tokens because reasoning tokens
+retries. Operational task success requires the decision and action to be correct,
+and exact parameters when the gold decision is `execute`. Strict state match is
+also reported and requires exact parameters even for clarification/rejection
+turns, where preserving partial state can still matter for the next turn.
+Groq completions are capped at 1024 tokens because reasoning tokens
 count toward the budget; local/custom completions default to 256 tokens so a
 malformed local generation cannot dominate the latency distribution. Override
 the cap only if the same value is used for every compared condition.
