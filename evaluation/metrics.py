@@ -41,12 +41,25 @@ def _parameter_items(parameters: dict[str, Any]) -> set[tuple[str, str]]:
 def score_controller_record(record: dict[str, Any]) -> dict[str, Any]:
     expected = record["expected"]
     predicted = record["prediction"]
-    expected_action = normalize_action(expected.get("action"))
-    predicted_action = normalize_action(predicted.get("action"))
+    multidomain = "domain" in expected
+    expected_action = (
+        str(expected.get("action", ""))
+        if multidomain
+        else normalize_action(expected.get("action"))
+    )
+    predicted_action = (
+        str(predicted.get("action", ""))
+        if multidomain
+        else normalize_action(predicted.get("action"))
+    )
     expected_decision = normalize_decision(expected.get("decision"))
     predicted_decision = normalize_decision(predicted.get("decision"))
-    expected_parameters = normalize_parameters(expected_action, expected.get("parameters", {}))
-    predicted_parameters = normalize_parameters(predicted_action, predicted.get("parameters", {}))
+    if multidomain:
+        expected_parameters = expected.get("parameters", {})
+        predicted_parameters = predicted.get("parameters", {})
+    else:
+        expected_parameters = normalize_parameters(expected_action, expected.get("parameters", {}))
+        predicted_parameters = normalize_parameters(predicted_action, predicted.get("parameters", {}))
 
     expected_items = _parameter_items(expected_parameters)
     predicted_items = _parameter_items(predicted_parameters)
@@ -56,14 +69,21 @@ def score_controller_record(record: dict[str, Any]) -> dict[str, Any]:
     valid_prediction = not bool(record.get("structured_output_failure", False))
     decision_correct = valid_prediction and expected_decision == predicted_decision
     action_correct = valid_prediction and expected_action == predicted_action
+    domain_correct = valid_prediction and (
+        not multidomain or expected.get("domain") == predicted.get("domain")
+    )
     parameters_exact = valid_prediction and expected_parameters == predicted_parameters
     return {
         "decision_correct": decision_correct,
+        "domain_correct": domain_correct,
         "action_correct": action_correct,
         "parameters_exact": parameters_exact,
-        "strict_state_match": decision_correct and action_correct and parameters_exact,
+        "strict_state_match": (
+            decision_correct and domain_correct and action_correct and parameters_exact
+        ),
         "operational_success": (
             decision_correct
+            and domain_correct
             and action_correct
             and (expected_decision != "execute" or parameters_exact)
         ),
@@ -110,7 +130,7 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
         ),
     }
 
-    if suite == "controller":
+    if suite in {"controller", "multidomain"}:
         scores = [score_controller_record(record) for record in records]
         result.update(
             {
@@ -125,6 +145,10 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
                 ),
             }
         )
+        if suite == "multidomain":
+            result["domain_accuracy"] = _rate(
+                sum(s["domain_correct"] for s in scores), len(scores)
+            )
         decision_recalls: list[float] = []
         for decision_name in ("execute", "clarify", "reject"):
             eligible = [

@@ -25,11 +25,18 @@ from dotenv import load_dotenv
 from .controllers import run_direct, run_factored_and_rule, run_readiness_gate
 from .llm_client import JsonLLMClient
 from .metrics import write_summary
+from .multidomain import (
+    DOMAIN_DESCRIPTIONS,
+    TASK_TO_DOMAIN,
+    run_multidomain_direct,
+    run_multidomain_factored_and_rule,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATASETS = {
     "controller": Path(__file__).parent / "datasets" / "controller_v1.json",
+    "multidomain": Path(__file__).parent / "datasets" / "multidomain_v1.json",
     "readiness": Path(__file__).parent / "datasets" / "readiness_v1.json",
 }
 
@@ -68,6 +75,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-attempts", type=int, default=2)
     parser.add_argument("--max-completion-tokens", type=int)
     parser.add_argument("--intent-temperature", type=float, default=0.0)
+    parser.add_argument("--scope-temperature", type=float, default=0.0)
     parser.add_argument("--gate-temperature", type=float, default=0.2)
     parser.add_argument("--direct-temperature", type=float, default=0.0)
     parser.add_argument("--validate-only", action="store_true")
@@ -109,8 +117,23 @@ def _load_cases(path: Path, suite: str) -> list[dict[str, Any]]:
         if case["id"] in ids:
             raise ValueError(f"duplicate case id: {case['id']}")
         ids.add(case["id"])
-        if suite == "controller" and "expected" not in case:
+        if suite in {"controller", "multidomain"} and "expected" not in case:
             raise ValueError(f"controller case {case['id']} has no expected object")
+        if suite == "multidomain":
+            expected = case["expected"]
+            for expected_field in ("domain", "decision", "action", "parameters"):
+                if expected_field not in expected:
+                    raise ValueError(
+                        f"multidomain case {case['id']} expected is missing {expected_field}"
+                    )
+            domain = expected["domain"]
+            action = expected["action"]
+            if domain != "OutOfScope" and domain not in DOMAIN_DESCRIPTIONS:
+                raise ValueError(f"unknown expected domain in {case['id']}: {domain}")
+            if action != "OutOfScope" and TASK_TO_DOMAIN.get(action) != domain:
+                raise ValueError(
+                    f"action/domain mismatch in {case['id']}: {action}/{domain}"
+                )
         if suite == "readiness":
             for field in ("action", "parameters", "missing_parameters", "expected_can_proceed"):
                 if field not in case:
@@ -213,9 +236,17 @@ def _read_records(path: Path) -> list[dict[str, Any]]:
 
 def _architectures(args: argparse.Namespace) -> set[str]:
     if args.architectures == "all":
-        return {"factored", "rule", "direct"} if args.suite == "controller" else {"inner", "rule"}
+        return (
+            {"factored", "rule", "direct"}
+            if args.suite in {"controller", "multidomain"}
+            else {"inner", "rule"}
+        )
     selected = {part.strip().lower() for part in args.architectures.split(",") if part.strip()}
-    allowed = {"factored", "rule", "direct"} if args.suite == "controller" else {"inner", "rule"}
+    allowed = (
+        {"factored", "rule", "direct"}
+        if args.suite in {"controller", "multidomain"}
+        else {"inner", "rule"}
+    )
     unknown = selected - allowed
     if unknown:
         raise SystemExit(f"Unknown architectures for {args.suite}: {sorted(unknown)}")
@@ -275,6 +306,7 @@ def main(argv: list[str] | None = None) -> int:
         "repeats": args.repeats,
         "temperatures": {
             "intent": args.intent_temperature,
+            "scope": args.scope_temperature,
             "gate": args.gate_temperature,
             "direct": args.direct_temperature,
         },
@@ -306,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
             for position, case in enumerate(cases, 1):
                 print(f"[{repeat + 1}/{args.repeats} {position}/{len(cases)}] {case['id']}", flush=True)
                 produced: list[dict[str, Any]] = []
-                if args.suite == "controller":
+                if args.suite in {"controller", "multidomain"}:
                     need_factored = (
                         "factored" in selected
                         and ("janus_factored", case["id"], repeat) not in completed
@@ -316,32 +348,58 @@ def main(argv: list[str] | None = None) -> int:
                         and ("janus_rule_gate", case["id"], repeat) not in completed
                     )
                     if need_factored or need_rule:
-                        produced.extend(
-                            run_factored_and_rule(
-                                client,
-                                case,
-                                repeat=repeat,
-                                intent_temperature=args.intent_temperature,
-                                gate_temperature=args.gate_temperature,
-                                include_factored=need_factored,
-                                include_rule=need_rule,
-                                intent_interface=args.intent_interface,
-                                structured_interface=args.structured_interface,
+                        if args.suite == "multidomain":
+                            produced.extend(
+                                run_multidomain_factored_and_rule(
+                                    client,
+                                    case,
+                                    repeat=repeat,
+                                    scope_temperature=args.scope_temperature,
+                                    intent_temperature=args.intent_temperature,
+                                    gate_temperature=args.gate_temperature,
+                                    include_factored=need_factored,
+                                    include_rule=need_rule,
+                                    structured_interface=args.structured_interface,
+                                )
                             )
-                        )
+                        else:
+                            produced.extend(
+                                run_factored_and_rule(
+                                    client,
+                                    case,
+                                    repeat=repeat,
+                                    intent_temperature=args.intent_temperature,
+                                    gate_temperature=args.gate_temperature,
+                                    include_factored=need_factored,
+                                    include_rule=need_rule,
+                                    intent_interface=args.intent_interface,
+                                    structured_interface=args.structured_interface,
+                                )
+                            )
                     if (
                         "direct" in selected
                         and ("direct_llm", case["id"], repeat) not in completed
                     ):
-                        produced.append(
-                            run_direct(
-                                client,
-                                case,
-                                repeat=repeat,
-                                temperature=args.direct_temperature,
-                                structured_interface=args.structured_interface,
+                        if args.suite == "multidomain":
+                            produced.append(
+                                run_multidomain_direct(
+                                    client,
+                                    case,
+                                    repeat=repeat,
+                                    temperature=args.direct_temperature,
+                                    structured_interface=args.structured_interface,
+                                )
                             )
-                        )
+                        else:
+                            produced.append(
+                                run_direct(
+                                    client,
+                                    case,
+                                    repeat=repeat,
+                                    temperature=args.direct_temperature,
+                                    structured_interface=args.structured_interface,
+                                )
+                            )
                 else:
                     need_inner = (
                         "inner" in selected

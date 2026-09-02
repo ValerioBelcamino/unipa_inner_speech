@@ -1,0 +1,321 @@
+[
+  {
+    "id": "md-advisor-valid-01",
+    "category": "complete_valid",
+    "tags": ["advisor", "dish_info"],
+    "user_input": "Quante proteine contiene il salmone alla griglia?",
+    "memory": [],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "salmone alla griglia", "controllo_ingredienti": ["proteine"]}
+    }
+  },
+  {
+    "id": "md-advisor-valid-02",
+    "category": "complete_valid",
+    "tags": ["advisor", "add_user"],
+    "user_input": "Registrami come Dario con 2200 calorie, 110 grammi di proteine, 260 di carboidrati e 70 di grassi.",
+    "memory": [],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "execute",
+      "action": "AddToDatabase",
+      "parameters": {"nome_utente": "dario", "calorie": 2200, "proteine": 110, "carboidrati": 260, "grassi": 70, "intolleranze": []}
+    }
+  },
+  {
+    "id": "md-advisor-valid-03",
+    "category": "complete_valid",
+    "tags": ["advisor", "substitute", "known_false_boolean", "weekend"],
+    "user_input": "Sono Irene, per domenica a cena proponimi un'alternativa senza uova.",
+    "memory": [],
+    "tool_context": {"ha_piano_settimanale": false},
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "execute",
+      "action": "SubstituteDish",
+      "parameters": {"nome_utente": "irene", "ingredienti_rimossi": ["uova"], "ingredienti_preferiti": [], "ingredienti_obbligatori_esclusivi": [], "giorno": "domenica", "pasto": "cena", "ha_piano_settimanale": false}
+    }
+  },
+  {
+    "id": "md-advisor-missing-01",
+    "category": "missing_required",
+    "tags": ["advisor", "dish_info", "missing_dish"],
+    "user_input": "Quanti grassi contiene?",
+    "memory": [],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["grassi"]}
+    }
+  },
+  {
+    "id": "md-advisor-ambiguous-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["advisor", "dish_info", "two_dishes"],
+    "user_input": "Controlla il glutine nella carbonara oppure nella lasagna; non ricordo quale delle due mi interessa.",
+    "memory": [],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "clarify",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "", "controllo_ingredienti": ["glutine"]}
+    }
+  },
+  {
+    "id": "md-advisor-memory-01",
+    "category": "memory_context",
+    "tags": ["advisor", "current_turn_override"],
+    "user_input": "Ora sono Giulia: posso mangiare il couscous?",
+    "memory": ["Nel turno precedente l'utente era Laura e chiedeva della lasagna."],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "giulia", "nome_piatto": "couscous", "controllo_ingredienti": []}
+    }
+  },
+  {
+    "id": "md-movies-valid-01",
+    "category": "complete_valid",
+    "tags": ["movies", "movie_info"],
+    "user_input": "Chi ha diretto Inception?",
+    "memory": [],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "execute",
+      "action": "MovieInfo",
+      "parameters": {"title": "inception", "director": "", "genres": [], "year": 0, "actors": [], "descriptive_movie_facts": []}
+    }
+  },
+  {
+    "id": "md-movies-valid-02",
+    "category": "complete_valid",
+    "tags": ["movies", "movie_info", "descriptive_search"],
+    "user_input": "Cerco il film del 2014 con Matthew McConaughey che parla di viaggi nello spazio e buchi neri.",
+    "memory": [],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "execute",
+      "action": "MovieInfo",
+      "parameters": {"title": "", "director": "", "genres": [], "year": 2014, "actors": ["matthew mcconaughey"], "descriptive_movie_facts": ["buchi neri", "viaggi nello spazio"]}
+    }
+  },
+  {
+    "id": "md-movies-valid-03",
+    "category": "complete_valid",
+    "tags": ["movies", "timetable"],
+    "user_input": "In quale cinema proiettano Dune in lingua inglese?",
+    "memory": [],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "execute",
+      "action": "TimetableInfo",
+      "parameters": {"title": "dune", "cinema": "", "language": "en", "dates": [], "time": []}
+    }
+  },
+  {
+    "id": "md-movies-missing-01",
+    "category": "missing_required",
+    "tags": ["movies", "timetable", "no_filter"],
+    "user_input": "Quando lo proiettano?",
+    "memory": [],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "clarify",
+      "action": "TimetableInfo",
+      "parameters": {"title": "", "cinema": "", "language": "", "dates": [], "time": []}
+    }
+  },
+  {
+    "id": "md-movies-ambiguous-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["movies", "movie_info", "two_movies"],
+    "user_input": "Dimmi il regista di Titanic o Avatar; non ho ancora scelto quale film.",
+    "memory": [],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "clarify",
+      "action": "MovieInfo",
+      "parameters": {"title": "", "director": "", "genres": [], "year": 0, "actors": [], "descriptive_movie_facts": []}
+    }
+  },
+  {
+    "id": "md-movies-memory-01",
+    "category": "memory_context",
+    "tags": ["movies", "resolved_reference"],
+    "user_input": "Chi lo ha diretto?",
+    "memory": ["L'unico film menzionato nel dialogo è Parasite."],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "execute",
+      "action": "MovieInfo",
+      "parameters": {"title": "parasite", "director": "", "genres": [], "year": 0, "actors": [], "descriptive_movie_facts": []}
+    }
+  },
+  {
+    "id": "md-movies-memory-02",
+    "category": "memory_context",
+    "tags": ["movies", "ambiguous_reference"],
+    "user_input": "A che ora lo proiettano?",
+    "memory": ["Sono stati discussi sia Dune sia Blade Runner 2049."],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "clarify",
+      "action": "TimetableInfo",
+      "parameters": {"title": "", "cinema": "", "language": "", "dates": [], "time": []}
+    }
+  },
+  {
+    "id": "md-rehab-valid-01",
+    "category": "complete_valid",
+    "tags": ["rehab", "exercise_info"],
+    "user_input": "Come si eseguono le alzate frontali?",
+    "memory": [],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "execute",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "alzate frontali", "user_name": "", "step_number": 1, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-rehab-valid-02",
+    "category": "complete_valid",
+    "tags": ["rehab", "patient_info"],
+    "user_input": "Sono Marta, qual è la frequenza cardiaca che devo mantenere durante gli esercizi?",
+    "memory": [],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "execute",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "", "user_name": "marta", "step_number": 1, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-rehab-valid-03",
+    "category": "complete_valid",
+    "tags": ["rehab", "exercise_step"],
+    "user_input": "Qual è il terzo passaggio dei piegamenti al muro?",
+    "memory": [],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "execute",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "piegamenti al muro", "user_name": "", "step_number": 3, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-rehab-missing-01",
+    "category": "missing_required",
+    "tags": ["rehab", "exercise_info", "no_identifier"],
+    "user_input": "Come devo eseguirlo?",
+    "memory": [],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "clarify",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "", "user_name": "", "step_number": 1, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-rehab-ambiguous-01",
+    "category": "ambiguous_inconsistent",
+    "tags": ["rehab", "two_exercises"],
+    "user_input": "Spiegami il secondo passaggio del ponte oppure delle alzate laterali; devo ancora scegliere l'esercizio.",
+    "memory": [],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "clarify",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "", "user_name": "", "step_number": 2, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-rehab-memory-01",
+    "category": "memory_context",
+    "tags": ["rehab", "resolved_reference"],
+    "user_input": "Ricordami il secondo passaggio.",
+    "memory": ["L'unico esercizio attivo è il ponte."],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "execute",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "ponte", "user_name": "", "step_number": 2, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-cross-01",
+    "category": "cross_domain_context",
+    "tags": ["advisor", "movie_memory"],
+    "user_input": "Adesso dimmi quante calorie contiene la parmigiana.",
+    "memory": ["Prima stavamo cercando gli orari del film Dune."],
+    "expected": {
+      "domain": "ADVISOR",
+      "decision": "execute",
+      "action": "DishInfo",
+      "parameters": {"nome_utente": "", "nome_piatto": "parmigiana", "controllo_ingredienti": ["calorie"]}
+    }
+  },
+  {
+    "id": "md-cross-02",
+    "category": "cross_domain_context",
+    "tags": ["movies", "diet_memory"],
+    "user_input": "Cambiamo argomento: chi ha diretto The Matrix?",
+    "memory": ["L'utente aveva chiesto un piatto senza lattosio per martedì."],
+    "expected": {
+      "domain": "MOVIES",
+      "decision": "execute",
+      "action": "MovieInfo",
+      "parameters": {"title": "the matrix", "director": "", "genres": [], "year": 0, "actors": [], "descriptive_movie_facts": []}
+    }
+  },
+  {
+    "id": "md-cross-03",
+    "category": "cross_domain_context",
+    "tags": ["rehab", "diet_memory"],
+    "user_input": "Ora vorrei sapere quante ripetizioni devo fare per le alzate laterali.",
+    "memory": ["La conversazione precedente riguardava le proteine nella carbonara."],
+    "expected": {
+      "domain": "I-TROPHYTS",
+      "decision": "execute",
+      "action": "ExerciseInformation",
+      "parameters": {"exercise_name": "alzate laterali", "user_name": "", "step_number": 1, "giorno": ""}
+    }
+  },
+  {
+    "id": "md-oos-01",
+    "category": "out_of_scope",
+    "tags": ["weather"],
+    "user_input": "Che tempo farà domani a Palermo?",
+    "memory": [],
+    "expected": {"domain": "OutOfScope", "decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "md-oos-02",
+    "category": "out_of_scope",
+    "tags": ["restaurant_booking"],
+    "user_input": "Prenotami un tavolo per quattro persone alle venti.",
+    "memory": [],
+    "expected": {"domain": "OutOfScope", "decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "md-oos-03",
+    "category": "out_of_scope",
+    "tags": ["medical_advice"],
+    "user_input": "Ho mal di testa: quale farmaco devo prendere?",
+    "memory": [],
+    "expected": {"domain": "OutOfScope", "decision": "reject", "action": "OutOfScope", "parameters": {}}
+  },
+  {
+    "id": "md-oos-04",
+    "category": "out_of_scope",
+    "tags": ["chitchat"],
+    "user_input": "Raccontami una barzelletta sui pirati.",
+    "memory": [],
+    "expected": {"domain": "OutOfScope", "decision": "reject", "action": "OutOfScope", "parameters": {}}
+  }
+]

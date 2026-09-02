@@ -52,7 +52,7 @@ def compare(
             continue
         score = (
             score_controller_record(record)
-            if suite == "controller"
+            if suite in {"controller", "multidomain"}
             else score_readiness_record(record)
         )
         paired[architecture][(record["case_id"], int(record["repeat"]))] = bool(score[metric])
@@ -87,13 +87,17 @@ def compare(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--raw", required=True, type=Path)
-    parser.add_argument("--suite", required=True, choices=("controller", "readiness"))
+    parser.add_argument(
+        "--suite", required=True, choices=("controller", "multidomain", "readiness")
+    )
     parser.add_argument("--left", required=True)
     parser.add_argument("--right", required=True)
     parser.add_argument("--metric")
     args = parser.parse_args()
     metric = args.metric or (
-        "operational_success" if args.suite == "controller" else "readiness_correct"
+        "operational_success"
+        if args.suite in {"controller", "multidomain"}
+        else "readiness_correct"
     )
     result = compare(_records(args.raw), args.suite, args.left, args.right, metric)
     print(json.dumps(result, indent=2, sort_keys=True))

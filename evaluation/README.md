@@ -1,6 +1,6 @@
 # Reviewer evaluation harness
 
-This directory contains two paired experiments for the major revision.  It is
+This directory contains paired experiments for the major revision.  It is
 standalone: ROS 2, Neo4j, and LangSmith are not required, and every raw response
 is saved locally before metrics are aggregated.
 
@@ -37,6 +37,15 @@ incomplete requests, it includes semantic upstream errors: wrong actions,
 invented parameters, ambiguous values, contradictory constraints, and invalid
 nutritional targets.  These are the cases missing from the original unit suite.
 
+`multidomain_v1` is a separately frozen stress test over the three scenarios
+with task implementations in this repository: ADVISOR, MOVIES, and
+I-TROPHYTS (seven task tools in total). JANUS performs native Scope Detection,
+then exposes only the selected domain's tools to Intent Recognition, followed
+by Inner Speech. The one-call Direct baseline receives all seven contracts.
+Its 26 cases were committed before any model run and cover valid execution,
+missing information, semantic ambiguity, memory, cross-domain context, and
+out-of-scope requests. Domain-selection accuracy is reported explicitly.
+
 Primary metrics are operational task success and decision macro-recall
 (controller suite), readiness balanced accuracy and separate proceed/block recall (readiness
 suite), premature execution/proceed rate, unnecessary clarification or blocking
@@ -57,6 +66,7 @@ From the repository root:
 
 ```bash
 python3 -m evaluation.benchmark --suite controller --validate-only
+python3 -m evaluation.benchmark --suite multidomain --validate-only
 python3 -m evaluation.benchmark --suite readiness --validate-only
 python3 -m pytest -q evaluation/test/test_evaluation.py
 ```
@@ -90,6 +100,11 @@ python3 -m evaluation.benchmark \
 
 python3 -m evaluation.benchmark \
   --suite controller \
+  --provider groq \
+  --request-delay 7.5
+
+python3 -m evaluation.benchmark \
+  --suite multidomain \
   --provider groq \
   --request-delay 7.5
 ```

@@ -172,24 +172,32 @@ def serialized_task_specs() -> str:
     return json.dumps(TASK_SPECS, ensure_ascii=False, sort_keys=True, indent=2)
 
 
-def empty_parameters(action: str) -> dict[str, Any]:
+def empty_parameters(
+    action: str, task_specs: dict[str, dict[str, Any]] | None = None
+) -> dict[str, Any]:
     """Return defaults for an action without inventing required values."""
-    if action not in TASK_SPECS:
+    specs = task_specs or TASK_SPECS
+    if action not in specs:
         return {}
-    return dict(TASK_SPECS[action].get("defaults", {}))
+    return dict(specs[action].get("defaults", {}))
 
 
-def missing_parameters(action: str, parameters: dict[str, Any]) -> list[str]:
+def missing_parameters(
+    action: str,
+    parameters: dict[str, Any],
+    task_specs: dict[str, dict[str, Any]] | None = None,
+) -> list[str]:
     """Compute syntactically missing slots using the JANUS readiness contract.
 
     A false weekly-plan flag is a known state, not a missing value.  This avoids
     Python's surprising ``False == 0`` behavior in the ROS node and makes the
     benchmark's definition explicit.
     """
-    if action not in TASK_SPECS:
+    specs = task_specs or TASK_SPECS
+    if action not in specs:
         return []
     missing: list[str] = []
-    for name in TASK_SPECS[action]["required"]:
+    for name in specs[action]["required"]:
         if name not in parameters:
             missing.append(name)
             continue
@@ -206,12 +214,17 @@ def _plain_text(value: str) -> str:
     return "".join(char for char in value if not unicodedata.combining(char))
 
 
-def normalize_parameters(action: str, raw: Any) -> dict[str, Any]:
+def normalize_parameters(
+    action: str,
+    raw: Any,
+    task_specs: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Normalize a model-produced parameter dictionary for stable comparison."""
-    if action not in TASK_SPECS or not isinstance(raw, dict):
+    specs = task_specs or TASK_SPECS
+    if action not in specs or not isinstance(raw, dict):
         return {}
-    fields = TASK_SPECS[action]["parameters"]
-    normalized = empty_parameters(action)
+    fields = specs[action]["parameters"]
+    normalized = empty_parameters(action, specs)
     for name, value in raw.items():
         if name not in fields or value is None:
             continue
@@ -233,16 +246,22 @@ def normalize_parameters(action: str, raw: Any) -> dict[str, Any]:
                 normalized[name] = sorted(
                     {_plain_text(str(item)) for item in value if str(item).strip()}
                 )
+        elif "(object" in description:
+            if isinstance(value, dict):
+                normalized[name] = value
         elif isinstance(value, str):
             normalized[name] = _plain_text(value)
     return normalized
 
 
-def normalize_action(value: Any) -> str:
+def normalize_action(
+    value: Any, task_specs: dict[str, dict[str, Any]] | None = None
+) -> str:
     """Map minor casing differences to a known action."""
     if not isinstance(value, str):
         return OUT_OF_SCOPE
-    lookup = {name.lower(): name for name in (*TASK_SPECS.keys(), OUT_OF_SCOPE)}
+    specs = task_specs or TASK_SPECS
+    lookup = {name.lower(): name for name in (*specs.keys(), OUT_OF_SCOPE)}
     return lookup.get(value.strip().lower(), OUT_OF_SCOPE)
 
 

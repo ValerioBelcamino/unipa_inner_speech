@@ -3,6 +3,7 @@ from __future__ import annotations
 from evaluation.controllers import infer_intent, run_direct, run_factored_and_rule
 from evaluation.llm_client import CompletionTrace, _retry_after_seconds
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
+from evaluation.multidomain import run_multidomain_direct, run_multidomain_factored_and_rule
 from evaluation.paired_stats import exact_mcnemar, wilson_interval
 from evaluation.task_spec import missing_parameters, normalize_parameters
 
@@ -185,3 +186,108 @@ def test_native_intent_uses_tool_call_and_frozen_db_context():
     assert prediction.action == "SubstituteDish"
     assert prediction.parameters["giorno"] == "martedi"
     assert prediction.parameters["ha_piano_settimanale"] is True
+
+
+def test_multidomain_factored_routes_before_intent_and_gate():
+    client = FakeClient(
+        [
+            {"name": "MOVIES", "arguments": {}},
+            {"name": "MovieInfo", "arguments": {"title": "Inception"}},
+            {"can_proceed": True, "reason": "clear movie request"},
+        ]
+    )
+    case = {
+        "id": "movie-route",
+        "category": "complete_valid",
+        "user_input": "Chi ha diretto Inception?",
+        "memory": [],
+        "expected": {
+            "domain": "MOVIES",
+            "decision": "execute",
+            "action": "MovieInfo",
+            "parameters": {
+                "title": "inception",
+                "director": "",
+                "genres": [],
+                "year": 0,
+                "actors": [],
+                "descriptive_movie_facts": [],
+            },
+        },
+    }
+    records = run_multidomain_factored_and_rule(
+        client,
+        case,
+        repeat=0,
+        scope_temperature=0.0,
+        intent_temperature=0.0,
+        gate_temperature=0.2,
+        include_factored=True,
+        include_rule=True,
+        structured_interface="native_tools",
+    )
+    assert all(record["prediction"]["domain"] == "MOVIES" for record in records)
+    assert all(record["prediction"]["action"] == "MovieInfo" for record in records)
+    assert all(score_controller_record(record)["operational_success"] for record in records)
+
+
+def test_wrong_multidomain_route_cannot_receive_operational_credit():
+    record = {
+        "expected": {
+            "domain": "MOVIES",
+            "decision": "execute",
+            "action": "MovieInfo",
+            "parameters": {"title": "dune"},
+        },
+        "prediction": {
+            "domain": "ADVISOR",
+            "decision": "execute",
+            "action": "MovieInfo",
+            "parameters": {"title": "dune"},
+        },
+        "structured_output_failure": False,
+    }
+    score = score_controller_record(record)
+    assert score["domain_correct"] is False
+    assert score["operational_success"] is False
+
+
+def test_multidomain_direct_uses_one_typed_decision():
+    client = FakeClient(
+        [
+            {
+                "domain": "I-TROPHYTS",
+                "decision": "execute",
+                "action": "ExerciseInformation",
+                "parameters": {"exercise_name": "Ponte", "step_number": 2},
+                "reason": "clear rehabilitation request",
+                "clarification": "",
+            }
+        ]
+    )
+    case = {
+        "id": "rehab-direct",
+        "category": "complete_valid",
+        "user_input": "Qual è il secondo passaggio del ponte?",
+        "memory": [],
+        "expected": {
+            "domain": "I-TROPHYTS",
+            "decision": "execute",
+            "action": "ExerciseInformation",
+            "parameters": {
+                "exercise_name": "ponte",
+                "user_name": "",
+                "step_number": 2,
+                "giorno": "",
+            },
+        },
+    }
+    record = run_multidomain_direct(
+        client,
+        case,
+        repeat=0,
+        temperature=0.0,
+        structured_interface="native_tools",
+    )
+    assert record["logical_llm_stages"] == 1
+    assert score_controller_record(record)["operational_success"] is True
