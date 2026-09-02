@@ -1,5 +1,12 @@
 # Frozen reviewer-evaluation results
 
+> **Controller result superseded.** The controller table below was produced at
+> commit `4284d90` with a legacy single-JSON Intent interface rather than the
+> native function-calling interface used by JANUS. It is retained only as an
+> audit artifact and must not be reported in the revised manuscript. The
+> readiness ablation is unaffected. See `FEWSHOT_AUDIT.md`; a native-tool
+> controller rerun is required before freezing the architectural comparison.
+
 Date: 2026-09-02. Primary model: `qwen/qwen3.8-27b` through the Groq
 OpenAI-compatible API. Benchmark commit: `4284d90cbc3d86527c72b43bfe311761351a0ac1`.
 All primary runs used the same model within every condition, one generation per
@@ -14,7 +21,7 @@ before the strengthened controller rerun. Qwen 3.8 27B was therefore frozen as
 the primary model. A complete GPT-OSS readiness run is retained as a secondary
 cross-model check.
 
-## Controller comparison (44 held-out cases)
+## Superseded controller pilot (44 held-out cases; do not report)
 
 | Condition | Operational task success | Strict state match | Decision accuracy | Parameter micro-F1 | Premature execution | API p50 / p95 | Median tokens | Calls |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|

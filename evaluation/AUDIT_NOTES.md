@@ -34,3 +34,11 @@ the reviewer benchmark.  They are not changes to the previously reported data.
    stress upstream errors.  Accuracy alone rewards an always-block controller.
    The revision benchmark therefore reports proceed recall, block recall, and
    balanced accuracy together with the two directional error rates.
+8. Intent Recognition and Inner Speech do not load few-shot demonstrations in
+   the current runtime. The similarly named `examples_ADVISOR.json` test files
+   are evaluation cases, not prompt examples. Both modules used few-shot text
+   prompts in the initial prototype (`732af43`), but Intent switched to native
+   Pydantic tool calling in `651d108`, and Inner Speech was explicitly changed
+   to zero-shot in `72b05ca`. The retained legacy few-shot JSON files use old
+   schemas and contain inconsistent labels; do not re-enable them unchanged.
+   See `FEWSHOT_AUDIT.md` for the full trace.
