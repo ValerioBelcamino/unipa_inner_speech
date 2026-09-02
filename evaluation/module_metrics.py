@@ -36,6 +36,11 @@ def _rate(numerator: int, denominator: int) -> float | None:
 
 def _aggregate_group(records: list[dict[str, Any]]) -> dict[str, Any]:
     api_latency = [float(record["api_latency_seconds"]) for record in records]
+    provider_latency = [
+        float(record["provider_total_time_seconds"])
+        for record in records
+        if record.get("provider_total_time_seconds") is not None
+    ]
     wall_latency = [float(record["wall_latency_seconds"]) for record in records]
     prompt_tokens = [int(record["prompt_tokens"]) for record in records]
     completion_tokens = [int(record["completion_tokens"]) for record in records]
@@ -46,6 +51,13 @@ def _aggregate_group(records: list[dict[str, Any]]) -> dict[str, Any]:
         "api_latency_mean_seconds": _mean(api_latency),
         "api_latency_p50_seconds": percentile(api_latency, 0.50),
         "api_latency_p95_seconds": percentile(api_latency, 0.95),
+        "provider_total_time_mean_seconds": _mean(provider_latency),
+        "provider_total_time_p50_seconds": (
+            percentile(provider_latency, 0.50) if provider_latency else None
+        ),
+        "provider_total_time_p95_seconds": (
+            percentile(provider_latency, 0.95) if provider_latency else None
+        ),
         "wall_latency_mean_seconds": _mean(wall_latency),
         "wall_latency_p50_seconds": percentile(wall_latency, 0.50),
         "wall_latency_p95_seconds": percentile(wall_latency, 0.95),

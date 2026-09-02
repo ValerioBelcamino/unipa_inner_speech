@@ -53,9 +53,21 @@ class CompletionTrace:
     total_tokens: int
     attempts: int
     error: str | None
+    provider_timing: dict[str, float] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def _add_provider_timing(totals: dict[str, float], usage: Any) -> dict[str, float]:
+    """Accumulate Groq's server-side timing fields when the provider returns them."""
+    for name in ("queue_time", "prompt_time", "completion_time", "total_time"):
+        value = getattr(usage, name, None)
+        if value is None and hasattr(usage, "model_extra"):
+            value = (usage.model_extra or {}).get(name)
+        if value is not None:
+            totals[name] = totals.get(name, 0.0) + float(value)
+    return totals
 
 
 class JsonLLMClient:
@@ -130,6 +142,7 @@ class JsonLLMClient:
         total_tokens = 0
         raw_text = ""
         errors: list[str] = []
+        provider_timing: dict[str, float] = {}
 
         for attempt in range(1, self.max_attempts + 1):
             self._throttle()
@@ -163,6 +176,7 @@ class JsonLLMClient:
                     total_prompt_tokens += int(usage.prompt_tokens or 0)
                     total_completion_tokens += int(usage.completion_tokens or 0)
                     total_tokens += int(usage.total_tokens or 0)
+                    _add_provider_timing(provider_timing, usage)
                 raw_text = response.choices[0].message.content or ""
                 parsed = json.loads(raw_text)
                 if not isinstance(parsed, dict):
@@ -176,6 +190,7 @@ class JsonLLMClient:
                     total_tokens=total_tokens,
                     attempts=attempt,
                     error=" | ".join(errors) or None,
+                    provider_timing=provider_timing or None,
                 )
             except Exception as exc:  # API and parse failures are benchmark outcomes.
                 elapsed = time.perf_counter() - started
@@ -215,6 +230,7 @@ class JsonLLMClient:
             total_tokens=total_tokens,
             attempts=self.max_attempts,
             error=" | ".join(errors),
+            provider_timing=provider_timing or None,
         )
 
     def complete_tool_call(
@@ -237,6 +253,7 @@ class JsonLLMClient:
         total_tokens = 0
         raw_text = ""
         errors: list[str] = []
+        provider_timing: dict[str, float] = {}
 
         for attempt in range(1, self.max_attempts + 1):
             self._throttle()
@@ -260,6 +277,7 @@ class JsonLLMClient:
                     total_prompt_tokens += int(usage.prompt_tokens or 0)
                     total_completion_tokens += int(usage.completion_tokens or 0)
                     total_tokens += int(usage.total_tokens or 0)
+                    _add_provider_timing(provider_timing, usage)
                 choice = response.choices[0]
                 message = choice.message
                 calls = message.tool_calls or []
@@ -295,6 +313,7 @@ class JsonLLMClient:
                     total_tokens=total_tokens,
                     attempts=attempt,
                     error=" | ".join(errors) or None,
+                    provider_timing=provider_timing or None,
                 )
             except Exception as exc:  # API and parse failures are benchmark outcomes.
                 elapsed = time.perf_counter() - started
@@ -334,6 +353,7 @@ class JsonLLMClient:
             total_tokens=total_tokens,
             attempts=self.max_attempts,
             error=" | ".join(errors),
+            provider_timing=provider_timing or None,
         )
 
     def complete_text(
@@ -354,6 +374,7 @@ class JsonLLMClient:
         total_tokens = 0
         raw_text = ""
         errors: list[str] = []
+        provider_timing: dict[str, float] = {}
 
         for attempt in range(1, self.max_attempts + 1):
             self._throttle()
@@ -374,6 +395,7 @@ class JsonLLMClient:
                     total_prompt_tokens += int(usage.prompt_tokens or 0)
                     total_completion_tokens += int(usage.completion_tokens or 0)
                     total_tokens += int(usage.total_tokens or 0)
+                    _add_provider_timing(provider_timing, usage)
                 raw_text = response.choices[0].message.content or ""
                 if not raw_text and response.choices[0].finish_reason == "length":
                     raise ValueError(
@@ -388,6 +410,7 @@ class JsonLLMClient:
                     total_tokens=total_tokens,
                     attempts=attempt,
                     error=" | ".join(errors) or None,
+                    provider_timing=provider_timing or None,
                 )
             except Exception as exc:
                 elapsed = time.perf_counter() - started
@@ -416,6 +439,7 @@ class JsonLLMClient:
             total_tokens=total_tokens,
             attempts=self.max_attempts,
             error=" | ".join(errors),
+            provider_timing=provider_timing or None,
         )
 
     def complete_structured_tool_call(

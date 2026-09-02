@@ -228,13 +228,13 @@ python3 -m evaluation.module_benchmark \
   --output-dir evaluation/results/modules_qwen38_final
 ```
 
-The runner stores API and wall-clock latency (mean, p50, and p95), prompt,
-completion, and total tokens, retries, raw model output, and module-specific
-accuracy metrics. Query Generation additionally requires the dedicated Neo4j
-test graph. Its `legacy` protocol deliberately reproduces the original
-in-sample functional test: evaluated examples are also present among its
-few-shot demonstrations, so its scores must not be described as held-out
-generalization.
+The runner stores client-observed API latency, Groq's server-side total/queue
+time, and wall-clock latency (mean, p50, and p95), plus prompt, completion, and
+total tokens, retries, raw model output, and module-specific accuracy metrics.
+Query Generation additionally requires the dedicated Neo4j test graph. Its
+`legacy` protocol deliberately reproduces the original in-sample functional
+test: evaluated examples are also present among its few-shot demonstrations,
+so its scores must not be described as held-out generalization.
 
 ## Interpretation boundaries
 

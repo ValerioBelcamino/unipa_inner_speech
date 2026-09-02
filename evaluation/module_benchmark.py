@@ -455,6 +455,8 @@ def _record(
         "prediction": prediction,
         "scores": scores,
         "api_latency_seconds": trace.latency_seconds,
+        "provider_total_time_seconds": (trace.provider_timing or {}).get("total_time"),
+        "provider_queue_time_seconds": (trace.provider_timing or {}).get("queue_time"),
         "wall_latency_seconds": wall_latency,
         "throttle_seconds": max(0.0, wall_latency - trace.latency_seconds),
         "prompt_tokens": trace.prompt_tokens,
