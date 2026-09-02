@@ -49,6 +49,15 @@ def _parser() -> argparse.ArgumentParser:
         default="native_tools",
         help="JANUS Intent output interface; native_tools mirrors the runtime bind_tools path",
     )
+    parser.add_argument(
+        "--structured-interface",
+        choices=("native_tools", "json"),
+        default="native_tools",
+        help=(
+            "typed-output interface for Inner Speech and Direct; native_tools "
+            "mirrors LangChain Groq with_structured_output"
+        ),
+    )
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--max-cases", type=int)
     parser.add_argument("--category", action="append", default=[])
@@ -262,6 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         "base_url": base_url,
         "architectures": sorted(selected),
         "intent_interface": args.intent_interface,
+        "structured_interface": args.structured_interface,
         "repeats": args.repeats,
         "temperatures": {
             "intent": args.intent_temperature,
@@ -316,6 +326,7 @@ def main(argv: list[str] | None = None) -> int:
                                 include_factored=need_factored,
                                 include_rule=need_rule,
                                 intent_interface=args.intent_interface,
+                                structured_interface=args.structured_interface,
                             )
                         )
                     if (
@@ -328,6 +339,7 @@ def main(argv: list[str] | None = None) -> int:
                                 case,
                                 repeat=repeat,
                                 temperature=args.direct_temperature,
+                                structured_interface=args.structured_interface,
                             )
                         )
                 else:
@@ -347,6 +359,7 @@ def main(argv: list[str] | None = None) -> int:
                             temperature=args.gate_temperature,
                             include_inner=need_inner,
                             include_rule=need_rule,
+                            structured_interface=args.structured_interface,
                         )
                         produced.extend(readiness)
 

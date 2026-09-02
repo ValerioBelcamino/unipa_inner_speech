@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from openai import OpenAI
@@ -182,6 +182,7 @@ class JsonLLMClient:
         user: str,
         tools: list[dict[str, Any]],
         temperature: float,
+        tool_choice: str | dict[str, Any] = "auto",
     ) -> CompletionTrace:
         """Return the first native function call, or OutOfScope when no tool is called."""
         messages = [
@@ -203,7 +204,7 @@ class JsonLLMClient:
                     model=self.model,
                     messages=messages,
                     tools=tools,
-                    tool_choice="auto",
+                    tool_choice=tool_choice,
                     parallel_tool_calls=False,
                     temperature=temperature,
                     max_tokens=self.max_completion_tokens,
@@ -277,3 +278,43 @@ class JsonLLMClient:
             attempts=self.max_attempts,
             error=" | ".join(errors),
         )
+
+    def complete_structured_tool_call(
+        self,
+        *,
+        system: str,
+        user: str,
+        tool_name: str,
+        tool_description: str,
+        output_schema: dict[str, Any],
+        temperature: float,
+    ) -> CompletionTrace:
+        """Mirror LangChain ``with_structured_output`` function-calling mode.
+
+        LangChain Groq 0.3.2 converts the supplied schema to one function and
+        forces that function by name. The returned value is the function's
+        arguments rather than an envelope containing its name.
+        """
+        tool = {
+            "type": "function",
+            "function": {
+                "name": tool_name,
+                "description": tool_description,
+                "parameters": output_schema,
+            },
+        }
+        trace = self.complete_tool_call(
+            system=system,
+            user=user,
+            tools=[tool],
+            temperature=temperature,
+            tool_choice={"type": "function", "function": {"name": tool_name}},
+        )
+        envelope = trace.parsed or {}
+        if envelope.get("name") != tool_name or not isinstance(
+            envelope.get("arguments"), dict
+        ):
+            detail = f"expected forced tool {tool_name}, got {envelope.get('name')}"
+            error = f"{trace.error} | {detail}" if trace.error else detail
+            return replace(trace, parsed=None, error=error)
+        return replace(trace, parsed=envelope["arguments"])

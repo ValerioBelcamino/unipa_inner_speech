@@ -24,6 +24,12 @@ By default, JANUS Intent Recognition uses native function calling with
 `tool_choice=auto`, matching the runtime `bind_tools` implementation and its
 Pydantic schemas. The legacy single-JSON interface is retained only for audit
 with `--intent-interface json`; it should not be used for the primary table.
+Inner Speech and the Direct controller both use a single forced function for
+their typed decision by default. This mirrors the default function-calling
+implementation of `with_structured_output` in the repository's pinned
+`langchain_groq==0.3.2` while giving the Direct baseline the same structured
+output mechanism. Their legacy JSON mode is available only for interface
+ablation with `--structured-interface json`.
 
 `readiness_v1` freezes the upstream action and parameters and compares only the
 Inner Speech gate with the rule gate.  In addition to complete and syntactically

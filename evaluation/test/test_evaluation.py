@@ -27,6 +27,9 @@ class FakeClient:
     def complete_tool_call(self, **_kwargs):
         return self.complete_json()
 
+    def complete_structured_tool_call(self, **_kwargs):
+        return self.complete_json()
+
 
 CASE = {
     "id": "valid-dish",

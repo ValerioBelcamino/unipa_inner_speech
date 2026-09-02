@@ -64,8 +64,10 @@ Therefore:
 
 1. the old JSON-interface controller table is a diagnostic pilot, not a result
    for the paper;
-2. the primary rerun must use `--intent-interface native_tools` (now the
-   harness default);
+2. the primary rerun must use `--intent-interface native_tools` and
+   `--structured-interface native_tools` (both are now defaults); the latter
+   mirrors the function-calling default of the pinned LangChain Groq version
+   for Inner Speech and gives Direct the same typed-output interface;
 3. the held-out readiness ablation remains valid because it freezes the
    upstream Intent state and does not depend on the Intent output interface;
 4. if new few-shot prompts are tested, they need a clean development set,

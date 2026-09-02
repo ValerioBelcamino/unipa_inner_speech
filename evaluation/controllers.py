@@ -54,6 +54,35 @@ DIRECT_SCHEMA = {
 }
 
 
+def _complete_structured(
+    client: JsonLLMClient,
+    *,
+    system: str,
+    user: str,
+    output_schema: dict[str, Any],
+    temperature: float,
+    interface: str,
+    tool_name: str,
+    tool_description: str,
+) -> CompletionTrace:
+    """Call a typed-output stage through the selected provider interface."""
+    if interface == "native_tools":
+        return client.complete_structured_tool_call(
+            system=system,
+            user=user,
+            tool_name=tool_name,
+            tool_description=tool_description,
+            output_schema=output_schema,
+            temperature=temperature,
+        )
+    return client.complete_json(
+        system=system,
+        user=user,
+        output_schema=output_schema,
+        temperature=temperature,
+    )
+
+
 @dataclass
 class IntentPrediction:
     action: str
@@ -192,6 +221,7 @@ def run_factored_and_rule(
     include_factored: bool,
     include_rule: bool,
     intent_interface: str = "json",
+    structured_interface: str = "native_tools",
 ) -> list[dict[str, Any]]:
     """Run both ablations with a shared Intent result for a strictly paired test."""
     started = time.perf_counter()
@@ -262,11 +292,17 @@ Apply these task-specific checks:
             sort_keys=True,
         )
         gate_started = time.perf_counter()
-        gate_trace = client.complete_json(
+        gate_trace = _complete_structured(
+            client,
             system=gate_system,
             user=gate_user,
             output_schema=GATE_SCHEMA,
             temperature=gate_temperature,
+            interface=structured_interface,
+            tool_name="InnerSpeechDecision",
+            tool_description=(
+                "Execution-readiness decision and concise internal diagnostic."
+            ),
         )
         gate_wall = time.perf_counter() - gate_started
         gate_data = gate_trace.parsed or {}
@@ -300,6 +336,7 @@ def run_direct(
     *,
     repeat: int,
     temperature: float,
+    structured_interface: str = "native_tools",
 ) -> dict[str, Any]:
     """Run a strong single-LLM controller with the same information and contracts."""
     system = f"""You are a direct LLM tool-use controller for dietary assistance. In one
@@ -318,11 +355,17 @@ unknown values.
 Available task contracts:
 {serialized_task_specs()}"""
     started = time.perf_counter()
-    trace = client.complete_json(
+    trace = _complete_structured(
+        client,
         system=system,
         user=_context(case),
         output_schema=DIRECT_SCHEMA,
         temperature=temperature,
+        interface=structured_interface,
+        tool_name="DirectControllerDecision",
+        tool_description=(
+            "Select one dietary-assistance control decision, task, and arguments."
+        ),
     )
     wall = time.perf_counter() - started
     parsed = trace.parsed or {}
@@ -353,6 +396,7 @@ def run_readiness_gate(
     temperature: float,
     include_inner: bool = True,
     include_rule: bool = True,
+    structured_interface: str = "native_tools",
 ) -> list[dict[str, Any]]:
     """Compare Inner Speech to a rule gate on identical, frozen upstream state."""
     action = normalize_action(case["action"])
@@ -414,11 +458,17 @@ strictly positive. SubstituteDish constraints must not contradict one another.
         sort_keys=True,
     )
     started = time.perf_counter()
-    trace = client.complete_json(
+    trace = _complete_structured(
+        client,
         system=gate_system,
         user=gate_user,
         output_schema=GATE_SCHEMA,
         temperature=temperature,
+        interface=structured_interface,
+        tool_name="InnerSpeechDecision",
+        tool_description=(
+            "Execution-readiness decision and concise internal diagnostic."
+        ),
     )
     wall = time.perf_counter() - started
     data = trace.parsed or {}
