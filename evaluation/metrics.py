@@ -224,7 +224,7 @@ def write_summary(records: list[dict[str, Any]], suite: str, output_dir: Path) -
     )
     fieldnames = sorted({key for row in rows for key in row})
     with (output_dir / "summary.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     return rows

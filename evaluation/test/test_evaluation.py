@@ -3,6 +3,7 @@ from __future__ import annotations
 from evaluation.controllers import run_direct, run_factored_and_rule
 from evaluation.llm_client import CompletionTrace, _retry_after_seconds
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
+from evaluation.paired_stats import exact_mcnemar, wilson_interval
 from evaluation.task_spec import missing_parameters, normalize_parameters
 
 
@@ -147,3 +148,9 @@ def test_clarification_does_not_require_exact_partial_state_for_operational_succ
     score = score_controller_record(record)
     assert score["operational_success"] is True
     assert score["strict_state_match"] is False
+
+
+def test_exact_paired_statistics():
+    assert exact_mcnemar(11, 1) == 0.00634765625
+    lower, upper = wilson_interval(25, 29)
+    assert lower < 25 / 29 < upper

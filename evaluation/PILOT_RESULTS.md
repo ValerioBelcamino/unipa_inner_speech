@@ -36,7 +36,17 @@ to support the paper's architectural claim.  It is evidence that small local
 models can detect semantic anomalies, but also that deployment-model selection
 is part of the safety/performance trade-off. The main paired comparison should
 use the same Groq model in all conditions. Llama 4 Scout was no longer exposed
-to this account on 2026-09-02, so the frozen run uses `openai/gpt-oss-20b` and
-documents that substitution. A local appendix is worth including only after
-rerunning on accelerated hardware or with a stronger task-specialized model and
-showing non-zero proceed recall.
+to this account on 2026-09-02, so the primary frozen run uses
+`qwen/qwen3.8-27b` and documents that substitution. A local appendix is worth
+including only after rerunning on accelerated hardware or with a stronger
+task-specialized model and showing non-zero proceed recall.
+
+## Clean rerun attempt
+
+On 2026-09-02, a clean rerun from commit `4284d90` used the same retained
+model, a warm Ollama container, one attempt, and a 128-token cap. The first
+readiness request returned no tokens and hit the 180-second client timeout;
+the second request was manually stopped. Ollama reported full CPU utilization
+and a cancelled generation. This failed attempt reinforces the conclusion that
+this CPU-only setup is not a defensible latency mitigation. It is not included
+in any accuracy or latency table.

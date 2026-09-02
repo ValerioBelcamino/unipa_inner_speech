@@ -55,9 +55,9 @@ python3 -m pytest -q evaluation/test/test_evaluation.py
 Create the ignored `.env` file and set `GROQ_API_KEY`. Use one model for every
 condition. The manuscript model, `meta-llama/llama-4-scout-17b-16e-instruct`,
 returned `model_not_found` on 2026-09-02. The current default is therefore
-`openai/gpt-oss-20b`, chosen before the full benchmark because its scale is
-closest among the available general-purpose Groq models. Record this forced
-model substitution explicitly in the revision.
+`qwen/qwen3.8-27b`, which was frozen for both primary suites after the GPT-OSS
+20B rolling daily quota was exhausted during pilot runs. Record this forced
+model substitution and the exact model identifier explicitly in the revision.
 
 Start with a five-case smoke test:
 
@@ -145,6 +145,10 @@ Each timestamped directory contains:
 The entire `evaluation/results/` directory is ignored so pilot results are not
 accidentally committed.  Copy only a frozen, explicitly selected final run into
 an archival location if publication artifacts should be versioned.
+
+The selected reviewer runs are versioned under `evaluation/frozen_results/`.
+See `REVIEWER_RESULTS.md` for the primary tables, statistical tests, caveats,
+and the distinction between API latency and rate-limit throttling.
 
 ## Interpretation boundaries
 

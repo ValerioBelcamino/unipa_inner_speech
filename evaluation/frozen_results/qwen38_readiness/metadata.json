@@ -1,0 +1,63 @@
+{
+  "architectures": [
+    "inner",
+    "rule"
+  ],
+  "base_url": "https://api.groq.com/openai/v1",
+  "case_ids": [
+    "ready-valid-01",
+    "ready-valid-02",
+    "ready-valid-03",
+    "ready-valid-04",
+    "ready-valid-05",
+    "ready-valid-06",
+    "ready-missing-01",
+    "ready-missing-02",
+    "ready-missing-03",
+    "ready-missing-04",
+    "ready-missing-05",
+    "ready-missing-06",
+    "ready-semantic-01",
+    "ready-semantic-02",
+    "ready-semantic-03",
+    "ready-semantic-04",
+    "ready-semantic-05",
+    "ready-semantic-06",
+    "ready-semantic-07",
+    "ready-semantic-08",
+    "ready-semantic-09",
+    "ready-semantic-10",
+    "ready-semantic-11",
+    "ready-semantic-12",
+    "ready-semantic-13",
+    "ready-semantic-14",
+    "ready-oos-01",
+    "ready-oos-02",
+    "ready-oos-03"
+  ],
+  "created_at_utc": "20260902T090948Z",
+  "dataset": "evaluation/datasets/readiness_v1.json",
+  "dataset_sha256": "0b9ee7dd30675b15bbf8d5a90a5adb3908923c57f232f7226b015aaf0cc73501",
+  "git_branch": "reviewer-evaluation",
+  "git_dirty": false,
+  "git_sha": "4284d90cbc3d86527c72b43bfe311761351a0ac1",
+  "hardware": {
+    "cpu_model": "Intel(R) Core(TM) Ultra 7 258V",
+    "logical_cpu_count": 8,
+    "memory_bytes": 16408342528,
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.9 (main, Nov 19 2025, 10:36:20) [GCC 11.4.0]"
+  },
+  "max_attempts": 3,
+  "max_completion_tokens": 1024,
+  "model": "qwen/qwen3.8-27b",
+  "provider": "groq",
+  "repeats": 1,
+  "request_delay": 7.5,
+  "suite": "readiness",
+  "temperatures": {
+    "direct": 0.0,
+    "gate": 0.2,
+    "intent": 0.0
+  }
+}

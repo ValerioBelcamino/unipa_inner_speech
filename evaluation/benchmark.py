@@ -61,7 +61,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def _provider_config(args: argparse.Namespace) -> tuple[str, str, str]:
     if args.provider == "groq":
-        model = args.model or "openai/gpt-oss-20b"
+        model = args.model or "qwen/qwen3.8-27b"
         base_url = args.base_url or "https://api.groq.com/openai/v1"
         key_env = args.api_key_env or "GROQ_API_KEY"
         api_key = os.getenv(key_env, "")
