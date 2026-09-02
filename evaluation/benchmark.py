@@ -328,7 +328,50 @@ def main(argv: list[str] | None = None) -> int:
     }
     if args.provider == "ollama":
         metadata["local_model"] = _ollama_metadata(base_url, model)
-    (output_dir / "metadata.json").write_text(
+    metadata_path = output_dir / "metadata.json"
+    if existing and metadata_path.exists():
+        previous_metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        immutable_fields = (
+            "suite",
+            "dataset",
+            "dataset_sha256",
+            "provider",
+            "model",
+            "base_url",
+            "architectures",
+            "intent_interface",
+            "structured_interface",
+            "repeats",
+            "temperatures",
+            "max_attempts",
+            "max_completion_tokens",
+            "request_delay",
+            "max_retry_wait",
+            "case_ids",
+        )
+        mismatches = [
+            field
+            for field in immutable_fields
+            if previous_metadata.get(field) != metadata.get(field)
+        ]
+        if mismatches:
+            raise SystemExit(
+                "Cannot resume with changed configuration fields: "
+                + ", ".join(mismatches)
+            )
+        resume_events = list(previous_metadata.get("resume_events", []))
+        resume_events.append(
+            {
+                "resumed_at_utc": timestamp,
+                "git_sha": metadata["git_sha"],
+                "git_dirty": metadata["git_dirty"],
+                "hardware": metadata["hardware"],
+                "completed_records_before_resume": len(existing),
+            }
+        )
+        metadata = previous_metadata
+        metadata["resume_events"] = resume_events
+    metadata_path.write_text(
         json.dumps(metadata, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )

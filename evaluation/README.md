@@ -122,7 +122,9 @@ stable location.  Completed `(architecture, case, repeat)` records are skipped.
 Provider rate limits requiring more than 60 seconds stop the process before the
 current case is written; rerun the same command later to resume. Adjust this cap
 with `--max-retry-wait`, but do not count provider-throttled attempts as model
-failures.
+failures. Resume rejects changes to model, dataset, interfaces, temperatures,
+token/retry settings, or selected cases. It preserves the initial provenance
+and adds a timestamped resume event with the later Git revision and hardware.
 For a deterministic primary table, one repetition at temperatures 0/0.2/0 is
 the default.  If API budget permits, use `--repeats 3` and report that repeated
 generations, rather than unique cases, are the aggregation unit.
