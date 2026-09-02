@@ -142,7 +142,7 @@ class JsonLLMClient:
                     completion_tokens=total_completion_tokens,
                     total_tokens=total_tokens,
                     attempts=attempt,
-                    error=None,
+                    error=" | ".join(errors) or None,
                 )
             except Exception as exc:  # API and parse failures are benchmark outcomes.
                 elapsed = time.perf_counter() - started
@@ -246,7 +246,7 @@ class JsonLLMClient:
                     completion_tokens=total_completion_tokens,
                     total_tokens=total_tokens,
                     attempts=attempt,
-                    error=None,
+                    error=" | ".join(errors) or None,
                 )
             except Exception as exc:  # API and parse failures are benchmark outcomes.
                 elapsed = time.perf_counter() - started
