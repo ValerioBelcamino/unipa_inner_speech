@@ -260,12 +260,31 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--query-temperature", type=float, default=0.0)
     parser.add_argument("--outer-temperature", type=float, default=0.4)
     parser.add_argument(
+        "--intent-db-postprocess",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "apply the submitted database convention plugin to "
+            "ha_piano_settimanale (default: enabled)"
+        ),
+    )
+    parser.add_argument(
+        "--rescore-intent-from",
+        type=Path,
+        help="rescore a prior Intent raw.jsonl after deterministic DB post-processing",
+    )
+    parser.add_argument(
         "--query-protocol",
         choices=("legacy",),
         default="legacy",
         help="legacy reproduces the submitted in-sample functional test",
     )
     parser.add_argument("--neo4j-uri", default="bolt://localhost:7687")
+    parser.add_argument(
+        "--intent-neo4j-uri",
+        default="bolt://localhost:18687",
+        help="dedicated graph containing the Intent suite's weekly-plan facts",
+    )
     parser.add_argument("--neo4j-user", default="neo4j")
     parser.add_argument("--neo4j-password-env", default="NEO4J_PASSWORD")
     parser.add_argument("--validate-only", action="store_true")
@@ -435,6 +454,21 @@ def _legacy_parameter_f1(
     return 2 * precision * recall / (precision + recall) if precision + recall else 0.0
 
 
+def _intent_scores(
+    *,
+    parsed_ok: bool,
+    expected_action: str,
+    expected_parameters: dict[str, Any],
+    predicted_action: str,
+    predicted_parameters: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "task_correct": parsed_ok and predicted_action == expected_action,
+        "parameters_exact": parsed_ok and predicted_parameters == expected_parameters,
+        "parameter_f1": _legacy_parameter_f1(expected_parameters, predicted_parameters),
+    }
+
+
 def _record(
     case: dict[str, Any],
     repeat: int,
@@ -503,7 +537,11 @@ def _run_scope(
 
 
 def _run_intent(
-    client: JsonLLMClient, case: dict[str, Any], repeat: int, temperature: float
+    client: JsonLLMClient,
+    case: dict[str, Any],
+    repeat: int,
+    temperature: float,
+    database: Neo4jExecutor | None,
 ) -> dict[str, Any]:
     payload = case["payload"]
     user = f"Memory: \nUser Input: {payload['question']}"
@@ -518,8 +556,11 @@ def _run_intent(
     parsed = trace.parsed or {}
     predicted_action = normalize_action(parsed.get("name"))
     expected_action = normalize_action(payload["action_name"])
-    predicted_parameters = _runtime_intent_parameters(
+    parameters_before_postprocessing = _runtime_intent_parameters(
         predicted_action, parsed.get("arguments", {})
+    )
+    predicted_parameters = _apply_intent_db_postprocessing(
+        database, predicted_action, parameters_before_postprocessing
     )
     expected_parameters = _runtime_intent_parameters(
         expected_action, payload.get("parameters", {})
@@ -530,17 +571,18 @@ def _run_intent(
         trace,
         wall,
         expected={"action": expected_action, "parameters": expected_parameters},
-        prediction={"action": predicted_action, "parameters": predicted_parameters},
-        scores={
-            "task_correct": trace.parsed is not None
-            and predicted_action == expected_action,
-            "parameters_exact": (
-                trace.parsed is not None and predicted_parameters == expected_parameters
-            ),
-            "parameter_f1": _legacy_parameter_f1(
-                expected_parameters, predicted_parameters
-            ),
+        prediction={
+            "action": predicted_action,
+            "parameters": predicted_parameters,
+            "parameters_before_postprocessing": parameters_before_postprocessing,
         },
+        scores=_intent_scores(
+            parsed_ok=trace.parsed is not None,
+            expected_action=expected_action,
+            expected_parameters=expected_parameters,
+            predicted_action=predicted_action,
+            predicted_parameters=predicted_parameters,
+        ),
     )
 
 
@@ -658,6 +700,22 @@ class Neo4jExecutor:
     def close(self) -> None:
         self.driver.close()
 
+    def has_weekly_plan(self, name: str) -> bool | None:
+        """Reproduce the submitted ``check_user_weekly_plan`` DB plugin."""
+        query = """
+        MATCH (p:Person {name: $name})-[:SHOULD_EAT]->(:Dish)
+        WITH p
+        MATCH (p)-[r:SHOULD_EAT]->(:Dish)
+        WITH collect(DISTINCT r.day) AS plannedDays
+        RETURN CASE WHEN size(plannedDays) = 7
+                    THEN true ELSE false END AS hasWeeklyPlan
+        """
+        with self.driver.session() as session:
+            record = session.run(query, name=name).single(strict=False)
+        if record is None:
+            return None
+        return bool(record["hasWeeklyPlan"])
+
     def schema(self) -> str:
         """Return the concise schema string produced by ``Neo4jGraph.schema``.
 
@@ -761,6 +819,22 @@ class Neo4jExecutor:
             finally:
                 transaction.rollback()
         return outputs
+
+
+def _apply_intent_db_postprocessing(
+    database: Neo4jExecutor | None,
+    action: str,
+    parameters: dict[str, Any],
+) -> dict[str, Any]:
+    """Apply the submitted deterministic DB convention without mutating input."""
+    processed = dict(parameters)
+    if database is None or action != "SubstituteDish":
+        return processed
+    weekly_plan = database.has_weekly_plan(str(processed.get("nome_utente", "")))
+    # The runtime plugin overwrites the model value only when Neo4j returns a row.
+    if weekly_plan is not None:
+        processed["ha_piano_settimanale"] = weekly_plan
+    return processed
 
 
 def _flatten_results(results: list[Any]) -> list[Any]:
@@ -995,6 +1069,93 @@ def _read_records(path: Path) -> list[dict[str, Any]]:
     return records
 
 
+def _rescore_intent(args: argparse.Namespace) -> int:
+    """Apply the submitted deterministic Intent plugin to an existing run."""
+    source = args.rescore_intent_from
+    assert source is not None
+    source_raw = source / "raw.jsonl" if source.is_dir() else source
+    if not source_raw.exists():
+        raise SystemExit(f"Intent source does not exist: {source_raw}")
+    records = _read_records(source_raw)
+    if not records or any(record.get("module") != "intent" for record in records):
+        raise SystemExit("--rescore-intent-from must contain only Intent records")
+
+    source_dir = source_raw.parent
+    output_dir = args.output_dir or source_dir.with_name(
+        source_dir.name + "_postprocessed"
+    )
+    if output_dir.resolve() == source_dir.resolve():
+        raise SystemExit("Intent rescoring requires a different --output-dir")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    password = os.getenv(args.neo4j_password_env, "password")
+    database = Neo4jExecutor(args.intent_neo4j_uri, args.neo4j_user, password)
+    rescored: list[dict[str, Any]] = []
+    try:
+        for source_record in records:
+            record = dict(source_record)
+            expected = record["expected"]
+            old_prediction = record["prediction"]
+            predicted_action = normalize_action(old_prediction.get("action"))
+            before = dict(old_prediction.get("parameters", {}))
+            after = _apply_intent_db_postprocessing(database, predicted_action, before)
+            record["prediction"] = {
+                **old_prediction,
+                "action": predicted_action,
+                "parameters": after,
+                "parameters_before_postprocessing": before,
+            }
+            record["scores"] = _intent_scores(
+                parsed_ok=not bool(record.get("failure")),
+                expected_action=normalize_action(expected.get("action")),
+                expected_parameters=dict(expected.get("parameters", {})),
+                predicted_action=predicted_action,
+                predicted_parameters=after,
+            )
+            record["intent_postprocessing"] = "submitted_db_convention_plugin"
+            rescored.append(record)
+    finally:
+        database.close()
+
+    output_raw = output_dir / "raw.jsonl"
+    output_raw.write_text(
+        "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n"
+            for record in rescored
+        ),
+        encoding="utf-8",
+    )
+    rows = write_module_summary(rescored, output_dir)
+
+    source_metadata_path = source_dir / "metadata.json"
+    metadata = (
+        json.loads(source_metadata_path.read_text(encoding="utf-8"))
+        if source_metadata_path.exists()
+        else {}
+    )
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    metadata.update(
+        {
+            "derived_from": str(source_dir),
+            "source_raw_sha256": _sha256(source_raw),
+            "rescored_at_utc": timestamp,
+            "rescore_git_sha": _git_sha(),
+            "rescore_git_dirty": _git_dirty(),
+            "intent_db_postprocess": True,
+            "intent_postprocessing_profile": "submitted_db_convention_plugin",
+            "intent_neo4j_uri": args.intent_neo4j_uri,
+            "completed_records": len(rescored),
+        }
+    )
+    (output_dir / "metadata.json").write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    _print_summary(rows)
+    print(f"Rescored results: {output_dir}")
+    return 0
+
+
 def _print_summary(rows: list[dict[str, Any]]) -> None:
     print("\nModule summary")
     for row in rows:
@@ -1019,6 +1180,8 @@ def _print_summary(rows: list[dict[str, Any]]) -> None:
 def main(argv: list[str] | None = None) -> int:
     load_dotenv(REPO_ROOT / ".env", override=True)
     args = _parser().parse_args(argv)
+    if args.rescore_intent_from is not None:
+        return _rescore_intent(args)
     modules = _selected_modules(args.module)
     scope_configs = _selected_scope_configs(args.scope_configuration)
     cases = load_module_cases(
@@ -1073,6 +1236,12 @@ def main(argv: list[str] | None = None) -> int:
         "scope_configurations": scope_configs,
         "scope_all_case_policy": "66 in-domain cases; OutOfScope remains a candidate tool",
         "query_protocol": args.query_protocol,
+        "intent_db_postprocess": args.intent_db_postprocess,
+        "intent_postprocessing_profile": (
+            "submitted_db_convention_plugin" if args.intent_db_postprocess else None
+        ),
+        "intent_neo4j_uri": args.intent_neo4j_uri,
+        "query_neo4j_uri": args.neo4j_uri,
         "query_protocol_limitation": (
             "legacy protocol injects the evaluated examples as few-shot demonstrations; "
             "treat as an in-sample functional regression, not held-out generalization"
@@ -1101,6 +1270,9 @@ def main(argv: list[str] | None = None) -> int:
             "modules",
             "scope_configurations",
             "query_protocol",
+            "intent_db_postprocess",
+            "intent_neo4j_uri",
+            "query_neo4j_uri",
             "max_cases_per_group",
             "case_ids",
             "repeats",
@@ -1142,12 +1314,17 @@ def main(argv: list[str] | None = None) -> int:
         max_retry_wait=args.max_retry_wait,
         reasoning_effort=args.reasoning_effort,
     )
-    database: Neo4jExecutor | None = None
+    intent_database: Neo4jExecutor | None = None
+    query_database: Neo4jExecutor | None = None
     database_schema = ""
+    password = os.getenv(args.neo4j_password_env, "password")
+    if "intent" in modules and args.intent_db_postprocess:
+        intent_database = Neo4jExecutor(
+            args.intent_neo4j_uri, args.neo4j_user, password
+        )
     if "query" in modules:
-        password = os.getenv(args.neo4j_password_env, "password")
-        database = Neo4jExecutor(args.neo4j_uri, args.neo4j_user, password)
-        database_schema = database.schema()
+        query_database = Neo4jExecutor(args.neo4j_uri, args.neo4j_user, password)
+        database_schema = query_database.schema()
 
     run_started = time.perf_counter()
     try:
@@ -1171,15 +1348,19 @@ def main(argv: list[str] | None = None) -> int:
                         record = _run_scope(client, case, repeat, temperatures["scope"])
                     elif case["module"] == "intent":
                         record = _run_intent(
-                            client, case, repeat, temperatures["intent"]
+                            client,
+                            case,
+                            repeat,
+                            temperatures["intent"],
+                            intent_database,
                         )
                     elif case["module"] == "inner":
                         record = _run_inner(client, case, repeat, temperatures["inner"])
                     elif case["module"] == "query":
-                        assert database is not None
+                        assert query_database is not None
                         record = _run_query(
                             client,
-                            database,
+                            query_database,
                             database_schema,
                             case,
                             repeat,
@@ -1199,8 +1380,10 @@ def main(argv: list[str] | None = None) -> int:
                         flush=True,
                     )
     finally:
-        if database is not None:
-            database.close()
+        if intent_database is not None:
+            intent_database.close()
+        if query_database is not None:
+            query_database.close()
 
     rows = write_module_summary(records, output_dir)
     metadata["last_completed_at_utc"] = datetime.now(timezone.utc).strftime(

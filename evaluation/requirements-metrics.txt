@@ -1,0 +1,3 @@
+# Optional dependencies for reproducing the submitted semantic-text metric.
+bert-score==0.3.13
+torch>=2.0

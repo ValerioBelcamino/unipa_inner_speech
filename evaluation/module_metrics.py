@@ -112,6 +112,13 @@ def _aggregate_group(records: list[dict[str, Any]]) -> dict[str, Any]:
             sum(bool(record["scores"]["all_queries_valid"]) for record in valid),
             len(records),
         )
+    bert_f1 = [
+        float(record["scores"]["bert_f1"])
+        for record in valid
+        if record["scores"].get("bert_f1") is not None
+    ]
+    if bert_f1:
+        result["bert_f1_mean"] = _mean(bert_f1)
     return result
 
 

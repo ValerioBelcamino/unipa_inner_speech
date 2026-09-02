@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from evaluation.module_benchmark import (
     MODULES,
+    _apply_intent_db_postprocessing,
     _selected_scope_configs,
     load_module_cases,
     query_result_overlap,
@@ -50,11 +51,15 @@ def test_module_summary_counts_failures_as_incorrect():
     }
     rows = aggregate_module_records(
         [
-            {**base, "failure": False, "scores": {"readiness_correct": True}},
+            {
+                **base,
+                "failure": False,
+                "scores": {"readiness_correct": True, "bert_f1": 0.8},
+            },
             {
                 **base,
                 "failure": True,
-                "scores": {"readiness_correct": False},
+                "scores": {"readiness_correct": False, "bert_f1": 0.2},
                 "api_latency_seconds": 3.0,
             },
         ]
@@ -62,4 +67,37 @@ def test_module_summary_counts_failures_as_incorrect():
     assert rows[0]["execution_readiness_accuracy"] == 0.5
     assert rows[0]["failure_rate"] == 0.5
     assert rows[0]["api_latency_mean_seconds"] == 2.0
+    assert rows[0]["bert_f1_mean"] == 0.8
     assert percentile([1.0, 3.0], 0.5) == 2.0
+
+
+def test_intent_db_postprocessing_only_overwrites_known_plan_state():
+    class FakeDatabase:
+        def has_weekly_plan(self, name):
+            return {"luca": True, "anna": False}.get(name)
+
+    database = FakeDatabase()
+    original = {"nome_utente": "luca", "ha_piano_settimanale": False}
+    assert (
+        _apply_intent_db_postprocessing(database, "SubstituteDish", original)[
+            "ha_piano_settimanale"
+        ]
+        is True
+    )
+    assert (
+        _apply_intent_db_postprocessing(
+            database,
+            "SubstituteDish",
+            {"nome_utente": "anna", "ha_piano_settimanale": True},
+        )["ha_piano_settimanale"]
+        is False
+    )
+    assert (
+        _apply_intent_db_postprocessing(
+            database,
+            "SubstituteDish",
+            {"nome_utente": "unknown", "ha_piano_settimanale": True},
+        )["ha_piano_settimanale"]
+        is True
+    )
+    assert original["ha_piano_settimanale"] is False

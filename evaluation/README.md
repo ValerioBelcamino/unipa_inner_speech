@@ -1,8 +1,8 @@
 # Reviewer evaluation harness
 
-This directory contains paired experiments for the major revision.  It is
-standalone: ROS 2, Neo4j, and LangSmith are not required, and every raw response
-is saved locally before metrics are aggregated.
+This directory contains paired experiments for the major revision. The main
+architecture comparisons are standalone: ROS 2, Neo4j, and LangSmith are not
+required, and every raw response is saved locally before metrics are aggregated.
 
 ## What the experiments test
 
@@ -222,15 +222,55 @@ Then run the complete isolated experiment at the same settings. The stable
 output directory makes the command resumable after a provider limit:
 
 ```bash
+# Intent uses a dedicated graph because its reference set includes users both
+# with and without a complete weekly plan. The Query population script instead
+# gives every seeded user a seven-day plan.
+docker compose -f evaluation/docker-compose.intent.yml up -d
+python3 -m evaluation.seed_intent_database
+
 python3 -m evaluation.module_benchmark \
-  --request-delay 8 \
+  --module intent \
+  --request-delay 11 \
   --max-completion-tokens 512 \
-  --output-dir evaluation/results/modules_qwen38_final
+  --output-dir evaluation/results/modules_qwen38_intent_final
+
+python3 -m evaluation.module_benchmark \
+  --module inner \
+  --module outer \
+  --request-delay 5.5 \
+  --max-completion-tokens 512 \
+  --output-dir evaluation/results/modules_qwen38_inner_outer_final
+```
+
+Scope Detection and Query Generation should be run separately because their
+prompt sizes require different rate-limit pacing. Query Generation uses
+`--neo4j-uri` (default port 7687); Intent uses `--intent-neo4j-uri` (default
+port 18687). To repair a raw Intent run produced before DB post-processing was
+enabled, rescore it without calling the model:
+
+```bash
+python3 -m evaluation.module_benchmark \
+  --rescore-intent-from evaluation/results/modules_qwen38_intent_final \
+  --output-dir evaluation/results/modules_qwen38_intent_final_postprocessed
 ```
 
 The runner stores client-observed API latency, Groq's server-side total/queue
 time, and wall-clock latency (mean, p50, and p95), plus prompt, completion, and
 total tokens, retries, raw model output, and module-specific accuracy metrics.
+The submitted Inner and Explainability tests also used BERTScore. Compute it
+offline after installing the optional metric dependencies (no Groq calls):
+
+```bash
+python3 -m pip install -r evaluation/requirements-metrics.txt
+python3 -m evaluation.score_module_text \
+  --source evaluation/results/modules_qwen38_inner_final
+python3 -m evaluation.score_module_text \
+  --source evaluation/results/modules_qwen38_outer_final
+```
+
+The scorer records the exact checkpoint, layer, and metric hash. It preserves
+the submitted Explainability configuration (`lang="en"`, hence
+`roberta-large`) even though the reference and prediction strings are Italian.
 Query Generation additionally requires the dedicated Neo4j test graph. Its
 `legacy` protocol deliberately reproduces the original in-sample functional
 test: evaluated examples are also present among its few-shot demonstrations,
