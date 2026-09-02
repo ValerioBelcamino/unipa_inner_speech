@@ -81,6 +81,92 @@ TASK_SPECS: dict[str, dict[str, Any]] = {
 DECISIONS = ("execute", "clarify", "reject")
 
 
+# These function schemas mirror the Pydantic models loaded by
+# IntentRecognition_LLM in scenario_customization/ADVISOR. They intentionally
+# keep the runtime models' defaults/required fields; benchmark-level readiness
+# is still evaluated against TASK_SPECS.required below.
+NATIVE_INTENT_SCHEMAS: dict[str, dict[str, Any]] = {
+    "AddToDatabase": {
+        "description": (
+            "A new user asks you to add them to the database. Extract necessary "
+            "information from the user message. Do not generate any new information, "
+            "use only what user provided for you."
+        ),
+        "properties": {
+            "nome_utente": {"type": "string", "description": "The name of the user in lowercase"},
+            "calorie": {"type": "integer", "default": 0},
+            "proteine": {"type": "integer", "default": 0},
+            "carboidrati": {"type": "integer", "default": 0},
+            "grassi": {"type": "integer", "default": 0},
+            "intolleranze": {
+                "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}],
+                "default": [],
+            },
+        },
+        "required": ["nome_utente"],
+    },
+    "DishInfo": {
+        "description": (
+            "User asks you to give them information about a specific dish, for example "
+            "its nutrients, allergens, or suitability for the user."
+        ),
+        "properties": {
+            "nome_utente": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": ""},
+            "nome_piatto": {"type": "string", "default": ""},
+            "controllo_ingredienti": {
+                "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}],
+                "default": [],
+            },
+        },
+        "required": [],
+    },
+    "SubstituteDish": {
+        "description": (
+            "User asks you to propose an alternative dish based on their allergies and "
+            "dietary plan. Extract only information supplied by the user."
+        ),
+        "properties": {
+            "nome_utente": {"type": "string"},
+            "ingredienti_rimossi": {
+                "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}],
+                "default": [],
+            },
+            "ingredienti_preferiti": {
+                "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}],
+                "default": [],
+            },
+            "ingredienti_obbligatori_esclusivi": {
+                "anyOf": [{"type": "array", "items": {"type": "string"}}, {"type": "null"}],
+                "default": [],
+            },
+            "giorno": {"type": "string", "default": ""},
+            "pasto": {"type": "string", "default": ""},
+            "ha_piano_settimanale": {"type": "boolean"},
+        },
+        "required": ["nome_utente", "ha_piano_settimanale"],
+    },
+}
+
+
+def native_intent_tools() -> list[dict[str, Any]]:
+    """Return OpenAI function definitions matching JANUS Intent tool binding."""
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": name,
+                "description": schema["description"],
+                "parameters": {
+                    "type": "object",
+                    "properties": schema["properties"],
+                    "required": schema["required"],
+                },
+            },
+        }
+        for name, schema in NATIVE_INTENT_SCHEMAS.items()
+    ]
+
+
 def serialized_task_specs() -> str:
     """Return a stable JSON representation injected into every controller."""
     return json.dumps(TASK_SPECS, ensure_ascii=False, sort_keys=True, indent=2)

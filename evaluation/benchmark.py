@@ -43,6 +43,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--base-url")
     parser.add_argument("--api-key-env", default=None)
     parser.add_argument("--architectures", default="all")
+    parser.add_argument(
+        "--intent-interface",
+        choices=("native_tools", "json"),
+        default="native_tools",
+        help="JANUS Intent output interface; native_tools mirrors the runtime bind_tools path",
+    )
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--max-cases", type=int)
     parser.add_argument("--category", action="append", default=[])
@@ -255,6 +261,7 @@ def main(argv: list[str] | None = None) -> int:
         "model": model,
         "base_url": base_url,
         "architectures": sorted(selected),
+        "intent_interface": args.intent_interface,
         "repeats": args.repeats,
         "temperatures": {
             "intent": args.intent_temperature,
@@ -308,6 +315,7 @@ def main(argv: list[str] | None = None) -> int:
                                 gate_temperature=args.gate_temperature,
                                 include_factored=need_factored,
                                 include_rule=need_rule,
+                                intent_interface=args.intent_interface,
                             )
                         )
                     if (

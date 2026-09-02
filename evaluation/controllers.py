@@ -12,6 +12,7 @@ from .task_spec import (
     OUT_OF_SCOPE,
     TASK_SPECS,
     missing_parameters,
+    native_intent_tools,
     normalize_action,
     normalize_decision,
     normalize_parameters,
@@ -78,9 +79,37 @@ def infer_intent(
     case: dict[str, Any],
     *,
     temperature: float,
+    interface: str = "json",
 ) -> IntentPrediction:
     """Run the factorized semantic-parsing stage."""
-    system = f"""You are the Intent Recognition stage of an assistive dietary controller.
+    if interface == "native_tools":
+        # This mirrors IntentRecognition_LLM.get_LLM_response: tool_choice is
+        # auto, and absence of a function call becomes OutOfScope.
+        system = """You are tasked with identifying the correct intent from a set of
+available tools and extracting only the parameters explicitly provided by the user.
+You must not use external knowledge, assumptions, or inference to guess or complete
+missing information. You will also receive a short term memory with additional
+information on past interactions. If the user input is not relevant to any available
+tool, do not respond or assign an intent. Only fill tool parameters when the necessary
+information is clearly and explicitly included in the user input. Do not hallucinate,
+fill gaps, or rephrase missing data. If a parameter is missing, ambiguous, or
+incomplete, leave it blank and do not attempt to infer or complete it."""
+        native_user = json.dumps(
+            {"memory": case.get("memory", []), "user_input": case["user_input"]},
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+        trace = client.complete_tool_call(
+            system=system,
+            user=native_user,
+            tools=native_intent_tools(),
+            temperature=temperature,
+        )
+        parsed = trace.parsed or {}
+        action = normalize_action(parsed.get("name"))
+        raw_parameters = parsed.get("arguments", {})
+    else:
+        system = f"""You are the Intent Recognition stage of an assistive dietary controller.
 Select exactly one task and extract typed parameters from the user request, memory, and
 explicit tool context. Never invent a value. Resolve a pronoun from memory only when its
 referent is unambiguous. Values marked as coming from tool_context may be copied. If no
@@ -89,15 +118,23 @@ choose its task but leave the unresolved required value absent or empty.
 
 Available task contracts:
 {serialized_task_specs()}"""
-    trace = client.complete_json(
-        system=system,
-        user=_context(case),
-        output_schema=INTENT_SCHEMA,
-        temperature=temperature,
-    )
-    parsed = trace.parsed or {}
-    action = normalize_action(parsed.get("action"))
-    parameters = normalize_parameters(action, parsed.get("parameters", {}))
+        trace = client.complete_json(
+            system=system,
+            user=_context(case),
+            output_schema=INTENT_SCHEMA,
+            temperature=temperature,
+        )
+        parsed = trace.parsed or {}
+        action = normalize_action(parsed.get("action"))
+        raw_parameters = parsed.get("parameters", {})
+
+    parameters = normalize_parameters(action, raw_parameters)
+    # The runtime check_user_weekly_plan post-processing plugin overwrites this
+    # field from the DB. Frozen tool_context is its deterministic benchmark proxy.
+    if action == "SubstituteDish" and "ha_piano_settimanale" in case.get("tool_context", {}):
+        parameters["ha_piano_settimanale"] = bool(
+            case["tool_context"]["ha_piano_settimanale"]
+        )
     return IntentPrediction(
         action=action,
         parameters=parameters,
@@ -154,10 +191,16 @@ def run_factored_and_rule(
     gate_temperature: float,
     include_factored: bool,
     include_rule: bool,
+    intent_interface: str = "json",
 ) -> list[dict[str, Any]]:
     """Run both ablations with a shared Intent result for a strictly paired test."""
     started = time.perf_counter()
-    intent = infer_intent(client, case, temperature=intent_temperature)
+    intent = infer_intent(
+        client,
+        case,
+        temperature=intent_temperature,
+        interface=intent_interface,
+    )
     intent_wall = time.perf_counter() - started
     outputs: list[dict[str, Any]] = []
 

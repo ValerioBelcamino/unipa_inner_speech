@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from evaluation.controllers import run_direct, run_factored_and_rule
+from evaluation.controllers import infer_intent, run_direct, run_factored_and_rule
 from evaluation.llm_client import CompletionTrace, _retry_after_seconds
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
 from evaluation.paired_stats import exact_mcnemar, wilson_interval
@@ -23,6 +23,9 @@ class FakeClient:
             attempts=1,
             error=None,
         )
+
+    def complete_tool_call(self, **_kwargs):
+        return self.complete_json()
 
 
 CASE = {
@@ -154,3 +157,28 @@ def test_exact_paired_statistics():
     assert exact_mcnemar(11, 1) == 0.00634765625
     lower, upper = wilson_interval(25, 29)
     assert lower < 25 / 29 < upper
+
+
+def test_native_intent_uses_tool_call_and_frozen_db_context():
+    client = FakeClient(
+        [
+            {
+                "name": "SubstituteDish",
+                "arguments": {
+                    "nome_utente": "Luca",
+                    "giorno": "martedì",
+                    "pasto": "cena",
+                    "ha_piano_settimanale": False,
+                },
+            }
+        ]
+    )
+    case = {
+        "user_input": "Sono Luca, cosa posso mangiare martedì a cena?",
+        "memory": [],
+        "tool_context": {"ha_piano_settimanale": True},
+    }
+    prediction = infer_intent(client, case, temperature=0, interface="native_tools")
+    assert prediction.action == "SubstituteDish"
+    assert prediction.parameters["giorno"] == "martedi"
+    assert prediction.parameters["ha_piano_settimanale"] is True

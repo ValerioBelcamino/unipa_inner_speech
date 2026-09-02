@@ -174,3 +174,106 @@ class JsonLLMClient:
             attempts=self.max_attempts,
             error=" | ".join(errors),
         )
+
+    def complete_tool_call(
+        self,
+        *,
+        system: str,
+        user: str,
+        tools: list[dict[str, Any]],
+        temperature: float,
+    ) -> CompletionTrace:
+        """Return the first native function call, or OutOfScope when no tool is called."""
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+        total_latency = 0.0
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+        total_tokens = 0
+        raw_text = ""
+        errors: list[str] = []
+
+        for attempt in range(1, self.max_attempts + 1):
+            self._throttle()
+            started = time.perf_counter()
+            try:
+                response = self._client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    tools=tools,
+                    tool_choice="auto",
+                    parallel_tool_calls=False,
+                    temperature=temperature,
+                    max_tokens=self.max_completion_tokens,
+                )
+                elapsed = time.perf_counter() - started
+                self._last_request_finished = time.perf_counter()
+                total_latency += elapsed
+                usage = response.usage
+                if usage is not None:
+                    total_prompt_tokens += int(usage.prompt_tokens or 0)
+                    total_completion_tokens += int(usage.completion_tokens or 0)
+                    total_tokens += int(usage.total_tokens or 0)
+                message = response.choices[0].message
+                calls = message.tool_calls or []
+                serialized_calls = [
+                    {
+                        "name": call.function.name,
+                        "arguments": call.function.arguments,
+                    }
+                    for call in calls
+                ]
+                raw_text = json.dumps(
+                    {"content": message.content, "tool_calls": serialized_calls},
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                if not calls:
+                    parsed = {"name": "OutOfScope", "arguments": {}}
+                else:
+                    arguments = json.loads(calls[0].function.arguments or "{}")
+                    if not isinstance(arguments, dict):
+                        raise ValueError("tool arguments are not a JSON object")
+                    parsed = {"name": calls[0].function.name, "arguments": arguments}
+                return CompletionTrace(
+                    parsed=parsed,
+                    raw_text=raw_text,
+                    latency_seconds=total_latency,
+                    prompt_tokens=total_prompt_tokens,
+                    completion_tokens=total_completion_tokens,
+                    total_tokens=total_tokens,
+                    attempts=attempt,
+                    error=None,
+                )
+            except Exception as exc:  # API and parse failures are benchmark outcomes.
+                elapsed = time.perf_counter() - started
+                self._last_request_finished = time.perf_counter()
+                total_latency += elapsed
+                errors.append(f"{type(exc).__name__}: {exc}")
+                if attempt < self.max_attempts:
+                    retry_after = _retry_after_seconds(exc)
+                    if retry_after is not None:
+                        time.sleep(retry_after)
+                    else:
+                        messages.append(
+                            {
+                                "role": "user",
+                                "content": (
+                                    "The previous response was invalid. Select at most one "
+                                    "available tool and return valid JSON arguments."
+                                ),
+                            }
+                        )
+
+        return CompletionTrace(
+            parsed=None,
+            raw_text=raw_text,
+            latency_seconds=total_latency,
+            prompt_tokens=total_prompt_tokens,
+            completion_tokens=total_completion_tokens,
+            total_tokens=total_tokens,
+            attempts=self.max_attempts,
+            error=" | ".join(errors),
+        )

@@ -20,6 +20,11 @@ ablation of the gate rather than a comparison confounded by different upstream
 predictions.  `direct_llm` receives the same information and schema, so it is
 not a deliberately weak chatbot baseline.
 
+By default, JANUS Intent Recognition uses native function calling with
+`tool_choice=auto`, matching the runtime `bind_tools` implementation and its
+Pydantic schemas. The legacy single-JSON interface is retained only for audit
+with `--intent-interface json`; it should not be used for the primary table.
+
 `readiness_v1` freezes the upstream action and parameters and compares only the
 Inner Speech gate with the rule gate.  In addition to complete and syntactically
 incomplete requests, it includes semantic upstream errors: wrong actions,
