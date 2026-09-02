@@ -31,10 +31,10 @@ suite), readiness balanced accuracy and separate proceed/block recall (readiness
 suite), premature execution/proceed rate, unnecessary clarification or blocking
 rate, and structured-output failure rate.  Efficiency metrics are
 p50/p95 wall latency, API-reported token use, and number of calls including
-retries.
-Completions are capped at 256 tokens by default so a malformed local generation
-cannot dominate the latency distribution; override this only if the same cap is
-used for every compared condition.
+retries. Groq completions are capped at 1024 tokens because reasoning tokens
+count toward the budget; local/custom completions default to 256 tokens so a
+malformed local generation cannot dominate the latency distribution. Override
+the cap only if the same value is used for every compared condition.
 
 ## Validate without calling a model
 
@@ -48,9 +48,12 @@ python3 -m pytest -q evaluation/test/test_evaluation.py
 
 ## Groq (main architectural comparison)
 
-Create the ignored `.env` file and set `GROQ_API_KEY`.  Use one model for every
-condition.  The default matches the model stated in the manuscript:
-`meta-llama/llama-4-scout-17b-16e-instruct`.
+Create the ignored `.env` file and set `GROQ_API_KEY`. Use one model for every
+condition. The manuscript model, `meta-llama/llama-4-scout-17b-16e-instruct`,
+returned `model_not_found` on 2026-09-02. The current default is therefore
+`openai/gpt-oss-20b`, chosen before the full benchmark because its scale is
+closest among the available general-purpose Groq models. Record this forced
+model substitution explicitly in the revision.
 
 Start with a five-case smoke test:
 
@@ -59,7 +62,7 @@ python3 -m evaluation.benchmark \
   --suite controller \
   --provider groq \
   --max-cases 5 \
-  --request-delay 1
+  --request-delay 2.2
 ```
 
 Then run both complete suites:
@@ -68,12 +71,12 @@ Then run both complete suites:
 python3 -m evaluation.benchmark \
   --suite readiness \
   --provider groq \
-  --request-delay 1
+  --request-delay 1.5
 
 python3 -m evaluation.benchmark \
   --suite controller \
   --provider groq \
-  --request-delay 1
+  --request-delay 2.2
 ```
 
 Use `--output-dir evaluation/results/<name>` to make a run resumable at a

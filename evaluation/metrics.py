@@ -51,9 +51,12 @@ def score_controller_record(record: dict[str, Any]) -> dict[str, Any]:
     expected_items = _parameter_items(expected_parameters)
     predicted_items = _parameter_items(predicted_parameters)
     true_positive = len(expected_items & predicted_items)
-    decision_correct = expected_decision == predicted_decision
-    action_correct = expected_action == predicted_action
-    parameters_exact = expected_parameters == predicted_parameters
+    # A parser/API failure must never receive credit merely because the
+    # controller's conservative fallback happens to match the gold label.
+    valid_prediction = not bool(record.get("structured_output_failure", False))
+    decision_correct = valid_prediction and expected_decision == predicted_decision
+    action_correct = valid_prediction and expected_action == predicted_action
+    parameters_exact = valid_prediction and expected_parameters == predicted_parameters
     return {
         "decision_correct": decision_correct,
         "action_correct": action_correct,
@@ -74,8 +77,9 @@ def score_controller_record(record: dict[str, Any]) -> dict[str, Any]:
 def score_readiness_record(record: dict[str, Any]) -> dict[str, Any]:
     expected = bool(record["expected"]["can_proceed"])
     predicted = bool(record["prediction"]["can_proceed"])
+    valid_prediction = not bool(record.get("structured_output_failure", False))
     return {
-        "readiness_correct": expected == predicted,
+        "readiness_correct": valid_prediction and expected == predicted,
         "premature_proceed": not expected and predicted,
         "premature_proceed_eligible": not expected,
         "unnecessary_block": expected and not predicted,
@@ -113,12 +117,18 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
         decision_recalls: list[float] = []
         for decision_name in ("execute", "clarify", "reject"):
             eligible = [
-                (normalize_decision(record["expected"].get("decision")),
-                 normalize_decision(record["prediction"].get("decision")))
+                (
+                    normalize_decision(record["expected"].get("decision")),
+                    normalize_decision(record["prediction"].get("decision")),
+                    not bool(record.get("structured_output_failure", False)),
+                )
                 for record in records
                 if normalize_decision(record["expected"].get("decision")) == decision_name
             ]
-            recall = _rate(sum(expected == predicted for expected, predicted in eligible), len(eligible))
+            recall = _rate(
+                sum(valid and expected == predicted for expected, predicted, valid in eligible),
+                len(eligible),
+            )
             result[f"decision_recall_{decision_name}"] = recall
             if recall is not None:
                 decision_recalls.append(recall)
@@ -153,11 +163,19 @@ def _aggregate_group(records: list[dict[str, Any]], suite: str) -> dict[str, Any
             record for record in records if not bool(record["expected"]["can_proceed"])
         ]
         proceed_recall = _rate(
-            sum(bool(record["prediction"]["can_proceed"]) for record in proceed_records),
+            sum(
+                not bool(record.get("structured_output_failure", False))
+                and bool(record["prediction"]["can_proceed"])
+                for record in proceed_records
+            ),
             len(proceed_records),
         )
         block_recall = _rate(
-            sum(not bool(record["prediction"]["can_proceed"]) for record in block_records),
+            sum(
+                not bool(record.get("structured_output_failure", False))
+                and not bool(record["prediction"]["can_proceed"])
+                for record in block_records
+            ),
             len(block_records),
         )
         result["proceed_recall"] = proceed_recall

@@ -34,7 +34,9 @@ class prevalence; balanced accuracy exposes an always-block-like policy.
 This local configuration is not a latency solution and is not reliable enough
 to support the paper's architectural claim.  It is evidence that small local
 models can detect semantic anomalies, but also that deployment-model selection
-is part of the safety/performance trade-off.  The main paired comparison should
-use the same Llama 4 Scout Groq model in all conditions.  A local appendix is
-worth including only after rerunning on accelerated hardware or with a stronger
-task-specialized model and showing non-zero proceed recall.
+is part of the safety/performance trade-off. The main paired comparison should
+use the same Groq model in all conditions. Llama 4 Scout was no longer exposed
+to this account on 2026-09-02, so the frozen run uses `openai/gpt-oss-20b` and
+documents that substitution. A local appendix is worth including only after
+rerunning on accelerated hardware or with a stronger task-specialized model and
+showing non-zero proceed recall.

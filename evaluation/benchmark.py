@@ -51,7 +51,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--request-delay", type=float, default=0.0)
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--max-attempts", type=int, default=2)
-    parser.add_argument("--max-completion-tokens", type=int, default=256)
+    parser.add_argument("--max-completion-tokens", type=int)
     parser.add_argument("--intent-temperature", type=float, default=0.0)
     parser.add_argument("--gate-temperature", type=float, default=0.2)
     parser.add_argument("--direct-temperature", type=float, default=0.0)
@@ -61,7 +61,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def _provider_config(args: argparse.Namespace) -> tuple[str, str, str]:
     if args.provider == "groq":
-        model = args.model or "meta-llama/llama-4-scout-17b-16e-instruct"
+        model = args.model or "openai/gpt-oss-20b"
         base_url = args.base_url or "https://api.groq.com/openai/v1"
         key_env = args.api_key_env or "GROQ_API_KEY"
         api_key = os.getenv(key_env, "")
@@ -226,6 +226,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     model, base_url, api_key = _provider_config(args)
+    if args.max_completion_tokens is None:
+        # Groq reasoning models count internal reasoning toward this budget and
+        # can exhaust a 256-token cap before emitting their JSON document.
+        args.max_completion_tokens = 1024 if args.provider == "groq" else 256
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     output_dir = args.output_dir or (
         Path(__file__).parent / "results" / args.suite / f"{timestamp}_{args.provider}_{_slug(model)}"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from evaluation.controllers import run_direct, run_factored_and_rule
 from evaluation.llm_client import CompletionTrace
-from evaluation.metrics import aggregate
+from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
 from evaluation.task_spec import missing_parameters, normalize_parameters
 
 
@@ -107,3 +107,18 @@ def test_direct_and_aggregation():
     overall = next(row for row in summary if row["category"] == "ALL")
     assert overall["joint_task_success"] == 1.0
     assert overall["parameter_micro_f1"] == 1.0
+
+
+def test_structured_failure_cannot_match_conservative_fallback():
+    controller_record = {
+        "expected": {"decision": "reject", "action": "OutOfScope", "parameters": {}},
+        "prediction": {"decision": "reject", "action": "OutOfScope", "parameters": {}},
+        "structured_output_failure": True,
+    }
+    readiness_record = {
+        "expected": {"can_proceed": False},
+        "prediction": {"can_proceed": False},
+        "structured_output_failure": True,
+    }
+    assert score_controller_record(controller_record)["joint_success"] is False
+    assert score_readiness_record(readiness_record)["readiness_correct"] is False
