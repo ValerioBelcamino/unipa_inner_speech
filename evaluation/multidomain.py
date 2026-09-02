@@ -296,8 +296,11 @@ def run_multidomain_factored_and_rule(
     scope_trace = client.complete_tool_call(
         system=(
             "Select the single most appropriate implemented scenario for the current "
-            "user request. Use conversation memory only to resolve an otherwise clear "
-            "reference. Do not select a scenario when no supported task applies."
+            "user request. Select its scenario even when task parameters or candidate "
+            "values are missing, contradictory, or ambiguous; downstream stages assess "
+            "execution readiness. Call only a scenario tool, never a task name mentioned "
+            "inside its description. Use memory only to resolve an otherwise clear "
+            "reference. Call no tool only when no implemented domain applies."
         ),
         user=_context(case),
         tools=_scope_tools(),
@@ -312,9 +315,11 @@ def run_multidomain_factored_and_rule(
     if domain != OUT_OF_SCOPE:
         intent_trace = client.complete_tool_call(
             system=(
-                "Select the relevant task in the active scenario and extract only values "
-                "explicitly stated by the user or unambiguously available in memory. "
-                "Never guess an ambiguous value. Do not call a task when none applies."
+                "Select the relevant task in the active scenario even when its arguments "
+                "are incomplete or ambiguous; downstream Inner Speech decides whether to "
+                "clarify. Extract only values explicitly stated by the user or "
+                "unambiguously available in memory. Never guess an ambiguous value. Do "
+                "not call a task only when none applies."
             ),
             user=_intent_context(case),
             tools=_tools(DOMAIN_NATIVE_SCHEMAS[domain]),

@@ -119,10 +119,10 @@ class IntentRecognition_LLM(LLM_Initializer):
                         You must not use external knowledge, assumptions, or inference to guess or complete missing information.
                         You will also receive a short term memory with additional information on past interactions.
                         If the user input is not relevant to any of the available tools, do not respond or assign an intent.
+                        If the requested task is identifiable but some parameters are missing or ambiguous, still call that task: downstream Inner Speech is responsible for deciding whether clarification is required.
                         Only fill tool parameters when the necessary information is clearly and explicitly included in the user input.
                         Do not hallucinate.
                         Do not fill gaps, or rephrase missing data.
-                        If a question seems to be correlated to the current topic, but it is too vague and doesn't directly refer to a tool, don't answer!
                         If a parameter is missing, ambiguous, or incomplete, leave it blank and do not attempt to infer or complete it.
                         Follow these constraints strictly to ensure reliability and factual accuracy in tool usage."""
                     )),

@@ -42,3 +42,17 @@ the reviewer benchmark.  They are not changes to the previously reported data.
    to zero-shot in `72b05ca`. The retained legacy few-shot JSON files use old
    schemas and contain inconsistent labels; do not re-enable them unchanged.
    See `FEWSHOT_AUDIT.md` for the full trace.
+9. During the native multi-domain integration pilot, Scope Detection treated an
+   in-domain request with two candidate movies as `OutOfScope`. The runtime
+   Intent prompt also previously instructed the model not to select a tool for
+   vague in-domain requests. This conflated routing/semantic parsing with the
+   downstream readiness decision. The revision branch now makes the factorized
+   contract explicit: Scope routes identifiable domains despite incomplete or
+   ambiguous values; Intent selects an identifiable task without guessing; and
+   Inner Speech alone gates execution or clarification. The same prompt change
+   is applied to production modules and the evaluation harness.
+10. Eight completed cases in the ignored development directory
+    `evaluation/results/qwen38_native_controller_full` predate the contract
+    clarification above (Git `f5a9c30`). They are a partial diagnostic only and
+    must not be resumed into or combined with a post-change run. The final
+    controller experiment requires a new output directory and one Git revision.

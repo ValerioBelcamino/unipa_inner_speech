@@ -119,10 +119,11 @@ available tools and extracting only the parameters explicitly provided by the us
 You must not use external knowledge, assumptions, or inference to guess or complete
 missing information. You will also receive a short term memory with additional
 information on past interactions. If the user input is not relevant to any available
-tool, do not respond or assign an intent. Only fill tool parameters when the necessary
-information is clearly and explicitly included in the user input. Do not hallucinate,
-fill gaps, or rephrase missing data. If a parameter is missing, ambiguous, or
-incomplete, leave it blank and do not attempt to infer or complete it."""
+tool, do not respond or assign an intent. If the requested task is identifiable but
+some parameters are missing or ambiguous, still call that task: downstream Inner
+Speech decides whether clarification is required. Only fill tool parameters when the
+information is clearly and explicitly included. Do not hallucinate, fill gaps, or
+rephrase missing data. Leave missing, ambiguous, or incomplete parameters blank."""
         native_user = json.dumps(
             {"memory": case.get("memory", []), "user_input": case["user_input"]},
             ensure_ascii=False,

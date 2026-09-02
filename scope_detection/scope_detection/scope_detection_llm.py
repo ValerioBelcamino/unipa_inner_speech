@@ -48,6 +48,8 @@ class ScopeDetection_LLM(LLM_Initializer):
                     -The inner speech reasoning provided by the previous module 
                     -The list of all the available scenarios together with their supported tasks
                     You have to select one of these scenario tools.
+                    Select the scenario whenever the request clearly belongs to it, even if task parameters are missing, contradictory, or ambiguous. Do not assess execution readiness: downstream Intent Recognition and Inner Speech handle task extraction and clarification.
+                    Call only a scenario tool, never the name of a task described inside a scenario.
                     If the user prompt is not related to the tasks supported by any scenario you should not answer.
                     """
                 )),
