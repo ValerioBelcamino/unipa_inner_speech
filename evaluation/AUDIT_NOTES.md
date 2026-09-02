@@ -56,3 +56,18 @@ the reviewer benchmark.  They are not changes to the previously reported data.
     clarification above (Git `f5a9c30`). They are a partial diagnostic only and
     must not be resumed into or combined with a post-change run. The final
     controller experiment requires a new output directory and one Git revision.
+11. Post-fix diagnostic probes are not final results. On one frozen ambiguous
+    controller case (`ai-dish-01`), Qwen 3.8 selected `DishInfo` with one of two
+    candidate dishes but Inner Speech correctly blocked execution because that
+    selection required guessing (2 calls, 1958 tokens, 1.244 s API latency).
+    This verifies the intended failure-recovery path, but `n=1` is not evidence
+    for an aggregate claim. A seven-case Qwen 3.6 pilot was unsuitable as a
+    substitute: its auto-tool Intent often emitted no task for relevant
+    incomplete inputs and several forced function calls failed. A GPT-OSS 120B
+    multi-domain pilot was invalidated by its 8000-token-per-minute provider
+    limit and must not be scored as model behavior.
+12. The runner now pauses before writing the current case when a provider rate
+    limit cannot be retried within the configured wait cap. This prevents 429
+    responses from being recorded as conservative `reject`/`clarify` model
+    predictions. The Qwen 3.8 final launcher uses new output directories and is
+    resumable across its rolling 200000-token daily quota.
