@@ -234,7 +234,8 @@ class JsonLLMClient:
                     total_prompt_tokens += int(usage.prompt_tokens or 0)
                     total_completion_tokens += int(usage.completion_tokens or 0)
                     total_tokens += int(usage.total_tokens or 0)
-                message = response.choices[0].message
+                choice = response.choices[0]
+                message = choice.message
                 calls = message.tool_calls or []
                 serialized_calls = [
                     {
@@ -248,6 +249,10 @@ class JsonLLMClient:
                     ensure_ascii=False,
                     sort_keys=True,
                 )
+                if not calls and choice.finish_reason == "length":
+                    raise ValueError(
+                        "model reached the completion-token cap before making a tool call"
+                    )
                 if not calls:
                     parsed = {"name": "OutOfScope", "arguments": {}}
                 else:

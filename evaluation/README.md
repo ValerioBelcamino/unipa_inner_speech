@@ -109,6 +109,14 @@ python3 -m evaluation.benchmark \
   --request-delay 7.5
 ```
 
+The checked-in `evaluation/run_qwen38_final.sh` launcher runs the corrected
+native-tool controller suite first and the exploratory multi-domain suite
+second, using separate stable output directories. It uses a 384-token
+completion cap selected from the native-tool pilot (observed maximum: 198),
+while treating any length-truncated tool call as a failed structured output
+rather than `OutOfScope`. If the rolling daily quota pauses the script, invoke
+the same launcher later; completed records are skipped.
+
 Use `--output-dir evaluation/results/<name>` to make a run resumable at a
 stable location.  Completed `(architecture, case, repeat)` records are skipped.
 Provider rate limits requiring more than 60 seconds stop the process before the

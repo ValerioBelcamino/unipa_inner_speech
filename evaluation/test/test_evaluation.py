@@ -1,7 +1,14 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from evaluation.controllers import infer_intent, run_direct, run_factored_and_rule
-from evaluation.llm_client import CompletionTrace, ProviderRateLimitError, _retry_after_seconds
+from evaluation.llm_client import (
+    CompletionTrace,
+    JsonLLMClient,
+    ProviderRateLimitError,
+    _retry_after_seconds,
+)
 from evaluation.metrics import aggregate, score_controller_record, score_readiness_record
 from evaluation.multidomain import run_multidomain_direct, run_multidomain_factored_and_rule
 from evaluation.paired_stats import exact_mcnemar, wilson_interval
@@ -141,6 +148,41 @@ def test_groq_retry_delay_is_parsed():
 def test_provider_rate_limit_carries_retry_delay():
     error = ProviderRateLimitError("quota exhausted", 381.5)
     assert error.retry_after_seconds == 381.5
+
+
+def test_length_truncated_native_call_is_not_out_of_scope():
+    response = SimpleNamespace(
+        usage=None,
+        choices=[
+            SimpleNamespace(
+                finish_reason="length",
+                message=SimpleNamespace(content="unfinished reasoning", tool_calls=[]),
+            )
+        ],
+    )
+    client = object.__new__(JsonLLMClient)
+    client.model = "fake"
+    client.base_url = "https://example.invalid/v1"
+    client.max_attempts = 1
+    client.max_completion_tokens = 32
+    client.request_delay = 0.0
+    client.max_retry_wait = 60.0
+    client._last_request_finished = 0.0
+    client._client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(create=lambda **_kwargs: response)
+        )
+    )
+
+    trace = client.complete_tool_call(
+        system="route",
+        user="request",
+        tools=[],
+        temperature=0.0,
+    )
+
+    assert trace.parsed is None
+    assert "completion-token cap" in (trace.error or "")
 
 
 def test_clarification_does_not_require_exact_partial_state_for_operational_success():
