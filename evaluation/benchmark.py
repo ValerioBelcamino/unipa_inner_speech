@@ -23,7 +23,7 @@ from typing import Any
 from dotenv import load_dotenv
 
 from .controllers import run_direct, run_factored_and_rule, run_readiness_gate
-from .llm_client import JsonLLMClient, ProviderRateLimitError
+from .llm_client import JsonLLMClient, ProviderRateLimitError, local_gpu_inventory
 from .metrics import write_summary
 from .multidomain import (
     DOMAIN_DESCRIPTIONS,
@@ -49,6 +49,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--model")
     parser.add_argument("--base-url")
     parser.add_argument("--api-key-env", default=None)
+    parser.add_argument(
+        "--qwen-disable-thinking",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "send Qwen's official chat_template_kwargs.enable_thinking=false "
+            "extension (intended for a local Qwen 3.5 OpenAI-compatible server)"
+        ),
+    )
     parser.add_argument("--architectures", default="all")
     parser.add_argument(
         "--intent-interface",
@@ -189,6 +198,7 @@ def _hardware_metadata() -> dict[str, Any]:
         "cpu_model": cpu_model,
         "logical_cpu_count": os.cpu_count(),
         "memory_bytes": memory_bytes,
+        "nvidia_gpus": local_gpu_inventory(),
         "python": sys.version,
     }
 
@@ -281,6 +291,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     model, base_url, api_key = _provider_config(args)
+    request_extra_body = (
+        {"chat_template_kwargs": {"enable_thinking": False}}
+        if args.qwen_disable_thinking
+        else None
+    )
     if args.max_completion_tokens is None:
         # Groq reasoning models count internal reasoning toward this budget and
         # can exhaust a 256-token cap before emitting their JSON document.
@@ -309,6 +324,7 @@ def main(argv: list[str] | None = None) -> int:
         "provider": args.provider,
         "model": model,
         "base_url": base_url,
+        "qwen_disable_thinking": args.qwen_disable_thinking,
         "architectures": sorted(selected),
         "intent_interface": args.intent_interface,
         "structured_interface": args.structured_interface,
@@ -338,6 +354,7 @@ def main(argv: list[str] | None = None) -> int:
             "provider",
             "model",
             "base_url",
+            "qwen_disable_thinking",
             "architectures",
             "intent_interface",
             "structured_interface",
@@ -352,7 +369,8 @@ def main(argv: list[str] | None = None) -> int:
         mismatches = [
             field
             for field in immutable_fields
-            if previous_metadata.get(field) != metadata.get(field)
+            if field in previous_metadata
+            and previous_metadata.get(field) != metadata.get(field)
         ]
         if mismatches:
             raise SystemExit(
@@ -384,6 +402,7 @@ def main(argv: list[str] | None = None) -> int:
         max_completion_tokens=args.max_completion_tokens,
         request_delay=args.request_delay,
         max_retry_wait=args.max_retry_wait,
+        request_extra_body=request_extra_body,
     )
 
     total = len(cases) * args.repeats

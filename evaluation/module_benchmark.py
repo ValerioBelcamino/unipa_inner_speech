@@ -33,7 +33,12 @@ from scenario_customization.scenario_customization.ADVISOR.SubstituteDish.intent
 )
 from scope_detection.scope_detection.domain_examples.ita import domain_descriptions
 
-from .llm_client import CompletionTrace, JsonLLMClient, ProviderRateLimitError
+from .llm_client import (
+    CompletionTrace,
+    JsonLLMClient,
+    ProviderRateLimitError,
+    local_gpu_inventory,
+)
 from .module_metrics import write_module_summary
 from .task_spec import OUT_OF_SCOPE, normalize_action, normalize_parameters
 
@@ -243,8 +248,17 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--provider", choices=("groq", "custom"), default="groq")
     parser.add_argument("--model", default="qwen/qwen3.8-27b")
     parser.add_argument("--base-url")
-    parser.add_argument("--api-key-env", default="GROQ_API_KEY")
+    parser.add_argument("--api-key-env")
     parser.add_argument("--reasoning-effort", choices=("none",), default="none")
+    parser.add_argument(
+        "--qwen-disable-thinking",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "send Qwen's official chat_template_kwargs.enable_thinking=false "
+            "extension (intended for a local Qwen 3.5 OpenAI-compatible server)"
+        ),
+    )
     parser.add_argument("--max-cases", type=int)
     parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--repeats", type=int, default=1)
@@ -1036,6 +1050,7 @@ def _hardware() -> dict[str, Any]:
         "platform": platform.platform(),
         "cpu_model": cpu,
         "logical_cpu_count": os.cpu_count(),
+        "nvidia_gpus": local_gpu_inventory(),
         "python": sys.version,
     }
 
@@ -1043,13 +1058,18 @@ def _hardware() -> dict[str, Any]:
 def _provider(args: argparse.Namespace) -> tuple[str, str, str]:
     if args.provider == "groq":
         base_url = args.base_url or "https://api.groq.com/openai/v1"
+        key_env = args.api_key_env or "GROQ_API_KEY"
+        api_key = os.getenv(key_env, "")
+        if not api_key:
+            raise SystemExit(f"Missing API key in {key_env}")
     else:
         if not args.base_url:
             raise SystemExit("--provider custom requires --base-url")
         base_url = args.base_url
-    api_key = os.getenv(args.api_key_env, "")
-    if not api_key:
-        raise SystemExit(f"Missing API key in {args.api_key_env}")
+        key_env = args.api_key_env
+        api_key = os.getenv(key_env, "") if key_env else "not-needed"
+        if not api_key:
+            raise SystemExit(f"Missing API key in {key_env}")
     return args.model, base_url, api_key
 
 
@@ -1228,7 +1248,8 @@ def main(argv: list[str] | None = None) -> int:
         "provider": args.provider,
         "model": model,
         "base_url": base_url,
-        "reasoning_effort": args.reasoning_effort,
+        "reasoning_effort": args.reasoning_effort if args.provider == "groq" else None,
+        "qwen_disable_thinking": args.qwen_disable_thinking,
         "prompt_profile": "submitted_manuscript",
         "temperatures": temperatures,
         "paper_temperatures": PAPER_TEMPERATURES,
@@ -1265,6 +1286,7 @@ def main(argv: list[str] | None = None) -> int:
             "model",
             "base_url",
             "reasoning_effort",
+            "qwen_disable_thinking",
             "prompt_profile",
             "temperatures",
             "modules",
@@ -1283,7 +1305,9 @@ def main(argv: list[str] | None = None) -> int:
             "dataset_sha256",
         )
         changed = [
-            field for field in immutable if previous.get(field) != metadata.get(field)
+            field
+            for field in immutable
+            if field in previous and previous.get(field) != metadata.get(field)
         ]
         if changed:
             raise SystemExit(
@@ -1312,7 +1336,12 @@ def main(argv: list[str] | None = None) -> int:
         max_completion_tokens=args.max_completion_tokens,
         request_delay=args.request_delay,
         max_retry_wait=args.max_retry_wait,
-        reasoning_effort=args.reasoning_effort,
+        reasoning_effort=args.reasoning_effort if args.provider == "groq" else None,
+        request_extra_body=(
+            {"chat_template_kwargs": {"enable_thinking": False}}
+            if args.qwen_disable_thinking
+            else None
+        ),
     )
     intent_database: Neo4jExecutor | None = None
     query_database: Neo4jExecutor | None = None

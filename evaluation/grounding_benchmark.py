@@ -28,7 +28,12 @@ from .grounding import (
     validate_dataset,
 )
 from .grounding_metrics import write_grounding_summary
-from .llm_client import CompletionTrace, JsonLLMClient, ProviderRateLimitError
+from .llm_client import (
+    CompletionTrace,
+    JsonLLMClient,
+    ProviderRateLimitError,
+    local_gpu_inventory,
+)
 from .module_benchmark import NEO4J_PROMPT, QUERY_TOOLS, Neo4jExecutor
 from .task_spec import (
     OUT_OF_SCOPE,
@@ -435,7 +440,16 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--provider", choices=("groq", "custom"), default="groq")
     parser.add_argument("--model", default="qwen/qwen3.8-27b")
     parser.add_argument("--base-url")
-    parser.add_argument("--api-key-env", default="GROQ_API_KEY")
+    parser.add_argument("--api-key-env")
+    parser.add_argument(
+        "--qwen-disable-thinking",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help=(
+            "send Qwen's official chat_template_kwargs.enable_thinking=false "
+            "extension (intended for a local Qwen 3.5 OpenAI-compatible server)"
+        ),
+    )
     parser.add_argument("--architectures", default="factored,direct")
     parser.add_argument("--neo4j-uri", default="bolt://localhost:19687")
     parser.add_argument("--neo4j-username", default="neo4j")
@@ -540,9 +554,12 @@ def main(argv: list[str] | None = None) -> int:
         base_url = args.base_url or "https://api.groq.com/openai/v1"
         if args.provider == "custom" and not args.base_url:
             raise SystemExit("--provider custom requires --base-url")
-        api_key = os.getenv(args.api_key_env, "")
+        key_env = args.api_key_env or (
+            "GROQ_API_KEY" if args.provider == "groq" else None
+        )
+        api_key = os.getenv(key_env, "") if key_env else "not-needed"
         if not api_key:
-            raise SystemExit(f"Missing API key in {args.api_key_env}")
+            raise SystemExit(f"Missing API key in {key_env}")
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         output_dir = args.output_dir or (
             Path(__file__).parent
@@ -573,7 +590,8 @@ def main(argv: list[str] | None = None) -> int:
             "base_url": base_url,
             "architectures": sorted(selected),
             "repeats": args.repeats,
-            "reasoning_effort": args.reasoning_effort,
+            "reasoning_effort": args.reasoning_effort if args.provider == "groq" else None,
+            "qwen_disable_thinking": args.qwen_disable_thinking,
             "temperatures": {
                 "intent": args.intent_temperature,
                 "gate": args.gate_temperature,
@@ -590,6 +608,7 @@ def main(argv: list[str] | None = None) -> int:
                 "platform": platform.platform(),
                 "cpu": platform.processor(),
                 "logical_cpu_count": os.cpu_count(),
+                "nvidia_gpus": local_gpu_inventory(),
                 "python": sys.version,
             },
         }
@@ -605,13 +624,18 @@ def main(argv: list[str] | None = None) -> int:
                 "architectures",
                 "repeats",
                 "reasoning_effort",
+                "qwen_disable_thinking",
                 "temperatures",
                 "include_answer",
                 "max_attempts",
                 "max_completion_tokens",
                 "case_ids",
             )
-            changed = [name for name in immutable if previous.get(name) != metadata.get(name)]
+            changed = [
+                name
+                for name in immutable
+                if name in previous and previous.get(name) != metadata.get(name)
+            ]
             if changed:
                 raise SystemExit("Cannot resume changed configuration: " + ", ".join(changed))
             metadata = previous
@@ -628,7 +652,12 @@ def main(argv: list[str] | None = None) -> int:
             max_completion_tokens=args.max_completion_tokens,
             request_delay=args.request_delay,
             max_retry_wait=args.max_retry_wait,
-            reasoning_effort=args.reasoning_effort,
+            reasoning_effort=args.reasoning_effort if args.provider == "groq" else None,
+            request_extra_body=(
+                {"chat_template_kwargs": {"enable_thinking": False}}
+                if args.qwen_disable_thinking
+                else None
+            ),
         )
 
         with raw_path.open("a", encoding="utf-8") as raw_handle:

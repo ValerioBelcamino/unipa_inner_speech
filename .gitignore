@@ -66,6 +66,7 @@ __pycache__/
 evaluation/results/
 evaluation/.cache/
 evaluation/ollama/
+evaluation/gpu.env
 
 # Ignore Neo4j database and logs
 query_generation/query_generation/db/data/

@@ -1,5 +1,9 @@
 # Reviewer evaluation harness
 
+For the complete GPU-machine handoff, exact Qwen 3.5 4B/9B run matrix, local
+vLLM setup, BERTScore commands, integrity checks, and result-freezing protocol,
+see [`../GPU_EXPERIMENT_HANDOFF.md`](../GPU_EXPERIMENT_HANDOFF.md).
+
 This directory contains paired experiments for the major revision. The main
 architecture comparisons are standalone: ROS 2, Neo4j, and LangSmith are not
 required, and every raw response is saved locally before metrics are aggregated.

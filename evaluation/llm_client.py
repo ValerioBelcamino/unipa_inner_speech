@@ -4,11 +4,44 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import time
 from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from openai import OpenAI
+
+
+def local_gpu_inventory() -> list[dict[str, Any]]:
+    """Return a small, serializable NVIDIA inventory when one is available."""
+    try:
+        output = subprocess.check_output(
+            [
+                "nvidia-smi",
+                "--query-gpu=index,name,memory.total,driver_version",
+                "--format=csv,noheader,nounits",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+        )
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return []
+    devices = []
+    for line in output.splitlines():
+        parts = [part.strip() for part in line.split(",", maxsplit=3)]
+        if len(parts) != 4:
+            continue
+        index, name, memory_mib, driver = parts
+        devices.append(
+            {
+                "index": int(index),
+                "name": name,
+                "memory_total_mib": int(memory_mib),
+                "driver_version": driver,
+            }
+        )
+    return devices
 
 
 class ProviderRateLimitError(RuntimeError):
@@ -85,6 +118,7 @@ class JsonLLMClient:
         request_delay: float = 0.0,
         max_retry_wait: float = 60.0,
         reasoning_effort: str | None = None,
+        request_extra_body: dict[str, Any] | None = None,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
@@ -93,6 +127,7 @@ class JsonLLMClient:
         self.request_delay = max(0.0, request_delay)
         self.max_retry_wait = max(0.0, max_retry_wait)
         self.reasoning_effort = reasoning_effort
+        self.request_extra_body = dict(request_extra_body or {})
         self._client = OpenAI(
             api_key=api_key,
             base_url=self.base_url,
@@ -112,7 +147,8 @@ class JsonLLMClient:
         self, *, local_options: dict[str, Any] | None = None
     ) -> dict[str, Any] | None:
         """Return provider extensions shared by every completion method."""
-        extra_body = dict(local_options or {})
+        extra_body = dict(getattr(self, "request_extra_body", {}) or {})
+        extra_body.update(local_options or {})
         reasoning_effort = getattr(self, "reasoning_effort", None)
         if reasoning_effort is not None:
             extra_body["reasoning_effort"] = reasoning_effort

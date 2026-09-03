@@ -172,6 +172,27 @@ def test_provider_rate_limit_carries_retry_delay():
     assert error.retry_after_seconds == 381.5
 
 
+def test_provider_extra_body_is_merged_with_local_options():
+    client = object.__new__(JsonLLMClient)
+    client.request_extra_body = {
+        "chat_template_kwargs": {"enable_thinking": False}
+    }
+    client.reasoning_effort = None
+
+    assert client._extra_body(local_options={"options": {"num_predict": 64}}) == {
+        "chat_template_kwargs": {"enable_thinking": False},
+        "options": {"num_predict": 64},
+    }
+
+
+def test_reasoning_effort_is_kept_for_groq_requests():
+    client = object.__new__(JsonLLMClient)
+    client.request_extra_body = {}
+    client.reasoning_effort = "none"
+
+    assert client._extra_body() == {"reasoning_effort": "none"}
+
+
 def test_length_truncated_native_call_is_not_out_of_scope():
     response = SimpleNamespace(
         usage=None,

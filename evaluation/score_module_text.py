@@ -52,6 +52,11 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument(
+        "--device",
+        default="auto",
+        help="PyTorch device such as cuda, cuda:1, or cpu (default: auto)",
+    )
     args = parser.parse_args()
 
     source_raw = args.source / "raw.jsonl" if args.source.is_dir() else args.source
@@ -67,8 +72,13 @@ def main() -> int:
 
     try:
         from bert_score import score
+        import torch
     except ImportError as exc:
         raise SystemExit("install the optional BERTScore dependencies first") from exc
+
+    device = args.device
+    if device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
     predictions = [str(record["prediction"].get(field, "")) for record in records]
     references = [str(record["expected"].get(field, "")) for record in records]
@@ -79,6 +89,7 @@ def main() -> int:
         num_layers=int(profile["num_layers"]),
         lang=str(profile["lang"]),
         batch_size=args.batch_size,
+        device=device,
         return_hash=True,
         verbose=True,
     )
@@ -110,6 +121,15 @@ def main() -> int:
             "semantic_metric": "BERTScore F1",
             "semantic_metric_hash": metric_hash,
             "semantic_metric_profile": profile,
+            "semantic_batch_size": args.batch_size,
+            "semantic_device": device,
+            "torch_version": torch.__version__,
+            "torch_cuda_version": torch.version.cuda,
+            "gpu_name": (
+                torch.cuda.get_device_name(torch.device(device))
+                if device.startswith("cuda")
+                else None
+            ),
             "semantic_scored_at_utc": datetime.now(timezone.utc).strftime(
                 "%Y%m%dT%H%M%SZ"
             ),
