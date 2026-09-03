@@ -27,7 +27,7 @@ from .grounding import (
     prior_prompt_paths,
     validate_dataset,
 )
-from .grounding_metrics import score_grounding_record, write_grounding_summary
+from .grounding_metrics import write_grounding_summary
 from .llm_client import CompletionTrace, JsonLLMClient, ProviderRateLimitError
 from .module_benchmark import NEO4J_PROMPT, QUERY_TOOLS, Neo4jExecutor
 from .task_spec import (
@@ -667,9 +667,8 @@ def main(argv: list[str] | None = None) -> int:
                                 answer_temperature=args.answer_temperature,
                                 include_answer=not args.skip_answer,
                             )
-                        )
+                    )
                     for record in produced:
-                        record["scores"] = score_grounding_record(record)
                         raw_handle.write(
                             json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n"
                         )

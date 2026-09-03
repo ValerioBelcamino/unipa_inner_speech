@@ -135,6 +135,13 @@ def _entity(record: dict[str, Any]) -> str:
     return str(normalize_value(value)) if value not in (None, "") else ""
 
 
+def _fact_entity(record: dict[str, Any], field: str) -> str:
+    if field in {"user", "user_allergens"}:
+        value = record.get("user", "")
+        return str(normalize_value(value)) if value not in (None, "") else ""
+    return _entity(record)
+
+
 def _fact_values(value: Any) -> list[str]:
     """Represent collections atomically so COLLECT and row-wise queries are equal."""
     normalized = normalize_value(value)
@@ -147,9 +154,9 @@ def fact_set(records: list[dict[str, Any]], fields: Iterable[str]) -> set[tuple[
     requested = {normalize_field(field) for field in fields}
     facts: set[tuple[str, str, str]] = set()
     for record in records:
-        entity = _entity(record)
         for field in requested:
             if field in record:
+                entity = _fact_entity(record, field)
                 for value in _fact_values(record[field]):
                     facts.add((entity, field, value))
     return facts

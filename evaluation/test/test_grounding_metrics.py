@@ -94,6 +94,34 @@ def test_compatibility_is_derived_from_empty_risks():
     assert records[0]["compatible"] is True
 
 
+def test_user_allergens_do_not_inherit_the_dish_entity_anchor():
+    record = _record(
+        [[{
+            "dish": "tiramisu",
+            "user_allergens": ["uova"],
+            "risks": ["uova"],
+        }]],
+        {
+            "abstain": False,
+            "claims": [
+                {
+                    "entity": "luca",
+                    "field": "user_allergens",
+                    "value_json": '["uova"]',
+                },
+                {
+                    "entity": "tiramisu",
+                    "field": "risks",
+                    "value_json": '["uova"]',
+                },
+            ],
+            "answer": "Luca è allergico alle uova e il tiramisu presenta questo rischio.",
+        },
+    )
+    score = score_grounding_record(record)
+    assert score["supported_claim_rate"] == 1.0
+
+
 def test_collected_and_row_wise_values_score_equally():
     expected = [
         {
