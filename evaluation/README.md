@@ -90,6 +90,46 @@ controller/reference parameter alignment, and rejects normalized exact prompt
 copies from the repository's prior few-shot, test, and evaluation datasets. It
 makes no model or provider request.
 
+After validation, run a paired grounding smoke test with one multi-hop case:
+
+```bash
+python3 -m evaluation.grounding_benchmark \
+  --case-id g-pc-06 \
+  --provider groq \
+  --model qwen/qwen3.8-27b \
+  --reasoning-effort none \
+  --output-dir evaluation/results/grounding_qwen38_smoke
+```
+
+The grounding comparison deliberately excludes the rule-gate ablation: all
+cases contain enough information to query, so the relevant comparison is full
+JANUS versus a strong Direct-LLM tool-use loop. Both conditions use the same
+model, database snapshot, schema, task contracts, read-task demonstrations,
+Cypher executor, and post-tool answer schema. JANUS performs Intent, Inner
+Speech, action-specific Query Generation, and Outer Speech. Direct jointly
+selects decision, task, parameters, and Cypher in one planning call, then gets
+one ordinary post-tool answer call. This makes Direct a capable baseline rather
+than a chatbot without database access.
+
+Run the complete paired suite in a stable, resumable directory:
+
+```bash
+python3 -m evaluation.grounding_benchmark \
+  --provider groq \
+  --model qwen/qwen3.8-27b \
+  --reasoning-effort none \
+  --output-dir evaluation/results/grounding_qwen38_final
+```
+
+The primary deterministic metrics are exact retrieval success, micro evidence
+precision/recall/F1, correct abstention on empty results, declared-claim support,
+and grounded task success. Field aliases such as `piatto`/`dish` and
+`calorie`/`calories` are canonicalized. Collection-valued evidence is compared
+atomically, so a `COLLECT` result and semantically equivalent row-wise results
+score identically. Broad queries are penalized through target-fact and returned-
+entity precision. Raw queries, results, structured claims, timings, calls, and
+tokens are retained for audit. No LLM judge is used.
+
 ## Groq (main architectural comparison)
 
 Create the ignored `.env` file and set `GROQ_API_KEY`. Use one model for every
