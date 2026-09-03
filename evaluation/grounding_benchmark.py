@@ -204,6 +204,11 @@ For auditability, list every factual assertion in claims. Use canonical English 
 field names when possible (dish, calories, proteins, carbs, fats, ingredients, allergens,
 user_allergens, dish_allergens, risks, compatible, already_assigned). Encode each value in
 value_json as JSON text: for example `420`, `false`, or `[\"glutine\",\"lattosio\"]`.
+Whenever you mention a returned candidate dish, include an explicit claim whose field is
+`dish` and whose value_json is that dish name. A constraint used in the Cypher WHERE clause
+is not itself a returned database field: do not claim ingredients or allergens unless they
+are explicitly present in query_results. You may simply say that a returned dish matches
+the request.
 Do not add medical, nutritional, or safety facts not present in or deterministically
 implied by the evidence. An empty risks list deterministically implies compatible=true."""
     user = json.dumps(
