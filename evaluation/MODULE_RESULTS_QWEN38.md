@@ -44,6 +44,29 @@ additional `ingredients` field and received full credit under the submitted
 subset-aware scorer. These observations are an error analysis, not a
 post-hoc replacement of the primary metric.
 
+## Candidate strict and operational reporting views
+
+Keep the submitted metric in the primary reproducibility table unless the old
+Llama outputs can be re-scored with the same new rule. The following secondary
+views are nevertheless useful for explaining what the nominal errors mean:
+
+| Component | Strict submitted-style score | Secondary audited score |
+|---|---:|---:|
+| Query results | 28/30 (93.3%) legacy overlap | 30/30 (100%) expected semantic content, ignoring top-level Cypher aliases |
+| Inner Speech | 38/40 (95.0%) `can_proceed` label agreement | 40/40 (100%) effective dispatch decision |
+| Intent | 44/51 (86.3%) exact parameter dictionaries | 227/234 (97.0%) individual parameter values |
+
+For Query Generation, the only two legacy failures are alias-only and can be
+counted as semantically correct under an alias-invariant evaluator. For Inner
+Speech, both disagreements have an upstream `OutOfScope` action: Qwen considers
+the nutrition-related utterance answerable, but JANUS's deterministic controller
+still blocks dispatch whenever `action_name == OutOfScope`. Thus neither error
+causes an unsupported action. For Intent, six of the seven wrong values are an
+empty optional `DishInfo.nome_utente` despite an explicit name in the utterance;
+the remaining error omits the requested `carboidrati` property. Task selection
+is still 51/51. These secondary views should be labelled as error analysis or
+operational metrics rather than silently replacing the stricter values.
+
 ## Provider latency and token use
 
 `provider_total_time` is the Groq-reported inference time and is the field
