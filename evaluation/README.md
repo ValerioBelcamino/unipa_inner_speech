@@ -207,14 +207,17 @@ python3 -m pytest -q evaluation/test/test_module_benchmark.py
 Run a one-case-per-module smoke test first:
 
 ```bash
-docker compose -f query_generation/query_generation/docker-compose.yml up -d
+docker compose -f evaluation/docker-compose.query.yml up -d
 # Run this only for a new or intentionally reset dedicated test graph:
-python3 query_generation/query_generation/populate_database.py
+NEO4J_URI=neo4j://localhost:19687 \
+  POPULATE_RANDOM_SEED=42 \
+  python3 query_generation/query_generation/populate_database.py
 
 python3 -m evaluation.module_benchmark \
   --max-cases 1 \
   --request-delay 8 \
   --max-completion-tokens 512 \
+  --neo4j-uri bolt://localhost:19687 \
   --output-dir evaluation/results/module_smoke_qwen38
 ```
 
@@ -244,9 +247,11 @@ python3 -m evaluation.module_benchmark \
 
 Scope Detection and Query Generation should be run separately because their
 prompt sizes require different rate-limit pacing. Query Generation uses
-`--neo4j-uri` (default port 7687); Intent uses `--intent-neo4j-uri` (default
-port 18687). To repair a raw Intent run produced before DB post-processing was
-enabled, rescore it without calling the model:
+`--neo4j-uri` (the dedicated compose file exposes port 19687); Intent uses
+`--intent-neo4j-uri` (default port 18687). Query's container includes APOC,
+which generated Cypher may legitimately use. To repair a raw Intent run
+produced before DB post-processing was enabled, rescore it without calling the
+model:
 
 ```bash
 python3 -m evaluation.module_benchmark \

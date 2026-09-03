@@ -3,9 +3,13 @@ import random
 from dotenv import load_dotenv
 import os
 
-URI = "neo4j://localhost:7687"
-USERNAME = "neo4j"
-PASSWORD = "password"
+load_dotenv()
+
+URI = os.getenv("NEO4J_URI", "neo4j://localhost:7687")
+USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
+PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+RANDOM_SEED = int(os.getenv("POPULATE_RANDOM_SEED", "42"))
+random.seed(RANDOM_SEED)
 
 # Connect to the database
 driver = GraphDatabase.driver(URI, auth=(USERNAME, PASSWORD))
