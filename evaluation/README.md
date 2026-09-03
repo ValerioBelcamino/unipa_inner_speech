@@ -71,6 +71,25 @@ python3 -m evaluation.benchmark --suite readiness --validate-only
 python3 -m pytest -q evaluation/test/test_evaluation.py
 ```
 
+The evidence-grounding suite is frozen separately because its gold answers must
+come from the exact Neo4j snapshot rather than from an LLM or a hand-written
+natural-language reference. Start the APOC graph and validate all references
+before any model call:
+
+```bash
+docker compose -f evaluation/docker-compose.query.yml up -d
+
+python3 -m evaluation.grounding \
+  --dataset evaluation/datasets/grounding_v1.json \
+  --neo4j-uri bolt://localhost:19687
+```
+
+The command hashes every node and relationship, executes each fixed read-only
+reference query, compares the result exactly with the stored evidence, checks
+controller/reference parameter alignment, and rejects normalized exact prompt
+copies from the repository's prior few-shot, test, and evaluation datasets. It
+makes no model or provider request.
+
 ## Groq (main architectural comparison)
 
 Create the ignored `.env` file and set `GROQ_API_KEY`. Use one model for every
