@@ -1,0 +1,83 @@
+{
+  "base_url": "https://api.groq.com/openai/v1",
+  "case_ids": [
+    "scope-TER-002",
+    "scope-TER-008",
+    "scope-TER-009",
+    "scope-TER-011",
+    "scope-TER-014",
+    "scope-TER-020",
+    "scope-TER-021",
+    "scope-TER-023",
+    "scope-TER-026",
+    "scope-TER-032",
+    "scope-TER-033",
+    "scope-TER-035",
+    "scope-TER-038",
+    "scope-TER-044",
+    "scope-TER-045",
+    "scope-TER-047",
+    "scope-TER-050",
+    "scope-TER-056",
+    "scope-TER-057",
+    "scope-TER-059",
+    "scope-TER-062",
+    "scope-TER-068",
+    "scope-TER-069",
+    "scope-TER-071"
+  ],
+  "completed_records": 24,
+  "created_at_utc": "20260902T152506Z",
+  "dataset_sha256": {
+    "scope": "0867418d84ba33d3b6417db6a6a191f9408af307ec791cea9330230247e7e871"
+  },
+  "git_branch": "reviewer-evaluation",
+  "git_dirty": false,
+  "git_sha": "8a101ae9773b8672092ccb114dc9782b2c944f55",
+  "hardware": {
+    "cpu_model": "Intel(R) Core(TM) Ultra 7 258V",
+    "logical_cpu_count": 8,
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.9 (main, Nov 19 2025, 10:36:20) [GCC 11.4.0]"
+  },
+  "intent_db_postprocess": true,
+  "intent_neo4j_uri": "bolt://localhost:18687",
+  "intent_postprocessing_profile": "submitted_db_convention_plugin",
+  "last_completed_at_utc": "20260902T152901Z",
+  "last_run_wall_seconds": 234.21100246500282,
+  "max_attempts": 2,
+  "max_cases_per_group": null,
+  "max_completion_tokens": 512,
+  "max_retry_wait": 60.0,
+  "model": "qwen/qwen3.8-27b",
+  "modules": [
+    "scope"
+  ],
+  "paper_temperatures": {
+    "inner": 0.2,
+    "intent": 0.0,
+    "outer": 0.4,
+    "query": 0.0,
+    "scope": 0.0
+  },
+  "prompt_profile": "submitted_manuscript",
+  "provider": "groq",
+  "query_neo4j_uri": "bolt://localhost:7687",
+  "query_protocol": "legacy",
+  "query_protocol_limitation": "legacy protocol injects the evaluated examples as few-shot demonstrations; treat as an in-sample functional regression, not held-out generalization",
+  "reasoning_effort": "none",
+  "repeats": 1,
+  "request_delay": 9.0,
+  "scope_all_case_policy": "66 in-domain cases; OutOfScope remains a candidate tool",
+  "scope_config_sha256": "9a535a971f1cdc7b64f72fb0f2f839da3b9c0ae7315f854b2cd44479f3afd577",
+  "scope_configurations": [
+    "TER"
+  ],
+  "temperatures": {
+    "inner": 0.2,
+    "intent": 0.0,
+    "outer": 0.4,
+    "query": 0.0,
+    "scope": 0.0
+  }
+}

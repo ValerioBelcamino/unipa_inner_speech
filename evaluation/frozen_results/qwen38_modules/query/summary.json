@@ -1,0 +1,27 @@
+[
+  {
+    "api_latency_mean_seconds": 1.2947602654986743,
+    "api_latency_p50_seconds": 1.0827956434950465,
+    "api_latency_p95_seconds": 2.5853017636538396,
+    "attempts_mean": 1,
+    "completion_tokens_p50": 196.5,
+    "configuration": "ADVISOR-legacy",
+    "failure_rate": 0.0,
+    "module": "query",
+    "n": 30,
+    "prompt_tokens_p50": 3324.5,
+    "provider_total_time_mean_seconds": 0.9879788293666667,
+    "provider_total_time_p50_seconds": 0.9437976395,
+    "provider_total_time_p95_seconds": 1.7144175385499987,
+    "query_case_success": 1.0,
+    "query_validity_rate": 1.0,
+    "result_overlap": 0.9333333333333333,
+    "total_tokens_mean": 3437,
+    "total_tokens_p50": 3521.5,
+    "total_tokens_p95": 4151.3,
+    "total_tokens_sum": 103110,
+    "wall_latency_mean_seconds": 39.78302545100111,
+    "wall_latency_p50_seconds": 40.975823023502016,
+    "wall_latency_p95_seconds": 42.29511069619912
+  }
+]

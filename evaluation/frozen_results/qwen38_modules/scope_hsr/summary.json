@@ -1,0 +1,25 @@
+[
+  {
+    "api_latency_mean_seconds": 1.0830031569585117,
+    "api_latency_p50_seconds": 0.9369753540013335,
+    "api_latency_p95_seconds": 1.2223271642462348,
+    "attempts_mean": 1,
+    "completion_tokens_p50": 73.0,
+    "configuration": "HSR",
+    "domain_selection_accuracy": 1.0,
+    "failure_rate": 0.0,
+    "module": "scope",
+    "n": 24,
+    "prompt_tokens_p50": 1028.0,
+    "provider_total_time_mean_seconds": 0.383489901125,
+    "provider_total_time_p50_seconds": 0.3715316365,
+    "provider_total_time_p95_seconds": 0.47736099779999996,
+    "total_tokens_mean": 1103.375,
+    "total_tokens_p50": 1103.5,
+    "total_tokens_p95": 1128.85,
+    "total_tokens_sum": 26481,
+    "wall_latency_mean_seconds": 9.708029004417162,
+    "wall_latency_p50_seconds": 9.93046185750427,
+    "wall_latency_p95_seconds": 10.22246524659713
+  }
+]

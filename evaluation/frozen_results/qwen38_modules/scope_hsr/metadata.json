@@ -1,0 +1,83 @@
+{
+  "base_url": "https://api.groq.com/openai/v1",
+  "case_ids": [
+    "scope-HSR-006",
+    "scope-HSR-007",
+    "scope-HSR-009",
+    "scope-HSR-011",
+    "scope-HSR-018",
+    "scope-HSR-019",
+    "scope-HSR-021",
+    "scope-HSR-023",
+    "scope-HSR-030",
+    "scope-HSR-031",
+    "scope-HSR-033",
+    "scope-HSR-035",
+    "scope-HSR-042",
+    "scope-HSR-043",
+    "scope-HSR-045",
+    "scope-HSR-047",
+    "scope-HSR-054",
+    "scope-HSR-055",
+    "scope-HSR-057",
+    "scope-HSR-059",
+    "scope-HSR-066",
+    "scope-HSR-067",
+    "scope-HSR-069",
+    "scope-HSR-071"
+  ],
+  "completed_records": 24,
+  "created_at_utc": "20260902T152056Z",
+  "dataset_sha256": {
+    "scope": "0867418d84ba33d3b6417db6a6a191f9408af307ec791cea9330230247e7e871"
+  },
+  "git_branch": "reviewer-evaluation",
+  "git_dirty": false,
+  "git_sha": "8a101ae9773b8672092ccb114dc9782b2c944f55",
+  "hardware": {
+    "cpu_model": "Intel(R) Core(TM) Ultra 7 258V",
+    "logical_cpu_count": 8,
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.11.9 (main, Nov 19 2025, 10:36:20) [GCC 11.4.0]"
+  },
+  "intent_db_postprocess": true,
+  "intent_neo4j_uri": "bolt://localhost:18687",
+  "intent_postprocessing_profile": "submitted_db_convention_plugin",
+  "last_completed_at_utc": "20260902T152449Z",
+  "last_run_wall_seconds": 232.99925708000956,
+  "max_attempts": 2,
+  "max_cases_per_group": null,
+  "max_completion_tokens": 512,
+  "max_retry_wait": 60.0,
+  "model": "qwen/qwen3.8-27b",
+  "modules": [
+    "scope"
+  ],
+  "paper_temperatures": {
+    "inner": 0.2,
+    "intent": 0.0,
+    "outer": 0.4,
+    "query": 0.0,
+    "scope": 0.0
+  },
+  "prompt_profile": "submitted_manuscript",
+  "provider": "groq",
+  "query_neo4j_uri": "bolt://localhost:7687",
+  "query_protocol": "legacy",
+  "query_protocol_limitation": "legacy protocol injects the evaluated examples as few-shot demonstrations; treat as an in-sample functional regression, not held-out generalization",
+  "reasoning_effort": "none",
+  "repeats": 1,
+  "request_delay": 9.0,
+  "scope_all_case_policy": "66 in-domain cases; OutOfScope remains a candidate tool",
+  "scope_config_sha256": "9a535a971f1cdc7b64f72fb0f2f839da3b9c0ae7315f854b2cd44479f3afd577",
+  "scope_configurations": [
+    "HSR"
+  ],
+  "temperatures": {
+    "inner": 0.2,
+    "intent": 0.0,
+    "outer": 0.4,
+    "query": 0.0,
+    "scope": 0.0
+  }
+}
